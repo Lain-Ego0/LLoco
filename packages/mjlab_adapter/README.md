@@ -1,6 +1,8 @@
-# MJLab Adapter（接口边界，未实现）
+# MJLab Adapter
 
-状态：本目录目前只声明所有权与接口边界，没有平台代码。实现顺序见 [ROADMAP](../../docs/ROADMAP.md) Phase 1。
+状态：B3 最小版已实现。它以受控子进程运行 vendor 的只读
+`scripts/list_envs.py` 发现 task，并构造 `scripts/play.py <task>` 的等价命令；
+实际执行、日志、退出码与取消由 Local Worker 管理。`train.py` 不在 MVP 范围。
 
 ## 职责
 

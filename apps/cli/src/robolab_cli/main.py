@@ -70,6 +70,22 @@ def _build_parser() -> argparse.ArgumentParser:
     skill_prepare = skill_sub.add_parser("prepare", help="审查权限并生成 Conda 准备计划")
     skill_prepare.add_argument("manifest", type=Path)
     skill_prepare.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
+
+    mjlab = sub.add_parser("mjlab", help="发现并受控调用已 vendor 的 MJLab 入口")
+    mjlab_sub = mjlab.add_subparsers(dest="mjlab_command", required=True)
+    tasks = mjlab_sub.add_parser("tasks", help="从 vendor registry 发现 task")
+    tasks.add_argument("--vendor-root", type=Path, default=Path("vendor/unitree_rl_mjlab"))
+    tasks.add_argument("--keyword")
+    tasks.add_argument("--json", action="store_true")
+    play = mjlab_sub.add_parser("play", help="创建 Job 并以受控子进程调用 vendor play.py")
+    play.add_argument("task_id")
+    play.add_argument("--vendor-root", type=Path, default=Path("vendor/unitree_rl_mjlab"))
+    play.add_argument("--runs-root", type=Path, default=Path("var/runs"))
+    play.add_argument("--num-envs", type=int)
+    play.add_argument("--viewer", choices=("auto", "native", "viser"))
+    play.add_argument("--agent", choices=("zero", "random", "trained"))
+    play.add_argument("--video", action="store_true")
+    play.add_argument("--wait", action="store_true", help="等待结束并输出 result.json")
     return parser
 
 
@@ -228,6 +244,39 @@ def main(argv: list[str] | None = None) -> int:
             print("权限审查完成；未执行任何环境或脚本")
             for step in result["prepare_plan"]:
                 print(f"- {step}")
+        return EXIT_OK
+    if args.command == "mjlab" and args.mjlab_command == "tasks":
+        from robolab_mjlab_adapter import discover_tasks
+
+        try:
+            found = discover_tasks(args.vendor_root, keyword=args.keyword)
+        except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
+            print(f"错误: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
+        payload = [{"taskId": item.task_id, "source": item.source, "equivalentCommand": list(item.command)} for item in found]
+        if args.json:
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+        else:
+            for item in payload:
+                print(item["taskId"])
+        return EXIT_OK
+    if args.command == "mjlab" and args.mjlab_command == "play":
+        from robolab_core import LocalWorker, create_job_run
+        from robolab_mjlab_adapter import build_play_command
+
+        parameters = {key: value for key, value in {"num_envs": args.num_envs, "viewer": args.viewer, "agent": args.agent, "video": args.video}.items() if value not in (None, False)}
+        try:
+            paths = create_job_run(args.runs_root, action="mjlab.play", parameters={"taskId": args.task_id, **parameters}, allowed_paths=[args.vendor_root])
+            command = build_play_command(args.vendor_root, args.task_id, parameters)
+            handle = LocalWorker().start(paths, command, cwd=args.vendor_root)
+        except (OSError, ValueError, PermissionError, subprocess.SubprocessError) as exc:
+            print(f"错误: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
+        print(f"Job 已创建: {paths.run_dir}")
+        if args.wait:
+            handle.process.wait()
+            print(json.dumps(handle.finalize(), ensure_ascii=False, indent=2))
+            return EXIT_OK if handle.process.returncode == 0 else EXIT_CHECK_FAILED
         return EXIT_OK
     parser.error(f"未知命令: {args.command}")
     return EXIT_USAGE_ERROR

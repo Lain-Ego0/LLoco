@@ -15,6 +15,7 @@ SKILL_CATALOG = REPO_ROOT.parent / "RoboLab-Skill"
 for src in (
     REPO_ROOT / "packages/schemas/src",
     REPO_ROOT / "packages/core/src",
+    REPO_ROOT / "packages/mjlab_adapter/src",
     REPO_ROOT / "apps/cli/src",
 ):
     if str(src) not in sys.path:

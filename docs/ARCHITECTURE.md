@@ -1,6 +1,6 @@
 # RoboLab 总体架构
 
-状态：设计基线 v0.3；Q1-Q26 已完成，仓库管理与 MVP 范围已冻结。精选 vendor 已导入（2026-08-20），B1 契约冻结已完成（2026-08-20）：`RobotProfile`/`JointSet`/`SkillPackage` v1alpha1 schema 与 `robolab check` 可用，其余平台代码按 `ROADMAP.md` 实施中。
+状态：设计基线 v0.3；Q1-Q26 已完成，仓库管理与 MVP 范围已冻结。精选 vendor 已导入（2026-08-20），B1 契约冻结与 B3 Job/Worker 已完成（2026-08-20）：schema、`robolab check`、本地 Job 协议、Worker、action registry 和最小 MJLab adapter 可用，其余平台代码按 `ROADMAP.md` 实施中。
 
 ## 1. 设计目标
 
@@ -66,12 +66,12 @@ RoboLab/
 │   └── web/                  # Web 前端（未实现）
 ├── services/
 │   ├── api/                  # 平台 API 与领域服务（未实现）
-│   ├── worker/               # 本地异步任务执行器（未实现）
+│   ├── worker/               # 本地异步任务执行器（已实现：robolab-job-v1 子进程/进程组）
 │   └── edge/                 # 非实时管理面；启动/监控 C++ runtime（未实现）
 ├── packages/
-│   ├── core/                 # 领域模型、registry、兼容性和状态机（B1 已实现：语义检查/兼容性/lint）
+│   ├── core/                 # 领域模型、registry、兼容性和状态机（B1/B3 已实现：语义检查/兼容性/lint/Job/action registry）
 │   ├── schemas/              # manifest/profile/JointSet JSON Schema（已实现：v1alpha1）
-│   ├── mjlab_adapter/        # 将平台 Job 映射到现有 scripts（仅有入口说明）
+│   ├── mjlab_adapter/        # 将平台 Job 映射到现有 scripts（B3 已实现：task 发现/play 命令构造）
 │   └── sdk/                  # Skill/Robot 扩展开发工具（未实现）
 ├── skills/                   # 已存在；仅有工作区约定，Skill Manager 未实现
 │   ├── builtin/              # 随平台发布的 Skill

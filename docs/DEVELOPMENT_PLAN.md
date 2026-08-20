@@ -10,7 +10,7 @@
 - ✅ 精选 vendor 导入与外部 runtime 发现（`vendor/unitree_rl_mjlab/`）
 - ✅ 文档与所有权边界批次（四个入口 stub：adapter / integration / runtime / robots）
 - ✅ **B1 契约冻结（2026-08-20）**；`robolab` conda 主环境已建立（Phase 0 完成标准见 B1 退出小节）
-- ✅ **B2 Profile 样板与 Skill 安装链路完成（2026-08-20）**；下一批为 B3 Job 协议与 Worker
+- ✅ **B3 Job 协议与 Worker 完成（2026-08-20）**；下一批为 B4 三个样板 Skill 与 CLI 端到端
 
 ## 批次总览
 
@@ -63,10 +63,10 @@ B1 同时解锁 ─────────────────> B5 平台 A
 
 | # | 任务 | 依据 | 验收映射 |
 |---|---|---|---|
-| B3.1 | `robolab-job-v1` 子进程协议：Job 输入、`events.jsonl`、`result.json`、取消与清理 | D-004、Q22 | §3.5/3.6、§6 |
-| B3.2 | 本地 Worker：独立进程/进程组运行 Job，不以 root 运行第三方代码 | D-004、架构约束 | §2、§6 |
-| B3.3 | 统一 action registry 初版：CLI 与后续 WebUI/Agent 共用 | Q7、ARCHITECTURE §4.2 | §6 |
-| B3.4 | `packages/mjlab_adapter` 最小版：发现 vendor registry task，受控子进程调用 `scripts/play.py`，采集日志与退出码；MVP 只发现/展示训练 task/config/等价 CLI，`train.py` 启动属下一里程碑 | D-024、Q19 | §3.5、ARCHITECTURE §4.1 |
+| B3.1 | `robolab-job-v1` 子进程协议：Job 输入、`events.jsonl`、`result.json`、取消与清理 | D-004、Q22 | §3.5/3.6、§6 | ✅ 2026-08-20 |
+| B3.2 | 本地 Worker：独立进程/进程组运行 Job，不以 root 运行第三方代码 | D-004、架构约束 | §2、§6 | ✅ 2026-08-20 |
+| B3.3 | 统一 action registry 初版：CLI 与后续 WebUI/Agent 共用 | Q7、ARCHITECTURE §4.2 | §6 | ✅ 2026-08-20 |
+| B3.4 | `packages/mjlab_adapter` 最小版：发现 vendor registry task，受控子进程调用 `scripts/play.py`，采集日志与退出码；MVP 只发现/展示训练 task/config/等价 CLI，`train.py` 启动属下一里程碑 | D-024、Q19 | §3.5、ARCHITECTURE §4.1 | ✅ 2026-08-20 |
 
 依赖：B1。注意 adapter 只调用 vendor 现有入口，不重构 vendor 内部。
 
