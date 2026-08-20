@@ -19,3 +19,10 @@ def test_discover_tasks_parses_vendor_prettytable_output(tmp_path):
     script.parent.mkdir()
     script.write_text("print('| 1 | Unitree-G1-Flat |')\nprint('| 2 | Unitree-Go2-Flat |')", encoding="utf-8")
     assert [item.task_id for item in discover_tasks(tmp_path, python=sys.executable)] == ["Unitree-G1-Flat", "Unitree-Go2-Flat"]
+
+
+def test_discover_tasks_exposes_vendor_root_on_pythonpath(tmp_path):
+    script = tmp_path / "scripts" / "list_envs.py"
+    script.parent.mkdir()
+    script.write_text("import os\nassert os.environ['PYTHONPATH'].split(os.pathsep)[0] == os.getcwd()\nprint('| 1 | Unitree-G1-Flat |')", encoding="utf-8")
+    assert [item.task_id for item in discover_tasks(tmp_path, python=sys.executable)] == ["Unitree-G1-Flat"]

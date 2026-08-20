@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -27,7 +28,9 @@ def discover_tasks(vendor_root: str | Path, *, keyword: str | None = None, pytho
     if not script.is_file():
         raise FileNotFoundError(f"MJLab discovery entry point not found: {script}")
     command = (python or sys.executable, str(script), *((["--keyword", keyword] if keyword else [])))
-    completed = subprocess.run(command, cwd=root, capture_output=True, text=True, timeout=timeout, check=False)
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = str(root) + os.pathsep + environment.get("PYTHONPATH", "")
+    completed = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True, timeout=timeout, check=False)
     if completed.returncode != 0:
         raise RuntimeError(f"MJLab task discovery failed ({completed.returncode}): {completed.stderr.strip()}")
     tasks: list[TaskInfo] = []

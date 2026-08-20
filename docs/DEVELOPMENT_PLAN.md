@@ -10,7 +10,7 @@
 - ✅ 精选 vendor 导入与外部 runtime 发现（`vendor/unitree_rl_mjlab/`）
 - ✅ 文档与所有权边界批次（四个入口 stub：adapter / integration / runtime / robots）
 - ✅ **B1 契约冻结（2026-08-20）**；`robolab` conda 主环境已建立（Phase 0 完成标准见 B1 退出小节）
-- ✅ **B6 最小 WebUI 完成（2026-08-20）**；下一批为 B7 MVP 验收演练
+- 🔶 **B7 MVP 验收演练进行中（2026-08-20）**；CPU 闭环已通过；catalog 发布与 MJLab/Viser 手动环境待完成
 
 ## 批次总览
 
@@ -108,9 +108,9 @@ B1 同时解锁 ─────────────────> B5 平台 A
 
 | # | 任务 | 依据 | 验收映射 |
 |---|---|---|---|
-| B7.1 | 按 MVP_ACCEPTANCE §8 在干净机器完整演练三条路径 | — | §8 |
-| B7.2 | CPU CI：schema、安装、Job 协议、MJCF Inspector contract test | D-030、Q26 | §6 |
-| B7.3 | 本地环境测试记录：MJLab play / Viser 手动验证清单 | D-030 | §3 |
+| B7.1 | 按 MVP_ACCEPTANCE §8 在干净机器完整演练三条路径 | — | §8 | 🔶 2026-08-20 |
+| B7.2 | CPU CI：schema、安装、Job 协议、MJCF Inspector contract test | D-030、Q26 | §6 | 🔶 2026-08-20（本地通过；待 catalog 发布后远程 CI） |
+| B7.3 | 本地环境测试记录：MJLab play / Viser 手动验证清单 | D-030 | §3 | ✅ 2026-08-20（task 发现通过；play 失败已记录） |
 
 依赖：B4、B6。
 

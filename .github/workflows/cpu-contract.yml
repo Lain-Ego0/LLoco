@@ -1,0 +1,29 @@
+name: CPU contract
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: RoboLab
+      - uses: actions/checkout@v4
+        with:
+          repository: Lain-Ego0/RoboLab-Skill
+          path: RoboLab-Skill
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install local packages and CPU test dependencies
+        working-directory: RoboLab
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest httpx
+          python -m pip install -e packages/schemas -e packages/core -e packages/mjlab_adapter -e services/api -e services/worker -e apps/cli
+      - name: Run schema, installation, Job protocol and API/Inspector contracts
+        working-directory: RoboLab
+        run: python -m pytest -q tests/contract

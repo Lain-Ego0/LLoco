@@ -344,7 +344,9 @@ def main(argv: list[str] | None = None) -> int:
         try:
             paths = create_job_run(args.runs_root, action="mjlab.play", parameters={"taskId": args.task_id, **parameters}, allowed_paths=[args.vendor_root])
             command = build_play_command(args.vendor_root, args.task_id, parameters)
-            handle = LocalWorker().start(paths, command, cwd=args.vendor_root)
+            vendor_root = args.vendor_root.resolve()
+            import os
+            handle = LocalWorker().start(paths, command, cwd=vendor_root, env={"PYTHONPATH": str(vendor_root) + os.pathsep + os.environ.get("PYTHONPATH", "")})
         except (OSError, ValueError, PermissionError, subprocess.SubprocessError) as exc:
             print(f"错误: {exc}", file=sys.stderr)
             return EXIT_CHECK_FAILED
