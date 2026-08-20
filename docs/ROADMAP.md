@@ -2,12 +2,12 @@
 
 ## Phase 0：来源与契约基线
 
-- 以已验证的 upstream commit `1425b15f` 建立可追踪导入历史；
-- 以独立 curated vendor commit 导入 `vendor/unitree_rl_mjlab/`，使用 manifest 排除宣传文档、预编译 runtime 和 Skill 产物；
-- 选择仓库内一个公开 Unitree MJCF 作为首个 simulation-only 样板；
-- 冻结 `RobotProfile v1alpha1` 和统一 `SkillPackage v1alpha1` 最小 schema；
-- 为现有 velocity 产物生成 MotionSkill，并创建一个可执行 PlatformSkill；
-- 建立基础 lint、schema、license 和 artifact hash 检查。
+- ✅ 以已验证的 upstream commit `1425b15f` 建立可追踪导入历史（`vendor/unitree_rl_mjlab/UPSTREAM.md`）；
+- ✅ 以独立 curated vendor commit 导入 `vendor/unitree_rl_mjlab/`，使用 manifest 排除宣传文档、预编译 runtime 和 Skill 产物；后续 commit 已将 deploy/simulate 改为发现外部 ONNX Runtime/MuJoCo；
+- ⬜ 选择仓库内一个公开 Unitree MJCF 作为首个 simulation-only 样板；
+- ⬜ 冻结 `RobotProfile v1alpha1` 和统一 `SkillPackage v1alpha1` 最小 schema；
+- ⬜ 为现有 velocity 产物生成 MotionSkill，并创建一个可执行 PlatformSkill；
+- ⬜ 建立基础 lint、schema、license 和 artifact hash 检查。
 
 退出条件：任何人能解释一份 Skill 为什么与某 Robot Profile 兼容或不兼容。
 
@@ -55,4 +55,4 @@
 
 ## 首个迭代建议
 
-首个两周迭代建议实现三条最小样例：“G1 velocity MotionSkill -> MJLab play”、“MJCF Inspector PlatformSkill -> 诊断报告”，以及统一安装/调用页面。AgentSkill 是否同时进入首版，等待第二轮 QA 确认。
+首个两周迭代建议实现三条最小样例：“G1 velocity MotionSkill -> MJLab play”、“MJCF Inspector PlatformSkill -> 诊断报告”，以及统一安装/调用页面。第二轮 QA 已确认 AgentSkill（Robot Onboarding）同时进入首版。

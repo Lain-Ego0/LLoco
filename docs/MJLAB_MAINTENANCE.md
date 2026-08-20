@@ -1,12 +1,12 @@
 # Unitree RL MJLab 精选 Vendor 方案
 
-状态：已确认。保留技术价值和来源追踪，不把 RoboLab 建成 Unitree 上游仓库的完整镜像。
+状态：已确认并已实施。精选 vendor 于 2026-08-20 导入 `vendor/unitree_rl_mjlab/` 并纳入 Git；保留技术价值和来源追踪，不把 RoboLab 建成 Unitree 上游仓库的完整镜像。
 
 ## 1. 当前事实
 
-当前工作区的 `mjlab/` 约 340 MiB，完整文件哈希已验证与 `unitreerobotics/unitree_rl_mjlab@1425b15f` 一致，但整个目录尚未进入 RoboLab Git 历史。
+`vendor/unitree_rl_mjlab/` 已按 `VENDOR_MANIFEST.yaml` 完成精选导入，来源基线为 `unitreerobotics/unitree_rl_mjlab@1425b15f`（导入前已对本地完整工作副本做过完整 blob 哈希比对）。导入为独立 commit，随后以单独 commit 让 deploy/simulate 改为发现外部 ONNX Runtime 与 MuJoCo，替代被排除的预编译包。
 
-该上游仓库不是通用 `mujocolab/mjlab` 引擎本体，而是基于 MJLab 构建的 Unitree 机器人训练、资产、仿真和部署项目。若原样放在 RoboLab 主树中，会产生三个问题：
+该上游仓库不是通用 `mujocolab/mjlab` 引擎本体，而是基于 MJLab 构建的 Unitree 机器人训练、资产、仿真和部署项目。原样放入 RoboLab 主树会产生三个问题：
 
 - 仓库内容和视觉素材过度 Unitree 化，容易让 RoboLab 看起来像品牌二次包装；
 - 上游演示 GIF、预编译 runtime 和样例产物增加体积，但不构成平台核心；
@@ -45,16 +45,16 @@ integrations/
 packages/
 └── mjlab_adapter/            # RoboLab 对通用 MJLab/任务的稳定适配层
 
-runtime/                      # 与厂商无关的部署、推理、安全和遥测
-robots/                       # 与 Skill 解耦的 Robot Profile
+runtime/                      # 与厂商无关的部署、推理、安全和遥测（仅有入口说明）
+robots/                       # 与 Skill 解耦的 Robot Profile（仅有入口说明）
 docs/                         # RoboLab 自己的正式文档
 ```
 
-当前物理路径仍是 `mjlab/`。只有实施 vendor 导入时才移动到目标路径，并同步 adapter/import/cwd；文档决策本身不移动文件。
+上述目录边界中，`vendor/` 与 `docs/` 已存在；`integrations/`、`packages/`、`runtime/`、`robots/` 目前只有入口说明，平台代码按 `ROADMAP.md` 逐步实现，迁移时同步 adapter/import/cwd。
 
 ## 4. 首次导入保留清单
 
-保留项以“当前平台真实依赖或迁移参考”为标准：
+首次导入已按下列原则实施，实际路径集合以 `VENDOR_MANIFEST.yaml` 的 `includedPaths` 为准。保留项以“当前平台真实依赖或迁移参考”为标准：
 
 | 内容 | 处理 | 理由 |
 |---|---|---|
@@ -71,6 +71,8 @@ docs/                         # RoboLab 自己的正式文档
 “按首批支持模型保留”不意味着立即删除所有非 G1 模型。首次实施前应由 import manifest 列出实际包含集合，避免无意破坏已有 task；但新增非 Unitree 模型不得继续进入该 vendor 的 Unitree assets 命名空间。
 
 ## 5. 首次导入排除清单
+
+实际排除路径与理由以 `VENDOR_MANIFEST.yaml` 的 `excludedPaths` 为准。
 
 | 内容 | 处理 | 替代方案 |
 |---|---|---|
@@ -107,30 +109,21 @@ docs/                         # RoboLab 自己的正式文档
 - G1/Go2 与未来自制机器人通过同一 Robot Profile/Skill API 展示；
 - 不暗示 Unitree 对 RoboLab 的官方认可或合作关系。
 
-## 8. `VENDOR_MANIFEST.yaml` 应记录
+## 8. `VENDOR_MANIFEST.yaml` 记录内容
 
-```yaml
-name: unitree_rl_mjlab
-source: https://github.com/unitreerobotics/unitree_rl_mjlab
-revision: 1425b15f73bd4095f0df53709d7c389c3eb9e790
-license: Apache-2.0
-importMode: curated-vendor
-includedPaths: []             # 实施时列出
-excludedPaths: []             # 实施时列出路径和原因
-robolabPatches: []            # 后续维护
-verifiedAt: 2026-08-20
-```
+`vendor/unitree_rl_mjlab/VENDOR_MANIFEST.yaml` 已建立，记录 name、source、revision、license、importMode、实际 includedPaths/excludedPaths（含排除理由）、robolabPatches 和 verifiedAt。
 
-导入工具应验证所有被包含文件的 Git blob SHA-1 与固定 upstream commit 一致。排除项不是“文件丢失”，而是 manifest 中可审计的产品决策。
+导入时已验证所有被包含文件与固定 upstream commit 一致。排除项不是“文件丢失”，而是 manifest 中可审计的产品决策。当前 `robolabPatches` 包含：新增 `deploy/cmake/FindONNXRuntime.cmake`，以及让 deploy/simulate 的 CMake 发现外部 ONNX Runtime/MuJoCo 而不是使用被排除的预编译包。
 
-## 9. 推荐 Git 历史
+## 9. Git 历史
 
 ```text
-1. docs: freeze RoboLab architecture and curated vendor decision
-2. vendor(unitree): import curated unitree_rl_mjlab@1425b15f
-3. skill: publish G1 velocity artifacts in RoboLab-Skill
-4. platform: add schemas, CLI, worker and adapters
-5. runtime: migrate generic deployment capabilities out of vendor
+1. docs: freeze RoboLab platform baseline                       # 已完成
+2. vendor(unitree): import curated unitree_rl_mjlab@1425b15f    # 已完成
+   build(unitree): discover external simulation runtimes        # 已完成（RoboLab patch 独立 commit）
+3. skill: publish G1 velocity artifacts in RoboLab-Skill        # 未开始
+4. platform: add schemas, CLI, worker and adapters              # 未开始
+5. runtime: migrate generic deployment capabilities out of vendor  # 未开始
 ```
 
 vendor commit 不混入 RoboLab 重构。平台修改和路径迁移放后续独立 commit，便于审查上游来源与本项目贡献。

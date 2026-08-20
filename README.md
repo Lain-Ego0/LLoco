@@ -4,7 +4,7 @@ One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with De
 
 RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台，将机器人接入、强化学习训练、仿真验证、策略导出、Skill 安装和实机部署组织成一条可追踪、可复现、可回滚的工作流。
 
-> 当前仓库处于架构固化阶段。`mjlab/` 已包含训练、回放、sim-to-sim 和 Unitree 实机部署代码；WebUI、平台后端与 Skill 管理器尚未实现。文档中的目录是目标结构，不代表相应功能已经可用。
+> 当前仓库处于平台实现前期。`vendor/unitree_rl_mjlab/` 已完成精选 vendor 导入并纳入 Git，包含训练、回放、sim-to-sim 和 Unitree legacy 部署源码，可通过其 `scripts/` 直接使用；WebUI、平台后端、Skill 管理器和通用 runtime 尚未实现。下文“仓库入口”明确区分已存在的目录与仅为接口边界的目标目录。
 
 ## 核心边界
 
@@ -36,6 +36,26 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 
 `RoboLab-Skill` 作为全部开源的 catalog monorepo：一个仓库可以包含多个 MotionSkill、PlatformSkill 和 AgentSkill，但每个 Skill 必须有独立 manifest、版本、许可证、入口、权限和兼容性声明。平台安装时固定 Git commit/tag，不直接跟随浮动的 `main`。
 
+## 仓库入口与所有权
+
+当前已存在并可用：
+
+| 路径 | 内容 | 状态 |
+|---|---|---|
+| `vendor/unitree_rl_mjlab/` | 精选导入的 Unitree 训练/仿真/legacy 部署技术来源 | 已导入并纳入 Git；训练、回放、sim-to-sim 可按上游方式运行 |
+| `skills/` | 本机 Skill 工作区边界（builtin/installed/dev） | 仅有目录约定；Skill Manager 未实现 |
+| `docs/` | RoboLab 正式文档 | 可用 |
+| `THIRD_PARTY_NOTICES.md` | 第三方声明 | 可用，随依赖演进持续更新 |
+
+以下四个入口目前**只是所有权与接口边界**，目录中只有说明文档，没有平台代码：
+
+| 入口 | 职责 | 实现状态 |
+|---|---|---|
+| [`packages/mjlab_adapter/`](packages/mjlab_adapter/) | 把平台 Job 映射到 vendor 中的 train/play/export 脚本 | 接口边界，未实现 |
+| [`integrations/unitree/`](integrations/unitree/) | Unitree Driver/Profile，首个厂商适配器 | 接口边界，未实现；Unitree 专用逻辑暂仍在 vendor `deploy/` |
+| [`runtime/`](runtime/) | 与厂商无关的 C++ FSM、推理、安全与遥测 | 接口边界，未实现；共享逻辑暂仍在 vendor `deploy/` |
+| [`robots/`](robots/) | 与 Skill 解耦的 Robot Profile | 接口边界，未实现；首个 Profile 目标为 Unitree G1 29DoF simulation-only |
+
 ## 目标工作流
 
 1. 创建或导入 Robot Profile，完成模型、关节、驱动与安全参数校验。
@@ -65,6 +85,6 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 
 ## 上游声明
 
-当前工作区的 `mjlab/` 来源于 [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)。正式导入时将迁入 `vendor/unitree_rl_mjlab/`，并只保留实际需要的技术来源；上游宣传文档、GIF、预编译 runtime 和 Skill 产物不进入 active vendor。保留内容继续遵守 Apache-2.0；RoboLab 根目录 MIT 不替代第三方许可证。RoboLab 不是 Unitree Robotics 的官方产品。
+`vendor/unitree_rl_mjlab/` 精选导入自 [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，基线固定为 `1425b15f`，只保留平台实际依赖的技术来源；上游宣传文档、GIF、预编译 runtime 和 Skill 产物未进入 vendor，include/exclude 规则见 `vendor/unitree_rl_mjlab/VENDOR_MANIFEST.yaml`。保留内容继续遵守 Apache-2.0；RoboLab 根目录 MIT 不替代第三方许可证。RoboLab 不是 Unitree Robotics 的官方产品。
 
-详见 [第三方声明](THIRD_PARTY_NOTICES.md) 和 [上游记录](mjlab/UPSTREAM.md)。
+详见 [第三方声明](THIRD_PARTY_NOTICES.md) 和 [上游记录](vendor/unitree_rl_mjlab/UPSTREAM.md)。

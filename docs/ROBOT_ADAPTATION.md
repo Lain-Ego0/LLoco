@@ -203,7 +203,7 @@ resolve Skill/Profile -> compatibility -> prepare target -> validate
 
 ## 10. 对现有代码的渐进重构
 
-现有 `mjlab/deploy/robots/*` 适合先作为受支持后端保留，再分三步消除复制：
+`vendor/unitree_rl_mjlab/deploy/robots/*` 作为受支持的 legacy 后端保留，再分三步消除复制：
 
 1. 提取共享的 FSM、ONNX runner、observation/action 构造和参数加载；
 2. 将各机器人 `Types.h`、mode check、DDS topic 和关节映射变成 Driver/Profile；

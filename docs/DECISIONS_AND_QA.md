@@ -4,7 +4,7 @@
 
 ## 已知代码事实
 
-- `mjlab/` 来自 `unitreerobotics/unitree_rl_mjlab`，完整 blob 比对确认基线为 `1425b15f`，但该目录当前在 RoboLab Git 中仍是未跟踪状态。
+- `vendor/unitree_rl_mjlab/` 精选导入自 `unitreerobotics/unitree_rl_mjlab`，基线固定为 `1425b15f`，已纳入 RoboLab Git（导入前本地完整工作副本通过完整 blob 比对验证）。
 - 现有代码支持 velocity、tracking、MJLab play、ONNX 导出、unitree_mujoco 和多种 Unitree 机器人部署目录。
 - `RoboLab-Skill` 是独立公开仓库，目前从最小 README/LICENSE 开始建设。
 - 仓库已有多种 Unitree XML/MJCF，可用于没有实机条件时的 simulation-first 开发。
@@ -22,7 +22,7 @@
 | D-007 | WebUI 保留一键部署；实机驱动、标定、电机通信和传感器接口先定义后实现 | 已确认 |
 | D-008 | 使用 Conda，首版不考虑 Docker | 已确认 |
 | D-009 | 平台、Skill、模型和动作以全部开源为目标，每项仍保留自身许可证 | 已确认 |
-| D-010 | 根项目 MIT 与 `mjlab/` Apache-2.0、其他第三方许可证并存 | 已确认 |
+| D-010 | 根项目 MIT 与 `vendor/unitree_rl_mjlab/` Apache-2.0、其他第三方许可证并存 | 已确认 |
 | D-011 | 外部开发 Agent 优先；先做 AgentSkill registry/adapter，平台内 Agent 后续接入 | 已确认 |
 | D-012 | AgentSkill 使用根目录 `SKILL.md` + RoboLab `skill.yaml` | 已确认 |
 | D-013 | Web 技术栈必须本地直接运行，不依赖云服务 | 已确认 |
@@ -125,11 +125,13 @@ MVP 验收标准单独维护在 `MVP_ACCEPTANCE.md`。
 
 架构 QA 已完成，以下选择形成实施基线。
 
-### Q21. `mjlab/` 的 Git 管理方式
+### Q21. Unitree 上游来源的 Git 管理方式
 
-当前 `mjlab/` 约 340 MiB、完整匹配上游 `1425b15f`，但仍未被 RoboLab Git 跟踪。最初讨论了完整 squash vendor；进一步评估品牌独立性、仓库体积和目录所有权后，最终修订为精选 vendor。
+决策时本地存在一份约 340 MiB、完整匹配上游 `1425b15f` 但未被 RoboLab Git 跟踪的工作副本。最初讨论了完整 squash vendor；进一步评估品牌独立性、仓库体积和目录所有权后，最终修订为精选 vendor。
 
 结果：选择精选 vendor 导入。目标路径为 `vendor/unitree_rl_mjlab/`，保留实际依赖的训练、机器人资产、脚本、仿真和 legacy deploy 技术源码；排除上游 README/doc/GIF、预编译 ONNX Runtime/MuJoCo 库以及应迁入 RoboLab-Skill 的策略/动作产物。完整 include/exclude 清单写入 `VENDOR_MANIFEST.yaml`。
+
+实施状态：已完成（2026-08-20）。导入为独立 commit，外部 ONNX Runtime/MuJoCo 发现以单独的 RoboLab patch commit 跟进。
 
 ### Q22. 第一段代码的实现顺序
 

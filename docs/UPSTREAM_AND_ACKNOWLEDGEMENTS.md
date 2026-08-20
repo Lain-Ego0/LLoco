@@ -2,7 +2,7 @@
 
 ## 1. 直接代码来源
 
-当前工作区的 `mjlab/` 来源于 Unitree Robotics 的 [unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，是本项目首批 Unitree 训练、回放、机器人资产与部署迁移参考。该上游使用 Apache License 2.0。来源基线已经通过完整 blob 哈希比对固定为 [`1425b15f`](https://github.com/unitreerobotics/unitree_rl_mjlab/commit/1425b15f73bd4095f0df53709d7c389c3eb9e790)。正式导入采用精选 vendor，不携带上游宣传媒体、冗余预编译 runtime 和已经归属 Skill 的产物。
+`vendor/unitree_rl_mjlab/` 精选导入自 Unitree Robotics 的 [unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，是本项目首批 Unitree 训练、回放、机器人资产与部署迁移参考，已纳入 RoboLab Git。该上游使用 Apache License 2.0。来源基线已经通过完整 blob 哈希比对固定为 [`1425b15f`](https://github.com/unitreerobotics/unitree_rl_mjlab/commit/1425b15f73bd4095f0df53709d7c389c3eb9e790)。导入采用精选 vendor，未携带上游宣传媒体、冗余预编译 runtime 和归属 Skill 的产物；include/exclude 规则见 `vendor/unitree_rl_mjlab/VENDOR_MANIFEST.yaml`。
 
 以后同步上游时应使用单独 commit，记录 upstream range、冲突和 RoboLab 修改，避免无法区分原创、修改与上游更新。
 
@@ -10,7 +10,7 @@
 
 ### 直接基础与机器人生态
 
-- [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)：RoboLab 内 `mjlab/` 来源和最直接工程基础。
+- [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)：RoboLab 内 `vendor/unitree_rl_mjlab/` 的来源和最直接工程基础。
 - [mujocolab/mjlab](https://github.com/mujocolab/mjlab)：上游训练环境与高层 API 基础。
 - [unitreerobotics/unitree_sdk2](https://github.com/unitreerobotics/unitree_sdk2)：Unitree 实机通信与控制接口。
 - [unitreerobotics/unitree_mujoco](https://github.com/unitreerobotics/unitree_mujoco)：现有 sim-to-sim 流程的重要组成。
@@ -26,7 +26,7 @@
 ### 通信与运行依赖
 
 - [Eclipse Cyclone DDS](https://github.com/eclipse-cyclonedds/cyclonedds)：DDS 通信实现。
-- [ONNX Runtime](https://github.com/microsoft/onnxruntime)：现有 C++ 部署程序的推理依赖；当前完整工作副本含预编译包，正式 curated vendor 计划改由安装器提供。
+- [ONNX Runtime](https://github.com/microsoft/onnxruntime)：现有 C++ 部署程序的推理依赖；curated vendor 不含预编译包，由安装器提供固定版本（deploy/simulate 的 CMake 已改为发现外部安装）。
 - [cnpy](https://github.com/rogersce/cnpy)：现有部署程序读取 NumPy `.npy/.npz` 数据。
 - [LodePNG](https://lodev.org/lodepng/)：现有 MuJoCo 模拟器包含的 PNG 编解码实现。
 - [drewnoakes/joystick](https://github.com/drewnoakes/joystick)：现有 joystick 工具注明的代码基础。
@@ -37,7 +37,7 @@ README 的“致谢”用于表达技术来源；`THIRD_PARTY_NOTICES.md`、各�
 
 发布前至少完成：
 
-- 保留 `mjlab/LICENCE`；
+- 保留 `vendor/unitree_rl_mjlab/LICENCE`；
 - 对修改过的 Apache-2.0 来源文件添加显著修改说明或用可追踪变更记录满足要求；
 - 保留上游已有 copyright、patent、trademark 和 attribution notice；
 - 如果上游/依赖包含 NOTICE，将其可读副本带入发布物；

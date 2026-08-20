@@ -1,6 +1,6 @@
 # RoboLab 总体架构
 
-状态：设计基线 v0.3；Q1-Q26 已完成，仓库管理与 MVP 范围已冻结。
+状态：设计基线 v0.3；Q1-Q26 已完成，仓库管理与 MVP 范围已冻结。精选 vendor 已导入（2026-08-20），平台代码按 `ROADMAP.md` 实施中。
 
 ## 1. 设计目标
 
@@ -55,36 +55,36 @@ Platform API 和 WebUI 属于控制面：创建任务、修改配置、授权部
 
 所有运行记录都要固定代码 revision、Robot Profile 版本、Skill 版本、配置快照、随机种子、依赖环境和产物哈希。
 
-## 3. 目标目录结构
+## 3. 目录结构与当前进度
 
-在不立即移动现有 `mjlab/` 的前提下，推荐逐步演进为：
+精选 vendor 导入已完成，`vendor/unitree_rl_mjlab/` 已纳入 Git。当前实际存在的目录只有 `vendor/`、`skills/`（仅工作区约定）、`docs/` 和根级声明文件；其余目录是已冻结的目标结构，尚未创建对应平台代码：
 
 ```text
 RoboLab/
 ├── apps/
-│   └── web/                  # Web 前端
+│   └── web/                  # Web 前端（未实现）
 ├── services/
-│   ├── api/                  # 平台 API 与领域服务
-│   ├── worker/               # 本地异步任务执行器
-│   └── edge/                 # 非实时管理面；启动/监控 C++ runtime
+│   ├── api/                  # 平台 API 与领域服务（未实现）
+│   ├── worker/               # 本地异步任务执行器（未实现）
+│   └── edge/                 # 非实时管理面；启动/监控 C++ runtime（未实现）
 ├── packages/
-│   ├── core/                 # 领域模型、registry、兼容性和状态机
-│   ├── schemas/              # manifest/profile/API JSON Schema
-│   ├── mjlab_adapter/        # 将平台 Job 映射到现有 scripts
-│   └── sdk/                  # Skill/Robot 扩展开发工具
-├── skills/
+│   ├── core/                 # 领域模型、registry、兼容性和状态机（未实现）
+│   ├── schemas/              # manifest/profile/API JSON Schema（未实现）
+│   ├── mjlab_adapter/        # 将平台 Job 映射到现有 scripts（仅有入口说明）
+│   └── sdk/                  # Skill/Robot 扩展开发工具（未实现）
+├── skills/                   # 已存在；仅有工作区约定，Skill Manager 未实现
 │   ├── builtin/              # 随平台发布的 Skill
 │   ├── installed/            # catalog 安装的固定版本
 │   └── dev/                  # 本地 Skill 开发链接
 ├── integrations/
-│   └── unitree/              # Unitree Driver/Profile，首个厂商适配器
+│   └── unitree/              # Unitree Driver/Profile，首个厂商适配器（仅有入口说明）
 ├── runtime/
-│   ├── core/                 # 共享 C++ FSM、推理、安全与遥测
-│   └── drivers/              # unitree_sdk2 等硬件驱动插件
-├── robots/                   # RoboLab Robot Profile；不放具体 Skill
+│   ├── core/                 # 共享 C++ FSM、推理、安全与遥测（仅有入口说明）
+│   └── drivers/              # unitree_sdk2 等硬件驱动插件（未实现）
+├── robots/                   # RoboLab Robot Profile；不放具体 Skill（仅有入口说明）
 ├── vendor/
-│   └── unitree_rl_mjlab/     # 精选上游技术来源，不含宣传媒体/冗余二进制
-├── docs/
+│   └── unitree_rl_mjlab/     # 已导入：精选上游技术来源，不含宣传媒体/冗余二进制
+├── docs/                     # 已存在
 ├── tests/
 │   ├── contract/
 │   ├── integration/
@@ -94,12 +94,12 @@ RoboLab/
 │   ├── skill-cache/
 │   ├── skill-envs/
 │   └── runs/
-└── THIRD_PARTY_NOTICES.md
+└── THIRD_PARTY_NOTICES.md    # 已存在
 ```
 
-不要在初期同时进行所有内部重构和功能开发。精选 vendor 导入完成后，第一阶段可让 `mjlab_adapter` 以受控子进程调用 vendor 中现有 `scripts/train.py`、`play.py` 和必要部署程序，等接口稳定后再重构内部实现。
+不要在初期同时进行所有内部重构和功能开发。vendor 导入已完成，第一阶段可让 `mjlab_adapter` 以受控子进程调用 vendor 中现有 `scripts/train.py`、`play.py` 和必要部署程序，等接口稳定后再重构内部实现。
 
-上游 `doc/`、演示 GIF、预编译 runtime 和策略产物不进入 active vendor。精选后的 `vendor/unitree_rl_mjlab/deploy/` 只保留必要 Unitree 部署源码和迁移参考；RoboLab 通用 runtime 放根目录 `runtime/`，平台文档放根目录 `docs/`。
+上游 `doc/`、演示 GIF、预编译 runtime 和策略产物未进入 active vendor。精选后的 `vendor/unitree_rl_mjlab/deploy/` 只保留必要 Unitree 部署源码和迁移参考；RoboLab 通用 runtime 放根目录 `runtime/`，平台文档放根目录 `docs/`。
 
 ## 4. 扩展边界
 
