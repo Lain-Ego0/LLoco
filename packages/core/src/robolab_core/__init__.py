@@ -15,6 +15,7 @@ from robolab_core.skill_install import InstallResult, install_skill, uninstall_s
 from robolab_core.skill_prepare import review_skill
 from robolab_core.versioning import SemVer, VersionRange
 from robolab_core.actions import Action, ActionRegistry
+from robolab_core.agent_export import export_agent_skill
 from robolab_core.jobs import JOB_PROTOCOL, JobHandle, JobPaths, LocalWorker, append_event, create_job_run, read_events
 
 __all__ = [

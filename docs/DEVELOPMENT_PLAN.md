@@ -10,7 +10,7 @@
 - ✅ 精选 vendor 导入与外部 runtime 发现（`vendor/unitree_rl_mjlab/`）
 - ✅ 文档与所有权边界批次（四个入口 stub：adapter / integration / runtime / robots）
 - ✅ **B1 契约冻结（2026-08-20）**；`robolab` conda 主环境已建立（Phase 0 完成标准见 B1 退出小节）
-- ✅ **B3 Job 协议与 Worker 完成（2026-08-20）**；下一批为 B4 三个样板 Skill 与 CLI 端到端
+- ✅ **B4 三个样板 Skill 与 CLI 端到端完成（2026-08-20）**；下一批为 B5 平台 API 与 `robolab serve`
 
 ## 批次总览
 
@@ -74,10 +74,10 @@ B1 同时解锁 ─────────────────> B5 平台 A
 
 | # | 任务 | 依据 | 验收映射 |
 |---|---|---|---|
-| B4.1 | G1 Velocity MotionSkill：只携带自身 ONNX/deploy 参数，引用 G1 Profile 与 MJLab task，不复制 XML/mesh/runtime | D-017、D-027、Q9/Q23 | §3 全部 |
-| B4.2 | MJCF Inspector PlatformSkill：报告 schema（`report.json`/`report.md`/`robot_profile.draft.yaml`）与只读权限默认 | D-015、Q12 | §4 全部 |
-| B4.3 | Robot Onboarding AgentSkill：`SKILL.md` + `skill.yaml` + `references/`，Codex `.agents/skills/` 导出原型 | D-011、D-012、Q8/Q9 | §5 全部 |
-| B4.4 | CLI 端到端：安装三个样板 → 校验 → 调用 → 查看结果，全程无需手工复制文件 | D-026、Q22 | §8 |
+| B4.1 | G1 Velocity MotionSkill：只携带自身 ONNX/deploy 参数，引用 G1 Profile 与 MJLab task，不复制 XML/mesh/runtime | D-017、D-027、Q9/Q23 | §3 全部 | ✅ 2026-08-20 |
+| B4.2 | MJCF Inspector PlatformSkill：报告 schema（`report.json`/`report.md`/`robot_profile.draft.yaml`）与只读权限默认 | D-015、Q12 | §4 全部 | ✅ 2026-08-20 |
+| B4.3 | Robot Onboarding AgentSkill：`SKILL.md` + `skill.yaml` + `references/`，Codex `.agents/skills/` 导出原型 | D-011、D-012、Q8/Q9 | §5 全部 | ✅ 2026-08-20 |
+| B4.4 | CLI 端到端：安装三个样板 → 校验 → 调用 → 查看结果，全程无需手工复制文件 | D-026、Q22 | §8 | ✅ 2026-08-20 |
 
 依赖：B2（安装链路、G1 Profile）、B3（Job 运行）。
 

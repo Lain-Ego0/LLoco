@@ -70,6 +70,19 @@ def _build_parser() -> argparse.ArgumentParser:
     skill_prepare = skill_sub.add_parser("prepare", help="审查权限并生成 Conda 准备计划")
     skill_prepare.add_argument("manifest", type=Path)
     skill_prepare.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
+    skill_run = skill_sub.add_parser("run", help="通过独立 Worker 运行 PlatformSkill action")
+    skill_run.add_argument("manifest", type=Path)
+    skill_run.add_argument("--params", default="{}", help="JSON object action parameters")
+    skill_run.add_argument("--runs-root", type=Path, default=Path("var/runs"))
+    skill_run.add_argument("--wait", action="store_true")
+
+    agent = sub.add_parser("agent", help="导出 AgentSkill 给外部开发 Agent")
+    agent_sub = agent.add_subparsers(dest="agent_command", required=True)
+    agent_export = agent_sub.add_parser("export", help="导出 AgentSkill 到 Codex discovery directory")
+    agent_export.add_argument("source", type=Path)
+    agent_export.add_argument("--target", choices=("codex",), default="codex")
+    agent_export.add_argument("--target-root", type=Path, default=Path(".agents/skills"))
+    agent_export.add_argument("--json", action="store_true")
 
     mjlab = sub.add_parser("mjlab", help="发现并受控调用已 vendor 的 MJLab 入口")
     mjlab_sub = mjlab.add_subparsers(dest="mjlab_command", required=True)
@@ -244,6 +257,48 @@ def main(argv: list[str] | None = None) -> int:
             print("权限审查完成；未执行任何环境或脚本")
             for step in result["prepare_plan"]:
                 print(f"- {step}")
+        return EXIT_OK
+    if args.command == "skill" and args.skill_command == "run":
+        from robolab_core import LocalWorker, create_job_run
+
+        try:
+            document = load_document(args.manifest)
+            report = validate_document(document, package_dir=args.manifest.parent, source=str(args.manifest))
+            if not report.ok:
+                raise ValueError(report.render())
+            if document["kind"] != "PlatformSkill":
+                raise ValueError("skill run 目前只支持 PlatformSkill")
+            parameters = json.loads(args.params)
+            if not isinstance(parameters, dict):
+                raise ValueError("--params 必须是 JSON object")
+            module = document["spec"]["runtime"]["entrypoint"].get("module")
+            command = [sys.executable, "-m", module] if module else document["spec"]["runtime"]["entrypoint"]["command"].split()
+            paths = create_job_run(args.runs_root, action=f"{document['metadata']['id']}.inspect", parameters=parameters, allowed_paths=[args.manifest.parent])
+            package_dir = args.manifest.parent.resolve()
+            pythonpath = str(package_dir / "src")
+            handle = LocalWorker().start(paths, command, cwd=package_dir, env={"PYTHONPATH": pythonpath + ":" + __import__("os").environ.get("PYTHONPATH", "")})
+        except (OSError, ValueError, PermissionError, json.JSONDecodeError, subprocess.SubprocessError) as exc:
+            print(f"错误: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
+        print(f"Job 已创建: {paths.run_dir}")
+        if args.wait:
+            handle.process.wait()
+            result = handle.finalize()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return EXIT_OK if result and result["status"] == "SUCCEEDED" else EXIT_CHECK_FAILED
+        return EXIT_OK
+    if args.command == "agent" and args.agent_command == "export":
+        from robolab_core import export_agent_skill
+
+        try:
+            result = export_agent_skill(args.source, args.target_root)
+        except (OSError, ValueError) as exc:
+            print(f"错误: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            print(f"已导出: {result['destination']}")
         return EXIT_OK
     if args.command == "mjlab" and args.mjlab_command == "tasks":
         from robolab_mjlab_adapter import discover_tasks
