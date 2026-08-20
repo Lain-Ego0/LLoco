@@ -3,12 +3,28 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+from pathlib import Path
 
 from robolab_core import check_robot_profile, validate_document
 from robolab_schemas import validate_schema
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+G1_PROFILE_DIR = REPO_ROOT / "robots/unitree.g1.29dof"
+
+
 class TestRobotProfileSchema:
+    def test_formal_g1_profile_package_passes(self):
+        import yaml
+
+        profile = yaml.safe_load((G1_PROFILE_DIR / "profile.yaml").read_text())
+        assert validate_schema(profile) == []
+        assert (G1_PROFILE_DIR / profile["description"]["mjcf"]).is_file()
+        assert hashlib.sha256(
+            (G1_PROFILE_DIR / profile["description"]["mjcf"]).read_bytes()
+        ).hexdigest() == "56539bc76eadb05dd439c47de94df52130ea8fa243d08bdddd9cbc32dd4c78a0"
+
     def test_g1_fixture_passes(self, g1_profile):
         assert validate_schema(g1_profile) == []
 

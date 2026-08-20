@@ -47,7 +47,7 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 | `packages/core/` | 关节映射机器校验、Skill×Profile 兼容性判定、Skill lint | B1 已实现（2026-08-20） |
 | `apps/cli/` | `robolab` 命令行，当前提供 `robolab check`（schema + 兼容性 + lint） | B1 已实现（2026-08-20）；`serve` 等子命令随后续批次接入 |
 | `tests/contract/` | B1 契约测试（schema/关节映射/兼容性/lint/CLI，91 项） | 已可用；CPU 可跑 |
-| `skills/` | 本机 Skill 工作区边界（builtin/installed/dev） | 仅有目录约定；Skill Manager 未实现 |
+| `skills/` | 本机 Skill 工作区（builtin/installed/dev） | B2 已实现扫描、固定安装、注册、不可变卸载保护与 prepare 审查 |
 | `docs/` | RoboLab 正式文档 | 可用 |
 | `THIRD_PARTY_NOTICES.md` | 第三方声明 | 可用，随依赖演进持续更新 |
 
@@ -58,7 +58,7 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 | [`packages/mjlab_adapter/`](packages/mjlab_adapter/) | 把平台 Job 映射到 vendor 中的 train/play/export 脚本 | 接口边界，未实现 |
 | [`integrations/unitree/`](integrations/unitree/) | Unitree Driver/Profile，首个厂商适配器 | 接口边界，未实现；Unitree 专用逻辑暂仍在 vendor `deploy/` |
 | [`runtime/`](runtime/) | 与厂商无关的 C++ FSM、推理、安全与遥测 | 接口边界，未实现；共享逻辑暂仍在 vendor `deploy/` |
-| [`robots/`](robots/) | 与 Skill 解耦的 Robot Profile | 接口边界，未实现；首个 Profile 目标为 Unitree G1 29DoF simulation-only |
+| [`robots/`](robots/) | 与 Skill 解耦的 Robot Profile | 已实现首个 Unitree G1 29DoF simulation-only Profile；模型资产引用 vendor，不复制 |
 
 ## 目标工作流
 

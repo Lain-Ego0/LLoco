@@ -6,7 +6,6 @@ RoboLab 在这里发现本机 Skill：
 - `installed/`：从 RoboLab-Skill catalog 安装的固定版本，由平台管理；
 - `dev/`：本地开发 checkout 或链接，内容可变。
 
-用户不应手工修改 `installed/` 中的版本。下载、哈希校验、Conda 环境准备、contract test 和注册应由未来的 Skill Manager 完成。开发中的 Skill 放在 `dev/`，完成后发布到独立的 RoboLab-Skill 仓库。
+用户不应手工修改 `installed/` 中的版本。`robolab skill list` 可扫描三类来源；`robolab skill install` 执行固定 revision、校验、内容寻址复制和注册；`robolab skill prepare` 只做权限审查并生成显式环境准备计划，不自动执行第三方脚本。开发中的 Skill 放在 `dev/`，完成后发布到独立的 RoboLab-Skill 仓库。
 
-统一包格式见 [Skill Package 规范](../docs/SKILL_SPEC.md)。当前目录只是仓库边界和安装位置，Skill Manager 尚未实现。
-
+统一包格式见 [Skill Package 规范](../docs/SKILL_SPEC.md)。

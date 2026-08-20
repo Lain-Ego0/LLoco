@@ -10,7 +10,7 @@
 - ✅ 精选 vendor 导入与外部 runtime 发现（`vendor/unitree_rl_mjlab/`）
 - ✅ 文档与所有权边界批次（四个入口 stub：adapter / integration / runtime / robots）
 - ✅ **B1 契约冻结（2026-08-20）**；`robolab` conda 主环境已建立（Phase 0 完成标准见 B1 退出小节）
-- ⬜ **下一批：B2 Profile 样板与 Skill 安装链路**
+- ✅ **B2 Profile 样板与 Skill 安装链路完成（2026-08-20）**；下一批为 B3 Job 协议与 Worker
 
 ## 批次总览
 
@@ -51,11 +51,11 @@ B1 同时解锁 ─────────────────> B5 平台 A
 
 | # | 任务 | 依据 | 验收映射 |
 |---|---|---|---|
-| B2.1 | 选定 vendor 中 G1 29DoF 的公开 MJCF 作为首个 simulation-only 样板，并落成 `robots/unitree.g1.29dof/` Profile，通过 B1 校验器自证 L0（本任务的交付物同时是 ROADMAP Phase 0 的“样板选定”） | D-006、D-019、Q14 | §3.2 |
-| B2.2 | Skill 扫描：发现 `builtin/`、`installed/`、`dev/`，标出来源与可变性 | D-014 | §6 |
-| B2.3 | 从本地 RoboLab-Skill checkout 安装单个 Skill：解析、固定 revision、校验、复制到 `installed/`、注册 | D-002、D-029、Q25 | §6 |
-| B2.4 | 不可变安装约束：同一 `id@version` 内容不同被拒绝；卸载保留被历史 Job 引用的哈希 | D-014 | §6 |
-| B2.5 | 权限审查与 Conda prepare 的显式步骤（不自动执行 `setup.sh`） | D-022、Q17 | §4、§6 |
+| B2.1 | 选定 vendor 中 G1 29DoF 的公开 MJCF 作为首个 simulation-only 样板，并落成 `robots/unitree.g1.29dof/` Profile，通过 B1 校验器自证 L0（本任务的交付物同时是 ROADMAP Phase 0 的“样板选定”） | D-006、D-019、Q14 | §3.2 | ✅ 2026-08-20 |
+| B2.2 | Skill 扫描：发现 `builtin/`、`installed/`、`dev/`，标出来源与可变性 | D-014 | §6 | ✅ 2026-08-20 |
+| B2.3 | 从本地 RoboLab-Skill checkout 安装单个 Skill：解析、固定 revision、校验、复制到 `installed/`、注册 | D-002、D-029、Q25 | §6 | ✅ 2026-08-20 |
+| B2.4 | 不可变安装约束：同一 `id@version` 内容不同被拒绝；卸载保留被历史 Job 引用的哈希 | D-014 | §6 | ✅ 2026-08-20 |
+| B2.5 | 权限审查与 Conda prepare 的显式步骤（不自动执行 `setup.sh`） | D-022、Q17 | §4、§6 | ✅ 2026-08-20 |
 
 依赖：B1（schema 与校验器）。Conda 主环境假定已可用。
 

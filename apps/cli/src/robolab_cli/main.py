@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -50,6 +51,25 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Skill 包目录（artifact/README/LICENSE 校验用），默认取 skill.yaml 所在目录",
     )
     check.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
+
+    skill = sub.add_parser("skill", help="管理本地 Skill 工作区")
+    skill_sub = skill.add_subparsers(dest="skill_command", required=True)
+    skill_list = skill_sub.add_parser("list", help="扫描 builtin、installed 与 dev Skill")
+    skill_list.add_argument("--workspace", type=Path, default=Path("skills"))
+    skill_list.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
+    skill_install = skill_sub.add_parser("install", help="安装一个本地 Skill checkout")
+    skill_install.add_argument("source", type=Path)
+    skill_install.add_argument("--installed-root", type=Path, default=Path("skills/installed"))
+    skill_install.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
+    skill_uninstall = skill_sub.add_parser("uninstall", help="卸载未被引用的 Skill 内容")
+    skill_uninstall.add_argument("skill_id")
+    skill_uninstall.add_argument("version")
+    skill_uninstall.add_argument("--content-sha256")
+    skill_uninstall.add_argument("--installed-root", type=Path, default=Path("skills/installed"))
+    skill_uninstall.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
+    skill_prepare = skill_sub.add_parser("prepare", help="审查权限并生成 Conda 准备计划")
+    skill_prepare.add_argument("manifest", type=Path)
+    skill_prepare.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
     return parser
 
 
@@ -150,6 +170,65 @@ def main(argv: list[str] | None = None) -> int:
             print("错误: 请提供 manifest 路径，或使用 --skill/--profile 做兼容性判定", file=sys.stderr)
             return EXIT_USAGE_ERROR
         return _run_check(args)
+    if args.command == "skill" and args.skill_command == "list":
+        from robolab_core import scan_skill_workspace
+
+        entries = scan_skill_workspace(args.workspace)
+        if args.json:
+            print(json.dumps([entry.to_dict() for entry in entries], ensure_ascii=False, indent=2))
+        else:
+            for entry in entries:
+                state = "可变" if entry.mutable else "固定"
+                identity = "@".join(part for part in (entry.skill_id, entry.version) if part)
+                print(f"{entry.source} {state} {entry.kind or '?'} {identity or entry.path}")
+        return EXIT_OK
+    if args.command == "skill" and args.skill_command == "install":
+        from robolab_core import install_skill
+
+        try:
+            result = install_skill(args.source, args.installed_root)
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            print(f"错误: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
+        if args.json:
+            print(json.dumps(result.to_dict(), ensure_ascii=False, indent=2))
+        else:
+            state = "已存在" if result.already_installed else "已安装"
+            print(f"{state}: {result.skill_id}@{result.version} ({result.content_sha256})")
+        return EXIT_OK
+    if args.command == "skill" and args.skill_command == "uninstall":
+        from robolab_core import uninstall_skill
+
+        try:
+            removed = uninstall_skill(
+                args.skill_id,
+                args.version,
+                args.installed_root,
+                content_sha256=args.content_sha256,
+            )
+        except (OSError, KeyError, ValueError) as exc:
+            print(f"错误: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
+        if args.json:
+            print(json.dumps({"removed": removed}, ensure_ascii=False, indent=2))
+        else:
+            print(f"已卸载 {len(removed)} 个内容版本")
+        return EXIT_OK
+    if args.command == "skill" and args.skill_command == "prepare":
+        from robolab_core import review_skill
+
+        try:
+            result = review_skill(args.manifest)
+        except (OSError, ValueError) as exc:
+            print(f"错误: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            print("权限审查完成；未执行任何环境或脚本")
+            for step in result["prepare_plan"]:
+                print(f"- {step}")
+        return EXIT_OK
     parser.error(f"未知命令: {args.command}")
     return EXIT_USAGE_ERROR
 

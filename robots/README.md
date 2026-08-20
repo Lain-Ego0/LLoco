@@ -1,6 +1,6 @@
-# Robot Profiles（接口边界，未实现）
+# Robot Profiles
 
-状态：本目录目前只声明所有权与接口边界，尚无正式 Profile 文件。首个目标 Profile 是 `unitree.g1.29dof@1.0.0`（simulation-only），模型与任务资产使用 `vendor/unitree_rl_mjlab/` 中已有内容。
+状态：`unitree.g1.29dof@1.0.0` 是首个正式 simulation-only Profile；模型与任务资产引用 `vendor/unitree_rl_mjlab/` 中已有内容，不复制 vendor 资产。
 
 ## 职责
 
@@ -14,6 +14,6 @@
 
 - 本目录只放 RoboLab 自有 Profile，不放具体 Skill（策略/动作产物属于 MotionSkill），也不放厂商 Driver 代码（属于 [`integrations/`](../integrations/)）；
 - 机器人 MJCF/mesh 等上游资产保留在 vendor 命名空间，Profile 通过引用与哈希固定，不复制；
-- Profile schema（`RobotProfile v1alpha1`）尚未冻结，属 [ROADMAP](../docs/ROADMAP.md) Phase 0 剩余项。
+- Profile schema（`RobotProfile v1alpha1`）已在 B1 冻结；使用 `robolab check robots/unitree.g1.29dof/profile.yaml` 验证 manifest。
 
 字段规范见 [ROBOT_ADAPTATION](../docs/ROBOT_ADAPTATION.md)。

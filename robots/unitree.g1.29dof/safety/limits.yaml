@@ -1,0 +1,3 @@
+status: simulation-only
+source: tests/contract/fixtures/joint_set.g1_29dof.yaml
+note: Hardware limits require L4 verification before physical deployment.
