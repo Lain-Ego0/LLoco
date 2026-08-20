@@ -87,6 +87,11 @@ class LocalStore:
         self.db.execute("INSERT INTO jobs (id, action, status, run_dir, input_json, result_json, created_at, updated_at) VALUES (?, ?, 'CREATED', ?, ?, NULL, ?, ?)", (job_id, action, str(run_dir), json.dumps(input_data, ensure_ascii=False), now, now))
         self.db.commit()
 
+    def mark_running(self, job_id: str) -> None:
+        import time
+        self.db.execute("UPDATE jobs SET status = 'RUNNING', updated_at = ? WHERE id = ?", (time.time(), job_id))
+        self.db.commit()
+
     def list_jobs(self) -> list[dict[str, Any]]:
         self.refresh_runs()
         return [dict(row) for row in self.db.execute("SELECT id, action, status, run_dir, created_at, updated_at FROM jobs ORDER BY created_at DESC")]
@@ -99,7 +104,6 @@ class LocalStore:
         item = dict(row)
         item["input"] = json.loads(item.pop("input_json"))
         item["result"] = json.loads(item.pop("result_json")) if item["result_json"] else None
-        item.pop("result_json")
         return item
 
     def list_artifacts(self) -> list[dict[str, Any]]:

@@ -3,16 +3,19 @@
 /skills/installed/
 /skills/dev/
 /apps/web/node_modules/
-/apps/web/dist/
+# The B6 WebUI build is a small distributable runtime asset and is tracked.
 
 # --- Python ---
 __pycache__/
 *.py[cod]
+*.tsbuildinfo
 *$py.class
 *.egg-info/
 .eggs/
 build/
 dist/
+!apps/web/dist/
+!apps/web/dist/**
 .venv/
 venv/
 env/

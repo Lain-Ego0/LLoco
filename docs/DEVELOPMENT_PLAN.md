@@ -10,7 +10,7 @@
 - ✅ 精选 vendor 导入与外部 runtime 发现（`vendor/unitree_rl_mjlab/`）
 - ✅ 文档与所有权边界批次（四个入口 stub：adapter / integration / runtime / robots）
 - ✅ **B1 契约冻结（2026-08-20）**；`robolab` conda 主环境已建立（Phase 0 完成标准见 B1 退出小节）
-- ✅ **B5 平台 API 与 `robolab serve` 完成（2026-08-20）**；下一批为 B6 最小 WebUI
+- ✅ **B6 最小 WebUI 完成（2026-08-20）**；下一批为 B7 MVP 验收演练
 
 ## 批次总览
 
@@ -96,11 +96,11 @@ B1 同时解锁 ─────────────────> B5 平台 A
 
 | # | 任务 | 依据 | 验收映射 |
 |---|---|---|---|
-| B6.1 | React + TypeScript 骨架，一级导航 Dashboard/Robots/Skills/Jobs/Artifacts/Settings | D-018、D-023、Q18 | §2 |
-| B6.2 | Skills 页：安装、版本固定、权限展示、actions 调用、运行状态 | D-014、D-022 | §3.4、§6 |
-| B6.3 | Jobs 页：实时日志、阶段、运行时间、停止按钮 | — | §3.6 |
-| B6.4 | Robots 页：G1 Profile 展示与兼容性矩阵（Profile × Skill × hash） | ROBOT_ADAPTATION §8 | §3.2 |
-| B6.5 | 视觉遵守 UI_GUIDELINES：中文默认、克制低饱和、无渐变/发光/玻璃拟态 | D-020、Q15 | §2 |
+| B6.1 | React + TypeScript 骨架，一级导航 Dashboard/Robots/Skills/Jobs/Artifacts/Settings | D-018、D-023、Q18 | §2 | ✅ 2026-08-20 |
+| B6.2 | Skills 页：安装、版本固定、权限展示、actions 调用、运行状态 | D-014、D-022 | §3.4、§6 | ✅ 2026-08-20 |
+| B6.3 | Jobs 页：实时日志、阶段、运行时间、停止按钮 | — | §3.6 | ✅ 2026-08-20 |
+| B6.4 | Robots 页：G1 Profile 展示与兼容性矩阵（Profile × Skill × hash） | ROBOT_ADAPTATION §8 | §3.2 | ✅ 2026-08-20 |
+| B6.5 | 视觉遵守 UI_GUIDELINES：中文默认、克制低饱和、无渐变/发光/玻璃拟态 | D-020、Q15 | §2 | ✅ 2026-08-20 |
 
 依赖：B5。Train/Validate/Deploy/Agent 只作详情入口或禁用，不制造空页面（Q18）。
 

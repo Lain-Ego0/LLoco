@@ -89,6 +89,7 @@ def _build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--data-dir", type=Path, default=Path("var"))
     serve.add_argument("--workspace", type=Path, default=Path("skills"))
     serve.add_argument("--vendor-root", type=Path, default=Path("vendor/unitree_rl_mjlab"))
+    serve.add_argument("--web-root", type=Path, default=Path("apps/web/dist"))
 
     mjlab = sub.add_parser("mjlab", help="发现并受控调用已 vendor 的 MJLab 入口")
     mjlab_sub = mjlab.add_subparsers(dest="mjlab_command", required=True)
@@ -315,7 +316,7 @@ def main(argv: list[str] | None = None) -> int:
                 probe.bind(("127.0.0.1", args.port))
                 port = probe.getsockname()[1]
             print(f"RoboLab 本地服务: http://127.0.0.1:{port}", flush=True)
-            uvicorn.run(create_app(data_dir=args.data_dir, workspace=args.workspace, vendor_root=args.vendor_root), host="127.0.0.1", port=port, log_level="info")
+            uvicorn.run(create_app(data_dir=args.data_dir, workspace=args.workspace, vendor_root=args.vendor_root, web_root=args.web_root), host="127.0.0.1", port=port, log_level="info")
         except (ImportError, OSError, ValueError) as exc:
             print(f"错误: 无法启动服务: {exc}", file=sys.stderr)
             return EXIT_CHECK_FAILED
