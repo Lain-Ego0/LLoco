@@ -20,6 +20,7 @@ includedPaths:
   - simulate/CMakeLists.txt
   - simulate/config.yaml
   - deploy/include
+  - deploy/cmake
   - deploy/robots
   - deploy/thirdparty/cnpy
   - setup.py
@@ -60,4 +61,10 @@ excludedPaths:
   - path: '**/__pycache__'
     reason: Generated Python bytecode cache.
 
-robolabPatches: []
+robolabPatches:
+  - path: deploy/cmake/FindONNXRuntime.cmake
+    reason: Provide a shared external ONNX Runtime discovery module.
+  - path: deploy/robots/*/CMakeLists.txt
+    reason: Discover external ONNX Runtime instead of bundled precompiled archives.
+  - path: simulate/CMakeLists.txt
+    reason: Discover external MuJoCo and GLFW packages instead of bundled precompiled libraries.

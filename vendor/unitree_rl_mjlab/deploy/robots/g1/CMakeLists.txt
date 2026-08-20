@@ -7,18 +7,14 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(yaml-cpp REQUIRED)
 find_package(ZLIB REQUIRED)
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(ONNXRUNTIME_DIR "${PROJECT_SOURCE_DIR}/../../thirdparty/onnxruntime-linux-x64-1.22.0")
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    set(ONNXRUNTIME_DIR "${PROJECT_SOURCE_DIR}/../../thirdparty/onnxruntime-linux-aarch64-1.22.0")
-endif()
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../cmake")
+find_package(ONNXRuntime REQUIRED)
 
 include_directories(
   /usr/include/eigen3
   /usr/local/include/ddscxx
   /usr/local/include/iceoryx/v2.0.2
   include
-  ${ONNXRUNTIME_DIR}/include
   ${PROJECT_SOURCE_DIR}/../../include/
   ${PROJECT_SOURCE_DIR}/../../thirdparty/cnpy
 )
@@ -36,7 +32,7 @@ link_libraries(
   Boost::program_options
   yaml-cpp
   fmt
-  ${ONNXRUNTIME_DIR}/lib/libonnxruntime.so.1.22.0
+  ONNXRuntime::ONNXRuntime
   cnpy_lib
   ZLIB::ZLIB
 )
