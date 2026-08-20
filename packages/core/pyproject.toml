@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robolab-core"
+version = "0.1.0"
+description = "RoboLab domain core: document loading, joint mapping checks, compatibility verdicts, skill lint"
+requires-python = ">=3.10"
+dependencies = [
+  "robolab-schemas",
+  "PyYAML>=6.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

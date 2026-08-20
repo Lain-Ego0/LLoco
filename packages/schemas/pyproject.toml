@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robolab-schemas"
+version = "0.1.0"
+description = "RoboLab v1alpha1 JSON Schemas (RobotProfile, JointSet, SkillPackage) and validation helpers"
+requires-python = ">=3.10"
+dependencies = [
+  "jsonschema>=4.10",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+robolab_schemas = ["data/*.json"]

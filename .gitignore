@@ -1,5 +1,43 @@
+# --- Project-specific ---
 /var/
 /skills/installed/
 /skills/dev/
 /apps/web/node_modules/
 /apps/web/dist/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# --- Test / tooling caches ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.ipynb_checkpoints/
+
+# --- Experiment / training artifacts ---
+wandb/
+mlruns/
+runs/
+logs/
+*.ckpt
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/

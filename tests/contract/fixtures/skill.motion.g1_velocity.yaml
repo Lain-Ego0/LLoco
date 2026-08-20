@@ -1,0 +1,79 @@
+apiVersion: robolab.dev/v1alpha1
+kind: MotionSkill
+
+metadata:
+  id: motion.unitree-g1-velocity
+  name: Unitree G1 Velocity
+  version: 0.1.0
+  description: Velocity-command locomotion policy for the Unitree G1 29DoF model.
+  license: Apache-2.0
+  source:
+    repository: https://github.com/Lain-Ego0/RoboLab-Skill
+    revision: refs/tags/g1-velocity-v0.1.0
+  provenance:
+    repository: https://github.com/unitreerobotics/unitree_rl_mjlab
+    revision: 1425b15f73bd4095f0df53709d7c389c3eb9e790
+    paths:
+      - deploy/robots/g1/config/policy/velocity/v0/exported/policy.onnx
+      - deploy/robots/g1/config/policy/velocity/v0/params/deploy.yaml
+
+spec:
+  compatibility:
+    platform: ">=0.1.0 <0.2.0"
+    skillApi: v1alpha1
+    robots:
+      - profile: unitree.g1.29dof
+        version: ">=1.0.0 <2.0.0"
+    controlMode: joint_position
+    controlHz: 50
+    jointSet: g1.29dof.canonical.v1
+    observationSchema: unitree.g1.velocity.v0.observation.v1
+    actionSchema: unitree.g1.29dof.joint-position.v1
+
+  runtime:
+    type: onnx
+    runner: rl_policy
+    protocol: robolab-motion-v1
+
+  artifacts:
+    - name: policy
+      path: artifacts/policy.onnx
+      mediaType: application/onnx
+      size: 878421
+      sha256: 2a66ca6336eadb3c0b34b557763f3e06d01ff8fcf6260dd4cedbd69d6093fc28
+    - name: deploy-params
+      path: params/deploy.yaml
+      mediaType: application/yaml
+      size: 2289
+      sha256: 01e1cf3f6ec44e9942494fbb4a9904df07201e14e5551a277f38d7c7d1bda28d
+
+  actions:
+    play:
+      title: Play in MJLab
+      inputSchema: schemas/command.json
+      task: Unitree-G1-Flat
+    simulate:
+      title: Run sim-to-sim
+      inputSchema: schemas/command.json
+    deploy:
+      title: Prepare real-robot deployment
+      inputSchema: schemas/command.json
+
+  permissions:
+    filesystem:
+      read: [skill, robot_profile]
+      write: [run]
+    network: false
+    subprocess: false
+    robotState: true
+    robotCommand: true
+
+  safety:
+    maturity: experimental
+    defaultTarget: simulation
+    requiredGates: [offline, mjlab_play, sim_to_sim]
+    fallbackState: damping
+    realRobotRequiresExplicitConfirmation: true
+
+  validation:
+    smoke: tests/smoke.yaml

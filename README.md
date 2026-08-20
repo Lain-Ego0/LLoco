@@ -4,7 +4,7 @@ One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with De
 
 RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台，将机器人接入、强化学习训练、仿真验证、策略导出、Skill 安装和实机部署组织成一条可追踪、可复现、可回滚的工作流。
 
-> 当前仓库处于平台实现前期。`vendor/unitree_rl_mjlab/` 已完成精选 vendor 导入并纳入 Git，包含训练、回放、sim-to-sim 和 Unitree legacy 部署源码，可通过其 `scripts/` 直接使用；WebUI、平台后端、Skill 管理器和通用 runtime 尚未实现。下文“仓库入口”明确区分已存在的目录与仅为接口边界的目标目录。
+> 当前仓库处于平台实现早期。`vendor/unitree_rl_mjlab/` 已完成精选 vendor 导入并纳入 Git，包含训练、回放、sim-to-sim 和 Unitree legacy 部署源码，可通过其 `scripts/` 直接使用；B1 契约冻结已完成：`packages/schemas`（`RobotProfile`/`JointSet`/`SkillPackage` v1alpha1）、`packages/core`（关节映射机器校验、兼容性判定、lint）与 `apps/cli`（`robolab check`）可用，`robolab` conda 环境已建立。WebUI、平台 API、Skill Manager 和通用 runtime 尚未实现。下文“仓库入口”明确区分已存在的目录与仅为接口边界的目标目录。
 
 ## 核心边界
 
@@ -43,6 +43,10 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 | 路径 | 内容 | 状态 |
 |---|---|---|
 | `vendor/unitree_rl_mjlab/` | 精选导入的 Unitree 训练/仿真/legacy 部署技术来源 | 已导入并纳入 Git；训练、回放、sim-to-sim 可按上游方式运行 |
+| `packages/schemas/` | `RobotProfile`/`JointSet`/`SkillPackage` v1alpha1 JSON Schema | B1 已实现（2026-08-20） |
+| `packages/core/` | 关节映射机器校验、Skill×Profile 兼容性判定、Skill lint | B1 已实现（2026-08-20） |
+| `apps/cli/` | `robolab` 命令行，当前提供 `robolab check`（schema + 兼容性 + lint） | B1 已实现（2026-08-20）；`serve` 等子命令随后续批次接入 |
+| `tests/contract/` | B1 契约测试（schema/关节映射/兼容性/lint/CLI，91 项） | 已可用；CPU 可跑 |
 | `skills/` | 本机 Skill 工作区边界（builtin/installed/dev） | 仅有目录约定；Skill Manager 未实现 |
 | `docs/` | RoboLab 正式文档 | 可用 |
 | `THIRD_PARTY_NOTICES.md` | 第三方声明 | 可用，随依赖演进持续更新 |
@@ -74,6 +78,7 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 - [Agent Skill 与外部 Agent 集成](docs/AGENT_INTEGRATION.md)
 - [机器人快速适配](docs/ROBOT_ADAPTATION.md)
 - [路线图](docs/ROADMAP.md)
+- [开发主线与批次计划](docs/DEVELOPMENT_PLAN.md)
 - [MVP 验收标准](docs/MVP_ACCEPTANCE.md)
 - [上游来源、许可证与致谢](docs/UPSTREAM_AND_ACKNOWLEDGEMENTS.md)
 - [MJLab 来源树管理方案](docs/MJLAB_MAINTENANCE.md)

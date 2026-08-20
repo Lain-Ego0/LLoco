@@ -1,0 +1,47 @@
+# B1 contract test fixture：Robot Onboarding AgentSkill（docs/SKILL_SPEC.md §9 形态）。
+apiVersion: robolab.dev/v1alpha1
+kind: AgentSkill
+
+metadata:
+  id: agent.robot-onboarding
+  name: Robot Onboarding Assistant
+  version: 0.1.0
+  description: Guide simulation-only robot onboarding with MJCF inspection and L0/L1 checks.
+  license: MIT
+  source:
+    repository: https://github.com/Lain-Ego0/RoboLab-Skill
+    revision: 0123456789abcdef0123456789abcdef01234567
+
+spec:
+  compatibility:
+    platform: ">=0.1.0 <0.2.0"
+    skillApi: v1alpha1
+
+  runtime:
+    type: agent
+    instructions: SKILL.md
+
+  actions:
+    assist:
+      title: Robot Onboarding Assistant
+      inputSchema: schemas/assist.input.json
+
+  tools:
+    allow:
+      - robolab.robots.inspect
+      - robolab.jobs.create
+      - robolab.artifacts.read
+    deny:
+      - robolab.deployments.activate_real
+
+  permissions:
+    filesystem:
+      read: [workspace, skill]
+      write: [run]
+    network: false
+    subprocess: false
+    robotState: false
+    robotCommand: false
+
+  validation:
+    smoke: tests/smoke.yaml

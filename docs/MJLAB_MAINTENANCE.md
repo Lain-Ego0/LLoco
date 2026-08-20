@@ -122,7 +122,7 @@ docs/                         # RoboLab 自己的正式文档
 2. vendor(unitree): import curated unitree_rl_mjlab@1425b15f    # 已完成
    build(unitree): discover external simulation runtimes        # 已完成（RoboLab patch 独立 commit）
 3. skill: publish G1 velocity artifacts in RoboLab-Skill        # 未开始
-4. platform: add schemas, CLI, worker and adapters              # 未开始
+4. platform: add schemas, CLI, worker and adapters              # schemas and CLI completed in B1; worker and adapters remain pending
 5. runtime: migrate generic deployment capabilities out of vendor  # 未开始
 ```
 

@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robolab.dev/schemas/skill_package.v1alpha1.json",
+  "title": "RoboLab SkillPackage v1alpha1",
+  "description": "统一 Skill manifest（skill.yaml），覆盖 MotionSkill / PlatformSkill / AgentSkill。结构按 docs/SKILL_SPEC.md §5/§8/§9 固化。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "robolab.dev/v1alpha1" },
+    "kind": { "enum": ["MotionSkill", "PlatformSkill", "AgentSkill"] },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "version", "description", "license"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+([.-][a-z0-9_-]+)+$",
+          "description": "稳定标识，如 motion.unitree-g1-velocity"
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "$ref": "#/$defs/semver" },
+        "description": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1, "description": "SPDX 许可证标识；附加资源许可证在 README/NOTICE 说明" },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 1 },
+            "revision": { "type": "string", "minLength": 1, "description": "固定 revision；禁止 main/latest 等浮动引用（lint 强制）" }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 1 },
+            "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$", "description": "上游来源的完整 commit SHA" },
+            "paths": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          },
+          "description": "内容的上游出处，如复用 vendor 策略产物时记录原仓库与路径"
+        }
+      }
+    },
+
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compatibility", "runtime", "actions", "permissions"],
+      "properties": {
+        "compatibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["platform", "skillApi"],
+          "properties": {
+            "platform": { "$ref": "#/$defs/versionRange", "description": "RoboLab 平台版本范围" },
+            "skillApi": { "const": "v1alpha1" },
+            "robots": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["profile", "version"],
+                "properties": {
+                  "profile": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$" },
+                  "version": { "$ref": "#/$defs/versionRange" }
+                }
+              }
+            },
+            "controlMode": { "enum": ["joint_position", "joint_velocity", "joint_torque"] },
+            "controlHz": { "type": "integer", "minimum": 1 },
+            "jointSet": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$" },
+            "observationSchema": { "type": "string", "minLength": 1, "description": "观测 schema 稳定 id 或 sha256:<hex>" },
+            "actionSchema": { "type": "string", "minLength": 1, "description": "动作 schema 稳定 id 或 sha256:<hex>" }
+          }
+        },
+
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "enum": ["python", "command", "onnx", "agent"] },
+            "protocol": { "type": "string", "minLength": 1, "description": "可执行 Skill 为 robolab-job-v1；MotionSkill 为 robolab-motion-v1" },
+            "runner": { "type": "string", "minLength": 1, "description": "MotionSkill 共享 runner，如 rl_policy" },
+            "instructions": { "$ref": "#/$defs/relPath", "description": "AgentSkill 根目录 SKILL.md" },
+            "environment": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["mode"],
+              "properties": {
+                "mode": { "enum": ["inherit", "conda"] },
+                "file": { "$ref": "#/$defs/relPath", "description": "mode=conda 时的 environment.yml" }
+              }
+            },
+            "entrypoint": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "module": { "type": "string", "pattern": "^[a-zA-Z_][a-zA-Z0-9_.]*$" },
+                "command": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        },
+
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "path", "mediaType", "sha256"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
+              "path": { "$ref": "#/$defs/relPath" },
+              "mediaType": { "type": "string", "minLength": 1 },
+              "size": { "type": "integer", "minimum": 0 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
+        },
+
+        "actions": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_-]*$" },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title"],
+            "properties": {
+              "title": { "type": "string", "minLength": 1 },
+              "inputSchema": { "$ref": "#/$defs/relPath" },
+              "outputSchema": { "$ref": "#/$defs/relPath" },
+              "ui": { "enum": ["form", "raw", "hidden"] },
+              "task": { "type": "string", "minLength": 1, "description": "MotionSkill play/simulate 绑定的 MJLab task id" }
+            }
+          }
+        },
+
+        "permissions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["filesystem", "network", "subprocess", "robotState", "robotCommand"],
+          "properties": {
+            "filesystem": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["read", "write"],
+              "properties": {
+                "read": {
+                  "type": "array",
+                  "items": { "enum": ["workspace", "skill", "robot_profile", "run"] },
+                  "uniqueItems": true
+                },
+                "write": {
+                  "type": "array",
+                  "items": { "enum": ["run"] },
+                  "uniqueItems": true,
+                  "description": "v1alpha1 只允许写本次 run 目录"
+                }
+              }
+            },
+            "network": { "type": "boolean" },
+            "subprocess": { "type": "boolean" },
+            "robotState": { "type": "boolean" },
+            "robotCommand": { "type": "boolean" }
+          }
+        },
+
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maturity", "defaultTarget", "requiredGates", "fallbackState"],
+          "properties": {
+            "maturity": { "enum": ["experimental", "validated", "deprecated"] },
+            "defaultTarget": { "enum": ["simulation", "physical"] },
+            "requiredGates": {
+              "type": "array",
+              "items": { "enum": ["offline", "mjlab_play", "sim_to_sim", "hardware_safe", "operator_confirmed"] },
+              "uniqueItems": true,
+              "description": "按 docs/ROBOT_ADAPTATION.md §8 成熟度等级声明的安全门禁"
+            },
+            "fallbackState": { "enum": ["passive", "damping", "fixstand"] },
+            "realRobotRequiresExplicitConfirmation": { "type": "boolean" }
+          }
+        },
+
+        "tools": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allow"],
+          "properties": {
+            "allow": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^robolab\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$" },
+              "uniqueItems": true
+            },
+            "deny": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^robolab\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$" },
+              "uniqueItems": true
+            }
+          }
+        },
+
+        "validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "smoke": { "$ref": "#/$defs/relPath" }
+          }
+        }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "MotionSkill" } } },
+      "then": {
+        "properties": {
+          "spec": {
+            "required": ["artifacts", "safety"],
+            "properties": {
+              "compatibility": {
+                "required": ["robots", "controlMode", "controlHz", "jointSet", "observationSchema", "actionSchema"]
+              },
+              "runtime": {
+                "required": ["runner"],
+                "properties": { "type": { "const": "onnx" } }
+              },
+              "safety": { "required": ["realRobotRequiresExplicitConfirmation"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "PlatformSkill" } } },
+      "then": {
+        "properties": {
+          "spec": {
+            "properties": {
+              "runtime": {
+                "required": ["protocol", "environment", "entrypoint"],
+                "properties": {
+                  "type": { "enum": ["python", "command"] },
+                  "protocol": { "const": "robolab-job-v1" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "AgentSkill" } } },
+      "then": {
+        "properties": {
+          "spec": {
+            "required": ["tools"],
+            "properties": {
+              "runtime": {
+                "required": ["instructions"],
+                "properties": { "type": { "const": "agent" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "versionRange": {
+      "type": "string",
+      "pattern": "^\\s*(>=|<=|>|<|==|!=|=)?\\s*\\d+\\.\\d+\\.\\d+(-[0-9a-zA-Z.-]+)?(\\s*,?\\s*(>=|<=|>|<|==|!=|=)?\\s*\\d+\\.\\d+\\.\\d+(-[0-9a-zA-Z.-]+)?)*\\s*$",
+      "description": "空格分隔的比较子序列，如 \">=1.0.0 <2.0.0\""
+    },
+    "relPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "^(?:/|[A-Za-z]:)|(^|/)\\.\\.(/|$)" }
+    }
+  }
+}

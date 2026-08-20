@@ -8,6 +8,9 @@
 - 现有代码支持 velocity、tracking、MJLab play、ONNX 导出、unitree_mujoco 和多种 Unitree 机器人部署目录。
 - `RoboLab-Skill` 是独立公开仓库，目前从最小 README/LICENSE 开始建设。
 - 仓库已有多种 Unitree XML/MJCF，可用于没有实机条件时的 simulation-first 开发。
+- B1 已完成（2026-08-20）：`packages/schemas`（RobotProfile/JointSet/SkillPackage v1alpha1 JSON Schema）、`packages/core`（关节映射机器校验、兼容性判定、lint）、`apps/cli`（`robolab check`）已落地，`tests/contract` 91 项通过；`robolab` conda 主环境已建立并 editable 安装三包。
+- B1 对 D-016 的解释：`source.revision` 为 `main`/分支名时 lint 报错；为 `refs/tags/*` 时接受但警告建议固定 commit SHA（catalog 现有 g1_velocity 即使用 tag）；完整 40 位 SHA 无警告。
+- MJLab `BuiltinPositionActuator` 约定 actuator 与目标关节同名（`spec.add_actuator(name=joint_name)`），JointSet 的 `mjcf.actuator` 沿用该约定。
 
 ## 第一轮已确认决策
 

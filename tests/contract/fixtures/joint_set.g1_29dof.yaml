@@ -1,0 +1,887 @@
+# B1 contract test fixture：G1 29DoF canonical JointSet。
+# 关节序与 vendor G1 velocity deploy.yaml 的 identity joint_ids_map 一致；
+# actuator 名与关节同名（MJLab BuiltinPositionActuator 约定）。
+apiVersion: robolab.dev/v1alpha1
+kind: JointSet
+metadata:
+  id: g1.29dof.canonical.v1
+  version: 1.0.0
+  dof: 29
+  description: Unitree G1 29DoF canonical joint set；推荐增益与默认姿态取自 G1 velocity deploy.yaml，torque/velocity
+    上限为公开规格近似值，L4 实机验证前以 safety/limits.yaml 复核为准。
+base:
+  type: free
+  rootBody: pelvis
+  qposDim: 7
+  qvelDim: 6
+joints:
+- name: left_hip_pitch_joint
+  group: left_leg
+  mjcf:
+    joint: left_hip_pitch_joint
+    qposIndex: 7
+    qvelIndex: 6
+    actuator: left_hip_pitch_joint
+    actuatorIndex: 0
+  policy:
+    observationIndex: 0
+    actionIndex: 0
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.5307
+      upper: 2.8798
+    velocity: 30.0
+    torque: 88.0
+  defaultPosition: -0.1
+  gains:
+    recommended:
+      kp: 40.2
+      kd: 2.6
+    maximum:
+      kp: 80.4
+      kd: 5.2
+- name: left_hip_roll_joint
+  group: left_leg
+  mjcf:
+    joint: left_hip_roll_joint
+    qposIndex: 8
+    qvelIndex: 7
+    actuator: left_hip_roll_joint
+    actuatorIndex: 1
+  policy:
+    observationIndex: 1
+    actionIndex: 1
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.5236
+      upper: 2.9671
+    velocity: 30.0
+    torque: 88.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 99.1
+      kd: 6.3
+    maximum:
+      kp: 198.2
+      kd: 12.6
+- name: left_hip_yaw_joint
+  group: left_leg
+  mjcf:
+    joint: left_hip_yaw_joint
+    qposIndex: 9
+    qvelIndex: 8
+    actuator: left_hip_yaw_joint
+    actuatorIndex: 2
+  policy:
+    observationIndex: 2
+    actionIndex: 2
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.7576
+      upper: 2.7576
+    velocity: 30.0
+    torque: 88.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 40.2
+      kd: 2.6
+    maximum:
+      kp: 80.4
+      kd: 5.2
+- name: left_knee_joint
+  group: left_leg
+  mjcf:
+    joint: left_knee_joint
+    qposIndex: 10
+    qvelIndex: 9
+    actuator: left_knee_joint
+    actuatorIndex: 3
+  policy:
+    observationIndex: 3
+    actionIndex: 3
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.087267
+      upper: 2.8798
+    velocity: 30.0
+    torque: 139.0
+  defaultPosition: 0.3
+  gains:
+    recommended:
+      kp: 99.1
+      kd: 6.3
+    maximum:
+      kp: 198.2
+      kd: 12.6
+- name: left_ankle_pitch_joint
+  group: left_leg
+  mjcf:
+    joint: left_ankle_pitch_joint
+    qposIndex: 11
+    qvelIndex: 10
+    actuator: left_ankle_pitch_joint
+    actuatorIndex: 4
+  policy:
+    observationIndex: 4
+    actionIndex: 4
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.87267
+      upper: 0.5236
+    velocity: 30.0
+    torque: 50.0
+  defaultPosition: -0.2
+  gains:
+    recommended:
+      kp: 28.5
+      kd: 1.8
+    maximum:
+      kp: 57.0
+      kd: 3.6
+- name: left_ankle_roll_joint
+  group: left_leg
+  mjcf:
+    joint: left_ankle_roll_joint
+    qposIndex: 12
+    qvelIndex: 11
+    actuator: left_ankle_roll_joint
+    actuatorIndex: 5
+  policy:
+    observationIndex: 5
+    actionIndex: 5
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.2618
+      upper: 0.2618
+    velocity: 30.0
+    torque: 50.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 28.5
+      kd: 1.8
+    maximum:
+      kp: 57.0
+      kd: 3.6
+- name: right_hip_pitch_joint
+  group: right_leg
+  mjcf:
+    joint: right_hip_pitch_joint
+    qposIndex: 13
+    qvelIndex: 12
+    actuator: right_hip_pitch_joint
+    actuatorIndex: 6
+  policy:
+    observationIndex: 6
+    actionIndex: 6
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.5307
+      upper: 2.8798
+    velocity: 30.0
+    torque: 88.0
+  defaultPosition: -0.1
+  gains:
+    recommended:
+      kp: 40.2
+      kd: 2.6
+    maximum:
+      kp: 80.4
+      kd: 5.2
+- name: right_hip_roll_joint
+  group: right_leg
+  mjcf:
+    joint: right_hip_roll_joint
+    qposIndex: 14
+    qvelIndex: 13
+    actuator: right_hip_roll_joint
+    actuatorIndex: 7
+  policy:
+    observationIndex: 7
+    actionIndex: 7
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.9671
+      upper: 0.5236
+    velocity: 30.0
+    torque: 88.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 99.1
+      kd: 6.3
+    maximum:
+      kp: 198.2
+      kd: 12.6
+- name: right_hip_yaw_joint
+  group: right_leg
+  mjcf:
+    joint: right_hip_yaw_joint
+    qposIndex: 15
+    qvelIndex: 14
+    actuator: right_hip_yaw_joint
+    actuatorIndex: 8
+  policy:
+    observationIndex: 8
+    actionIndex: 8
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.7576
+      upper: 2.7576
+    velocity: 30.0
+    torque: 88.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 40.2
+      kd: 2.6
+    maximum:
+      kp: 80.4
+      kd: 5.2
+- name: right_knee_joint
+  group: right_leg
+  mjcf:
+    joint: right_knee_joint
+    qposIndex: 16
+    qvelIndex: 15
+    actuator: right_knee_joint
+    actuatorIndex: 9
+  policy:
+    observationIndex: 9
+    actionIndex: 9
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.087267
+      upper: 2.8798
+    velocity: 30.0
+    torque: 139.0
+  defaultPosition: 0.3
+  gains:
+    recommended:
+      kp: 99.1
+      kd: 6.3
+    maximum:
+      kp: 198.2
+      kd: 12.6
+- name: right_ankle_pitch_joint
+  group: right_leg
+  mjcf:
+    joint: right_ankle_pitch_joint
+    qposIndex: 17
+    qvelIndex: 16
+    actuator: right_ankle_pitch_joint
+    actuatorIndex: 10
+  policy:
+    observationIndex: 10
+    actionIndex: 10
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.87267
+      upper: 0.5236
+    velocity: 30.0
+    torque: 50.0
+  defaultPosition: -0.2
+  gains:
+    recommended:
+      kp: 28.5
+      kd: 1.8
+    maximum:
+      kp: 57.0
+      kd: 3.6
+- name: right_ankle_roll_joint
+  group: right_leg
+  mjcf:
+    joint: right_ankle_roll_joint
+    qposIndex: 18
+    qvelIndex: 17
+    actuator: right_ankle_roll_joint
+    actuatorIndex: 11
+  policy:
+    observationIndex: 11
+    actionIndex: 11
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.2618
+      upper: 0.2618
+    velocity: 30.0
+    torque: 50.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 28.5
+      kd: 1.8
+    maximum:
+      kp: 57.0
+      kd: 3.6
+- name: waist_yaw_joint
+  group: waist
+  mjcf:
+    joint: waist_yaw_joint
+    qposIndex: 19
+    qvelIndex: 18
+    actuator: waist_yaw_joint
+    actuatorIndex: 12
+  policy:
+    observationIndex: 12
+    actionIndex: 12
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.618
+      upper: 2.618
+    velocity: 30.0
+    torque: 88.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 40.2
+      kd: 2.6
+    maximum:
+      kp: 80.4
+      kd: 5.2
+- name: waist_roll_joint
+  group: waist
+  mjcf:
+    joint: waist_roll_joint
+    qposIndex: 20
+    qvelIndex: 19
+    actuator: waist_roll_joint
+    actuatorIndex: 13
+  policy:
+    observationIndex: 13
+    actionIndex: 13
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.52
+      upper: 0.52
+    velocity: 30.0
+    torque: 50.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 28.5
+      kd: 1.8
+    maximum:
+      kp: 57.0
+      kd: 3.6
+- name: waist_pitch_joint
+  group: waist
+  mjcf:
+    joint: waist_pitch_joint
+    qposIndex: 21
+    qvelIndex: 20
+    actuator: waist_pitch_joint
+    actuatorIndex: 14
+  policy:
+    observationIndex: 14
+    actionIndex: 14
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -0.52
+      upper: 0.52
+    velocity: 30.0
+    torque: 50.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 28.5
+      kd: 1.8
+    maximum:
+      kp: 57.0
+      kd: 3.6
+- name: left_shoulder_pitch_joint
+  group: left_arm
+  mjcf:
+    joint: left_shoulder_pitch_joint
+    qposIndex: 22
+    qvelIndex: 21
+    actuator: left_shoulder_pitch_joint
+    actuatorIndex: 15
+  policy:
+    observationIndex: 15
+    actionIndex: 15
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -3.0892
+      upper: 2.6704
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: 0.35
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: left_shoulder_roll_joint
+  group: left_arm
+  mjcf:
+    joint: left_shoulder_roll_joint
+    qposIndex: 23
+    qvelIndex: 22
+    actuator: left_shoulder_roll_joint
+    actuatorIndex: 16
+  policy:
+    observationIndex: 16
+    actionIndex: 16
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.5882
+      upper: 2.2515
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: 0.18
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: left_shoulder_yaw_joint
+  group: left_arm
+  mjcf:
+    joint: left_shoulder_yaw_joint
+    qposIndex: 24
+    qvelIndex: 23
+    actuator: left_shoulder_yaw_joint
+    actuatorIndex: 17
+  policy:
+    observationIndex: 17
+    actionIndex: 17
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.618
+      upper: 2.618
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: left_elbow_joint
+  group: left_arm
+  mjcf:
+    joint: left_elbow_joint
+    qposIndex: 25
+    qvelIndex: 24
+    actuator: left_elbow_joint
+    actuatorIndex: 18
+  policy:
+    observationIndex: 18
+    actionIndex: 18
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.0472
+      upper: 2.0944
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: 0.87
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: left_wrist_roll_joint
+  group: left_arm
+  mjcf:
+    joint: left_wrist_roll_joint
+    qposIndex: 26
+    qvelIndex: 25
+    actuator: left_wrist_roll_joint
+    actuatorIndex: 19
+  policy:
+    observationIndex: 19
+    actionIndex: 19
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.97222
+      upper: 1.97222
+    velocity: 30.0
+    torque: 12.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: left_wrist_pitch_joint
+  group: left_arm
+  mjcf:
+    joint: left_wrist_pitch_joint
+    qposIndex: 27
+    qvelIndex: 26
+    actuator: left_wrist_pitch_joint
+    actuatorIndex: 20
+  policy:
+    observationIndex: 20
+    actionIndex: 20
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.61443
+      upper: 1.61443
+    velocity: 30.0
+    torque: 12.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 16.8
+      kd: 1.1
+    maximum:
+      kp: 33.6
+      kd: 2.2
+- name: left_wrist_yaw_joint
+  group: left_arm
+  mjcf:
+    joint: left_wrist_yaw_joint
+    qposIndex: 28
+    qvelIndex: 27
+    actuator: left_wrist_yaw_joint
+    actuatorIndex: 21
+  policy:
+    observationIndex: 21
+    actionIndex: 21
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.61443
+      upper: 1.61443
+    velocity: 30.0
+    torque: 12.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 16.8
+      kd: 1.1
+    maximum:
+      kp: 33.6
+      kd: 2.2
+- name: right_shoulder_pitch_joint
+  group: right_arm
+  mjcf:
+    joint: right_shoulder_pitch_joint
+    qposIndex: 29
+    qvelIndex: 28
+    actuator: right_shoulder_pitch_joint
+    actuatorIndex: 22
+  policy:
+    observationIndex: 22
+    actionIndex: 22
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -3.0892
+      upper: 2.6704
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: 0.35
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: right_shoulder_roll_joint
+  group: right_arm
+  mjcf:
+    joint: right_shoulder_roll_joint
+    qposIndex: 30
+    qvelIndex: 29
+    actuator: right_shoulder_roll_joint
+    actuatorIndex: 23
+  policy:
+    observationIndex: 23
+    actionIndex: 23
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.2515
+      upper: 1.5882
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: -0.18
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: right_shoulder_yaw_joint
+  group: right_arm
+  mjcf:
+    joint: right_shoulder_yaw_joint
+    qposIndex: 31
+    qvelIndex: 30
+    actuator: right_shoulder_yaw_joint
+    actuatorIndex: 24
+  policy:
+    observationIndex: 24
+    actionIndex: 24
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -2.618
+      upper: 2.618
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: right_elbow_joint
+  group: right_arm
+  mjcf:
+    joint: right_elbow_joint
+    qposIndex: 32
+    qvelIndex: 31
+    actuator: right_elbow_joint
+    actuatorIndex: 25
+  policy:
+    observationIndex: 25
+    actionIndex: 25
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.0472
+      upper: 2.0944
+    velocity: 30.0
+    torque: 25.0
+  defaultPosition: 0.87
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: right_wrist_roll_joint
+  group: right_arm
+  mjcf:
+    joint: right_wrist_roll_joint
+    qposIndex: 33
+    qvelIndex: 32
+    actuator: right_wrist_roll_joint
+    actuatorIndex: 26
+  policy:
+    observationIndex: 26
+    actionIndex: 26
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.97222
+      upper: 1.97222
+    velocity: 30.0
+    torque: 12.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 14.3
+      kd: 0.9
+    maximum:
+      kp: 28.6
+      kd: 1.8
+- name: right_wrist_pitch_joint
+  group: right_arm
+  mjcf:
+    joint: right_wrist_pitch_joint
+    qposIndex: 34
+    qvelIndex: 33
+    actuator: right_wrist_pitch_joint
+    actuatorIndex: 27
+  policy:
+    observationIndex: 27
+    actionIndex: 27
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.61443
+      upper: 1.61443
+    velocity: 30.0
+    torque: 12.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 16.8
+      kd: 1.1
+    maximum:
+      kp: 33.6
+      kd: 2.2
+- name: right_wrist_yaw_joint
+  group: right_arm
+  mjcf:
+    joint: right_wrist_yaw_joint
+    qposIndex: 35
+    qvelIndex: 34
+    actuator: right_wrist_yaw_joint
+    actuatorIndex: 28
+  policy:
+    observationIndex: 28
+    actionIndex: 28
+  hardware:
+    motorId: null
+  direction: 1
+  zeroOffsetRad: 0.0
+  gearRatio: 1.0
+  limits:
+    position:
+      lower: -1.61443
+      upper: 1.61443
+    velocity: 30.0
+    torque: 12.0
+  defaultPosition: 0
+  gains:
+    recommended:
+      kp: 16.8
+      kd: 1.1
+    maximum:
+      kp: 33.6
+      kd: 2.2

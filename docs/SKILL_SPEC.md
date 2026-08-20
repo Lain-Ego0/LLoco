@@ -1,6 +1,6 @@
 # RoboLab Skill Package 规范
 
-状态：`v1alpha1` 设计草案；已确认支持可执行 Skill 与 Agent Skill。
+状态：`v1alpha1` 已冻结（2026-08-20，B1）；已确认支持可执行 Skill 与 Agent Skill。机器可执行 JSON Schema 在 `packages/schemas/src/robolab_schemas/data/skill_package.v1alpha1.schema.json`，`robolab check` 对 manifest 做结构 + lint 校验。schema 与本文冲突时以 schema 为准，修改必须两边同步。
 
 ## 1. 统一定义
 
@@ -87,6 +87,12 @@ metadata:
   source:
     repository: https://github.com/Lain-Ego0/RoboLab-Skill
     revision: 0123456789abcdef0123456789abcdef01234567
+  # 可选：内容上游出处（复用 vendor/第三方产物时必填），revision 为完整 commit SHA
+  provenance:
+    repository: https://github.com/unitreerobotics/unitree_rl_mjlab
+    revision: 1425b15f73bd4095f0df53709d7c389c3eb9e790
+    paths:
+      - deploy/robots/g1/config/policy/velocity/v0/...
 
 spec:
   compatibility:
@@ -171,6 +177,7 @@ spec:
   runtime:
     type: onnx
     runner: rl_policy
+    protocol: robolab-motion-v1   # 与可执行 Skill 的 robolab-job-v1 区分
   compatibility:
     robots:
       - profile: unitree.g1.29dof
@@ -178,12 +185,14 @@ spec:
     controlMode: joint_position
     controlHz: 50
     jointSet: g1.29dof.canonical.v1
-    observationSchema: sha256:OBSERVATION_SCHEMA_HASH
-    actionSchema: sha256:ACTION_SCHEMA_HASH
+    # 观测/动作 schema 使用稳定 id（B2 任务绑定导出后可机器比对），也接受 sha256:<hex>
+    observationSchema: unitree.g1.velocity.v0.observation.v1
+    actionSchema: unitree.g1.29dof.joint-position.v1
   artifacts:
     - name: policy
       path: artifacts/policy.onnx
       mediaType: application/onnx
+      size: 878421                # 可选；声明后 lint 实测核对
       sha256: POLICY_FILE_HASH
     - name: deploy-params
       path: params/deploy.yaml
@@ -191,16 +200,21 @@ spec:
       sha256: PARAM_FILE_HASH
   actions:
     play:
+      title: Play in MJLab
       inputSchema: schemas/command.json
       task: Unitree-G1-Flat
     deploy:
+      title: Prepare real-robot deployment
       inputSchema: schemas/command.json
   safety:
+    maturity: experimental        # experimental | validated | deprecated
+    defaultTarget: simulation
     requiredGates: [offline, mjlab_play, sim_to_sim]
     fallbackState: damping
+    realRobotRequiresExplicitConfirmation: true
 ```
 
-MotionSkill 的兼容不能只写 `robots: [g1]`。必须同时校验 profile/version、joint set、观测/动作 schema、控制模式、频率、状态估计和安全限制。
+MotionSkill 的兼容不能只写 `robots: [g1]`。必须同时校验 profile/version、joint set、观测/动作 schema、控制模式、频率、状态估计和安全限制。`robolab check --skill S --profile P` 输出逐条可解释原因（B1.4）。
 
 ## 9. AgentSkill 扩展字段
 
@@ -222,6 +236,12 @@ spec:
     deny:
       - robolab.deployments.activate_real
   permissions:
+    filesystem:
+      read: [workspace, skill]
+      write: [run]
+    network: false
+    subprocess: false
+    robotState: false
     robotCommand: false
 ```
 
@@ -273,7 +293,7 @@ discover -> resolve revision -> fetch -> verify license/hash
 - 稳定 `metadata.id`、SemVer、README 和 LICENSE；
 - manifest、action input/output schema 与文档一致；
 - 源码、模型、动作、mesh 和示例数据均可公开分发；
-- artifact 有 SHA-256，不引用浮动 revision；
+- artifact 有 SHA-256，不引用浮动 revision（`main`/分支名被 lint 拒绝；tag 可用但会收到“建议固定 commit SHA”警告）；
 - 可执行入口在独立进程中正常启动、取消和清理；
 - 权限为最小集合，未声明的 filesystem/network/device 操作应失败；
 - MotionSkill 明确机器人、关节、observation/action 和安全门禁；

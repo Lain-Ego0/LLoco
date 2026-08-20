@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robolab.dev/schemas/joint_set.v1alpha1.json",
+  "title": "RoboLab JointSet v1alpha1",
+  "description": "canonical 关节映射契约。每个关节至少记录 docs/ROBOT_ADAPTATION.md §4 列出的字段；名称唯一、映射双射、索引连续性、数组长度、限位方向等机器校验由 robolab_core.joint_mapping 执行。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "joints"],
+  "properties": {
+    "apiVersion": { "const": "robolab.dev/v1alpha1" },
+    "kind": { "const": "JointSet" },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "dof"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$",
+          "description": "如 g1.29dof.canonical.v1，被 RobotProfile description.jointSet 引用"
+        },
+        "version": { "$ref": "#/$defs/semver" },
+        "dof": { "type": "integer", "minimum": 1 },
+        "description": { "type": "string" }
+      }
+    },
+
+    "base": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["free", "fixed"] },
+        "rootBody": { "type": "string", "minLength": 1 },
+        "qposDim": { "type": "integer", "minimum": 0, "description": "自由根关节占用的 qpos 维度（free=7，fixed=0）" },
+        "qvelDim": { "type": "integer", "minimum": 0, "description": "自由根关节占用的 qvel 维度（free=6，fixed=0）" }
+      }
+    },
+
+    "joints": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "group", "mjcf", "policy", "direction", "zeroOffsetRad", "gearRatio", "limits", "defaultPosition", "gains"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "description": "canonical 关节名，全集合唯一" },
+          "group": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "语义组，如 left_leg / waist / right_arm" },
+
+          "mjcf": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["joint", "qposIndex", "qvelIndex", "actuator", "actuatorIndex"],
+            "properties": {
+              "joint": { "type": "string", "minLength": 1 },
+              "qposIndex": { "type": "integer", "minimum": 0 },
+              "qvelIndex": { "type": "integer", "minimum": 0 },
+              "actuator": { "type": ["string", "null"], "minLength": 1, "description": "MJLab position actuator 与关节同名；欠驱动关节为 null" },
+              "actuatorIndex": { "type": ["integer", "null"], "minimum": 0 }
+            }
+          },
+
+          "policy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["observationIndex", "actionIndex"],
+            "properties": {
+              "observationIndex": { "type": "integer", "minimum": 0, "description": "策略观测中关节块内的序号" },
+              "actionIndex": { "type": "integer", "minimum": 0, "description": "策略动作向量中的序号" }
+            }
+          },
+
+          "hardware": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["motorId"],
+            "properties": {
+              "motorId": { "type": ["integer", "null"], "minimum": 0, "description": "simulation-only Profile 为 null" }
+            }
+          },
+
+          "direction": { "enum": [1, -1], "description": "正方向约定：1 或 -1" },
+          "zeroOffsetRad": { "type": "number" },
+          "gearRatio": { "type": "number", "exclusiveMinimum": 0 },
+
+          "limits": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["position", "velocity", "torque"],
+            "properties": {
+              "position": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["lower", "upper"],
+                "properties": {
+                  "lower": { "type": "number" },
+                  "upper": { "type": "number" }
+                }
+              },
+              "velocity": { "type": "number", "exclusiveMinimum": 0, "description": "最大绝对速度 rad/s" },
+              "torque": { "type": "number", "exclusiveMinimum": 0, "description": "最大绝对力矩 N·m" }
+            }
+          },
+
+          "defaultPosition": { "type": "number", "description": "默认姿态关节角 rad，必须落在 position 限位内" },
+
+          "gains": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recommended", "maximum"],
+            "properties": {
+              "recommended": { "$ref": "#/$defs/kpKd", "description": "推荐 kp/kd" },
+              "maximum": { "$ref": "#/$defs/kpKd", "description": "绝对最大 kp/kd，运行时不得突破" }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "kpKd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kp", "kd"],
+      "properties": {
+        "kp": { "type": "number", "minimum": 0 },
+        "kd": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}

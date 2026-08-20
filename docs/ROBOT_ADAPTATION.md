@@ -103,6 +103,8 @@ bindings:
 
 适配器必须自动检查：名称唯一、映射双射、索引连续性、数组长度、限位方向、默认姿态合法性、动作维度和 ONNX 输入输出维度。任何隐式“第 N 个关节应该对应第 N 个电机”的假设都应被消除。
 
+机器可读形态已冻结为 `JointSet v1alpha1`（`packages/schemas/src/robolab_schemas/data/joint_set.v1alpha1.schema.json`，2026-08-20 B1）：每关节一条记录，包含上列全部字段；`robolab check` 对 JointSet 执行上述自动检查（ONNX 维度实测除外，属于样板 Skill contract test），逐条输出可解释原因。
+
 ## 5. 适配分层
 
 ### A. Description

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robolab.dev/schemas/robot_profile.v1alpha1.json",
+  "title": "RoboLab RobotProfile v1alpha1",
+  "description": "机器人型号契约。字段按 docs/ROBOT_ADAPTATION.md §2 固化；跨字段不变量由 robolab_core 语义检查补充。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "description", "control", "targets", "safety", "capabilities"],
+  "properties": {
+    "apiVersion": { "const": "robolab.dev/v1alpha1" },
+    "kind": { "const": "RobotProfile" },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "vendor", "model"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$",
+          "description": "稳定点分标识，如 unitree.g1.29dof"
+        },
+        "version": { "$ref": "#/$defs/semver" },
+        "vendor": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "variant": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "description": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mjcf", "rootBody", "jointSet"],
+      "properties": {
+        "mjcf": { "$ref": "#/$defs/relPath", "description": "主 MJCF 文件，相对 Profile 包根目录" },
+        "rootBody": { "type": "string", "minLength": 1 },
+        "feet": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "imuFrame": { "type": "string", "minLength": 1 },
+        "jointSet": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$",
+          "description": "canonical joint set 标识，引用一份 JointSet v1alpha1 文档"
+        }
+      }
+    },
+
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "frequencyHz"],
+      "properties": {
+        "mode": { "enum": ["joint_position", "joint_velocity", "joint_torque"] },
+        "frequencyHz": { "type": "integer", "minimum": 1 },
+        "actionScaleProfile": { "type": "string", "minLength": 1 },
+        "stateEstimator": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["simulation", "physical"],
+      "properties": {
+        "simulation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "enabled"],
+          "properties": {
+            "type": { "enum": ["mujoco"] },
+            "enabled": { "type": "boolean" }
+          }
+        },
+        "physical": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "driver"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "driver": { "type": ["string", "null"], "minLength": 1 }
+          }
+        }
+      }
+    },
+
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fallbackState", "commandTimeoutMs", "stateTimeoutMs"],
+      "properties": {
+        "fallbackState": { "enum": ["passive", "damping", "fixstand"] },
+        "commandTimeoutMs": { "type": "integer", "minimum": 1 },
+        "stateTimeoutMs": { "type": "integer", "minimum": 1 },
+        "limitsRef": { "$ref": "#/$defs/relPath" },
+        "gainsRef": { "$ref": "#/$defs/relPath" }
+      }
+    },
+
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["simulation", "training", "motorCommunication", "sensorStreaming", "calibration", "physicalDeployment"],
+      "properties": {
+        "simulation": { "type": "boolean" },
+        "training": { "type": "boolean" },
+        "motorCommunication": { "type": "boolean" },
+        "sensorStreaming": { "type": "boolean" },
+        "calibration": { "type": "boolean" },
+        "physicalDeployment": { "type": "boolean" }
+      }
+    },
+
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "simulation": { "$ref": "#/$defs/relPath" },
+        "hardware": { "$ref": "#/$defs/relPath" },
+        "tasks": { "$ref": "#/$defs/relPath" }
+      }
+    }
+  },
+
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "relPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "^(?:/|[A-Za-z]:)|(^|/)\\.\\.(/|$)" },
+      "description": "相对路径，禁止绝对路径与 .. 逃逸"
+    }
+  }
+}

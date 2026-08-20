@@ -1,0 +1,45 @@
+# B1 contract test fixture：MJCF Inspector PlatformSkill（docs/SKILL_SPEC.md §5 形态）。
+apiVersion: robolab.dev/v1alpha1
+kind: PlatformSkill
+
+metadata:
+  id: tools.mjcf-inspector
+  name: MJCF Inspector
+  version: 0.1.0
+  description: Inspect a public MJCF model and generate a diagnostic report.
+  license: MIT
+  source:
+    repository: https://github.com/Lain-Ego0/RoboLab-Skill
+    revision: 0123456789abcdef0123456789abcdef01234567
+
+spec:
+  compatibility:
+    platform: ">=0.1.0 <0.2.0"
+    skillApi: v1alpha1
+
+  runtime:
+    type: python
+    protocol: robolab-job-v1
+    environment:
+      mode: inherit
+    entrypoint:
+      module: robolab_mjcf_inspector.main
+
+  actions:
+    inspect:
+      title: Inspect MJCF
+      inputSchema: schemas/inspect.input.json
+      outputSchema: schemas/inspect.output.json
+      ui: form
+
+  permissions:
+    filesystem:
+      read: [workspace, skill]
+      write: [run]
+    network: false
+    subprocess: false
+    robotState: false
+    robotCommand: false
+
+  validation:
+    smoke: tests/smoke.yaml
