@@ -10,7 +10,7 @@
 - ✅ 精选 vendor 导入与外部 runtime 发现（`vendor/unitree_rl_mjlab/`）
 - ✅ 文档与所有权边界批次（四个入口 stub：adapter / integration / runtime / robots）
 - ✅ **B1 契约冻结（2026-08-20）**；`robolab` conda 主环境已建立（Phase 0 完成标准见 B1 退出小节）
-- ✅ **B4 三个样板 Skill 与 CLI 端到端完成（2026-08-20）**；下一批为 B5 平台 API 与 `robolab serve`
+- ✅ **B5 平台 API 与 `robolab serve` 完成（2026-08-20）**；下一批为 B6 最小 WebUI
 
 ## 批次总览
 
@@ -85,10 +85,10 @@ B1 同时解锁 ─────────────────> B5 平台 A
 
 | # | 任务 | 依据 | 验收映射 |
 |---|---|---|---|
-| B5.1 | FastAPI API（仅 loopback）、SQLite 元数据、content-addressed artifact store | D-001、D-018 | §2 |
-| B5.2 | Job 日志、取消、状态、配置 snapshot；产物 lineage 记录 | 架构 §2.2 | §3.6/3.8 |
-| B5.3 | `robolab serve` 统一启动 API、静态 WebUI 占位与 Worker；端口选择与 URL 输出 | D-028、Q10、Q24 | §2 |
-| B5.4 | 启动健康检查：Python、Conda、MuJoCo、MJLab、GPU、磁盘 | 验收 §2 直接要求 | §2 |
+| B5.1 | FastAPI API（仅 loopback）、SQLite 元数据、content-addressed artifact store | D-001、D-018 | §2 | ✅ 2026-08-20 |
+| B5.2 | Job 日志、取消、状态、配置 snapshot；产物 lineage 记录 | 架构 §2.2 | §3.6/3.8 | ✅ 2026-08-20 |
+| B5.3 | `robolab serve` 统一启动 API、静态 WebUI 占位与 Worker；端口选择与 URL 输出 | D-028、Q10、Q24 | §2 | ✅ 2026-08-20 |
+| B5.4 | 启动健康检查：Python、Conda、MuJoCo、MJLab、GPU、磁盘 | 验收 §2 直接要求 | §2 | ✅ 2026-08-20 |
 
 依赖：B3（Worker/Job 协议）、B4（有可安装的内容可演示）。
 

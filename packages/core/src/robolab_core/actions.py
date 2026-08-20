@@ -32,3 +32,16 @@ class ActionRegistry:
         except KeyError as error:
             raise KeyError(f"未知 Action: {action_id}") from error
         return action.handler(parameters)
+
+
+def default_action_registry() -> ActionRegistry:
+    """Stable action descriptions shared by API, CLI and Agent adapters."""
+    registry = ActionRegistry()
+    for action_id, description in (
+        ("robolab.robots.inspect", "Inspect a Robot Profile or MJCF"),
+        ("robolab.jobs.create", "Create a validated local Job"),
+        ("robolab.jobs.read", "Read Job status and logs"),
+        ("robolab.artifacts.read", "Read a content-addressed Artifact"),
+    ):
+        registry.register(Action(action_id, description, lambda values: values, {"type": "object"}))
+    return registry

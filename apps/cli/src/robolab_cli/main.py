@@ -84,6 +84,12 @@ def _build_parser() -> argparse.ArgumentParser:
     agent_export.add_argument("--target-root", type=Path, default=Path(".agents/skills"))
     agent_export.add_argument("--json", action="store_true")
 
+    serve = sub.add_parser("serve", help="启动仅监听 loopback 的本地 API、静态 WebUI 占位与 Worker 控制面")
+    serve.add_argument("--port", type=int, default=0, help="监听端口；0 表示自动选择")
+    serve.add_argument("--data-dir", type=Path, default=Path("var"))
+    serve.add_argument("--workspace", type=Path, default=Path("skills"))
+    serve.add_argument("--vendor-root", type=Path, default=Path("vendor/unitree_rl_mjlab"))
+
     mjlab = sub.add_parser("mjlab", help="发现并受控调用已 vendor 的 MJLab 入口")
     mjlab_sub = mjlab.add_subparsers(dest="mjlab_command", required=True)
     tasks = mjlab_sub.add_parser("tasks", help="从 vendor registry 发现 task")
@@ -299,6 +305,20 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(result, ensure_ascii=False, indent=2))
         else:
             print(f"已导出: {result['destination']}")
+        return EXIT_OK
+    if args.command == "serve":
+        try:
+            import socket
+            import uvicorn
+            from robolab_api import create_app
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+                probe.bind(("127.0.0.1", args.port))
+                port = probe.getsockname()[1]
+            print(f"RoboLab 本地服务: http://127.0.0.1:{port}", flush=True)
+            uvicorn.run(create_app(data_dir=args.data_dir, workspace=args.workspace, vendor_root=args.vendor_root), host="127.0.0.1", port=port, log_level="info")
+        except (ImportError, OSError, ValueError) as exc:
+            print(f"错误: 无法启动服务: {exc}", file=sys.stderr)
+            return EXIT_CHECK_FAILED
         return EXIT_OK
     if args.command == "mjlab" and args.mjlab_command == "tasks":
         from robolab_mjlab_adapter import discover_tasks

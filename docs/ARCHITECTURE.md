@@ -1,6 +1,6 @@
 # RoboLab 总体架构
 
-状态：设计基线 v0.3；Q1-Q26 已完成，仓库管理与 MVP 范围已冻结。精选 vendor 已导入（2026-08-20），B1–B4 已完成：schema、Job/Worker、MJLab adapter、三个样板 Skill、CLI 路径和 Codex export 原型可用；平台 API/WebUI 按 `ROADMAP.md` 实施中。
+状态：设计基线 v0.3；Q1-Q26 已完成，仓库管理与 MVP 范围已冻结。精选 vendor 已导入（2026-08-20），B1–B5 已完成：schema、Job/Worker、MJLab adapter、三个样板 Skill、CLI、loopback API、SQLite/Artifact store 与 `robolab serve` 可用；最小 WebUI 按 `ROADMAP.md` 实施中。
 
 ## 1. 设计目标
 
