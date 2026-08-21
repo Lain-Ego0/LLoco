@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 
-from robolab_core import lint_skill_package, validate_document
+from robolab_core import lint_skill_package
 from robolab_core.lint import verify_artifacts
 
 
@@ -44,7 +44,7 @@ class TestRevisionPinning:
         assert lint_skill_package(platform_skill) == []
 
     def test_tag_warns_but_passes(self, motion_skill):
-        # The real g1_velocity package uses refs/tags/... and should warn only.
+        # A tag is intentionally a warning rather than an error.
         issues = lint_skill_package(motion_skill)
         warnings = [i for i in issues if i.rule == "lint.revision-tag"]
         assert warnings and warnings[0].severity == "warning"
@@ -96,16 +96,3 @@ class TestReferencedFiles:
         (tmp_path / "tests/smoke.yaml").write_text("smoke: true")
         issues = lint_skill_package(doc, package_dir=tmp_path)
         assert "lint.environment-missing" in _rules(issues)
-
-
-class TestRealCatalogPackage:
-    """Run full validation for the real g1_velocity package when present."""
-
-    def test_g1_velocity_package_passes(self, g1_velocity_package_dir):
-        from robolab_core import load_document
-
-        document = load_document(g1_velocity_package_dir / "skill.yaml")
-        report = validate_document(document, package_dir=g1_velocity_package_dir)
-        assert report.ok, report.render()
-        artifact_notes = [i for i in report.issues if i.rule == "lint.artifact-ok"]
-        assert len(artifact_notes) == 2

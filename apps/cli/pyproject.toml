@@ -10,7 +10,6 @@ requires-python = ">=3.10"
 dependencies = [
   "robolab-core",
   "robolab-api",
-  "robolab-mjlab-adapter",
 ]
 
 [project.scripts]

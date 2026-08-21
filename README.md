@@ -29,14 +29,14 @@ train/play/evaluate/export、非 Unitree 机器人接入和部署 Runtime。当�
 ```bash
 cd /home/lxy/RoboLab
 conda activate robolab
-python -m pip install -e packages/schemas -e packages/core -e packages/mjlab_adapter \
+python -m pip install -e mjlab -e packages/schemas -e packages/core \
   -e services/api -e services/worker -e apps/cli
 robolab serve
 ```
 
 服务默认监听 `127.0.0.1`，端口自动选择。首次创建环境或运行 MJLab/Viser 前，先阅读
-[`docs/reference/ENVIRONMENT_SETUP.md`](docs/reference/ENVIRONMENT_SETUP.md)。现有 `packages/mjlab_adapter` 命令属于
-Unitree legacy 路径，不代表新的 MJLab 1.6 默认环境已经完成。
+[`docs/reference/ENVIRONMENT_SETUP.md`](docs/reference/ENVIRONMENT_SETUP.md)。Unitree/MJLab 1.2 旧栈已从 active tree 删除，
+当前不提供其安装或 play 命令。
 
 ## 核心边界
 
@@ -46,7 +46,7 @@ Unitree legacy 路径，不代表新的 MJLab 1.6 默认环境已经完成。
 - **Platform Core**：负责 registry、Job、Artifact、兼容性、lineage、审计和部署门禁。
 - **WebUI**：管理机器人接入、Skill、训练、验证和部署会话；不承担硬实时关节控制。
 - **Edge Runtime**：靠近机器人运行策略、Driver、FSM、watchdog、遥测和 stop/safe，不依赖浏览器持续在线。
-- **Unitree Legacy Reference**：只提供 G1 资产、旧任务、sim-to-sim 和部署迁移参考。
+- **历史 Unitree Reference**：仅在历史文档与 Git 历史中保留来源和迁移事实，不属于 active toolchain。
 
 ```text
 Robot MJCF/Profile ──> Customized MJLab 1.6 ──> PolicyArtifact
@@ -60,13 +60,11 @@ WebUI/CLI/Agent ──> Platform Core ──> DeploymentPlan ──> Edge Runtim
 
 | 路径 | 职责 | 当前状态 |
 |---|---|---|
-| `mjlab/` | MJLab 1.6 下游定制基座 | 当前仍在 `vendor/mjlab/`；R0.4 完成根目录迁移 |
-| `vendor/unitree_rl_mjlab/` | 已废止的 Unitree 旧栈 | R0.6 连同 adapter、G1 Profile、Integration 和专用测试删除 |
+| `mjlab/` | MJLab 1.6 下游定制基座 | 默认安装和 smoke test 入口 |
 | `packages/schemas/` | Robot、Skill、Artifact、Validation 和 Deployment schema | 已有 v1alpha1 基础，后续按 R0–R6 演进 |
 | `packages/core/` | Registry、兼容性、Skill lint、Job/Artifact 基础 | B1–B6 骨架已实现 |
-| `packages/mjlab_adapter/` | 旧 Unitree/MJLab 1.2 discovery/play 入口 | R0.6 删除，不保留兼容后端 |
 | `packages/mjlab_tasks/` | 目标：RoboLab task、MDP 和 robot binding 扩展 | 尚未建立 |
-| `robots/` | Robot Profile 与模型 binding | 当前只有 G1 样板；R2 必须加入非 Unitree 参考机器人 |
+| `robots/` | Robot Profile 与模型 binding | R2 必须加入非 Unitree 参考机器人 |
 | `runtime/` | 通用部署数据面、FSM、推理、安全和遥测 | 仅有接口说明 |
 | `integrations/` | 具体厂商或硬件 Driver adapter | Unitree 入口仅有说明 |
 | `skills/` | builtin/installed/dev Skill 工作区 | 安装、注册和调用骨架已实现 |
@@ -100,9 +98,9 @@ Calibration 或 SafetyProfile 时 physical target 必须保持不可用。
 
 ## 上游与许可证
 
-`mjlab/` 来源于开源 MJLab，将按固定 upstream revision 维护 RoboLab 下游修改。Unitree 旧栈将在 R0.6 从 active tree 删除；其来源、许可证和历史证据保留在 Git 历史与历史文档中。`vendor/unitree_rl_mjlab/` 精选导入自
-[unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，固定基线为 `1425b15f`。
-RoboLab 根目录 MIT 不替代 MJLab、Unitree vendor、模型、mesh、动作和其他第三方内容的许可证。
+`mjlab/` 来源于开源 MJLab，固定为 `v1.6.0` / `0fb8a681136be94ffc636a3dd423cabb97d91f10`，并按
+[`mjlab/UPSTREAM.md`](mjlab/UPSTREAM.md) 与 [`mjlab/ROBOLAB_CHANGES.md`](mjlab/ROBOLAB_CHANGES.md) 维护。
+Unitree 来源、commit `1425b15f` 和历史许可证事实保留在 Git 历史与历史文档中，不属于当前 active tree。
 
 RoboLab 不是 Unitree Robotics、MJLab、MuJoCo 或其他上游项目的官方产品。详见
 [第三方声明](THIRD_PARTY_NOTICES.md) 和 [上游与致谢](docs/reference/UPSTREAM_AND_ACKNOWLEDGEMENTS.md)。

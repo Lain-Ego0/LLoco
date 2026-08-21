@@ -88,26 +88,7 @@ def _build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--port", type=int, default=0, help="监听端口；0 表示自动选择")
     serve.add_argument("--data-dir", type=Path, default=Path("var"))
     serve.add_argument("--workspace", type=Path, default=Path("skills"))
-    serve.add_argument("--vendor-root", type=Path, default=Path("vendor/unitree_rl_mjlab"))
     serve.add_argument("--web-root", type=Path, default=Path("apps/web/dist"))
-
-    mjlab = sub.add_parser("mjlab", help="发现并受控调用已 vendor 的 MJLab 入口")
-    mjlab_sub = mjlab.add_subparsers(dest="mjlab_command", required=True)
-    tasks = mjlab_sub.add_parser("tasks", help="从 vendor registry 发现 task")
-    tasks.add_argument("--vendor-root", type=Path, default=Path("vendor/unitree_rl_mjlab"))
-    tasks.add_argument("--keyword")
-    tasks.add_argument("--json", action="store_true")
-    play = mjlab_sub.add_parser("play", help="创建 Job 并以受控子进程调用 vendor play.py")
-    play.add_argument("task_id")
-    play.add_argument("--vendor-root", type=Path, default=Path("vendor/unitree_rl_mjlab"))
-    play.add_argument("--runs-root", type=Path, default=Path("var/runs"))
-    play.add_argument("--num-envs", type=int)
-    play.add_argument("--viewer", choices=("auto", "native", "viser"))
-    play.add_argument("--agent", choices=("zero", "random", "trained"))
-    play.add_argument("--checkpoint-file", type=Path)
-    play.add_argument("--wandb-run-path")
-    play.add_argument("--video", action="store_true")
-    play.add_argument("--wait", action="store_true", help="等待结束并输出 result.json")
     return parser
 
 
@@ -318,45 +299,10 @@ def main(argv: list[str] | None = None) -> int:
                 probe.bind(("127.0.0.1", args.port))
                 port = probe.getsockname()[1]
             print(f"RoboLab 本地服务: http://127.0.0.1:{port}", flush=True)
-            uvicorn.run(create_app(data_dir=args.data_dir, workspace=args.workspace, vendor_root=args.vendor_root, web_root=args.web_root), host="127.0.0.1", port=port, log_level="info")
+            uvicorn.run(create_app(data_dir=args.data_dir, workspace=args.workspace, web_root=args.web_root), host="127.0.0.1", port=port, log_level="info")
         except (ImportError, OSError, ValueError) as exc:
             print(f"错误: 无法启动服务: {exc}", file=sys.stderr)
             return EXIT_CHECK_FAILED
-        return EXIT_OK
-    if args.command == "mjlab" and args.mjlab_command == "tasks":
-        from robolab_mjlab_adapter import discover_tasks
-
-        try:
-            found = discover_tasks(args.vendor_root, keyword=args.keyword)
-        except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
-            print(f"错误: {exc}", file=sys.stderr)
-            return EXIT_CHECK_FAILED
-        payload = [{"taskId": item.task_id, "source": item.source, "equivalentCommand": list(item.command)} for item in found]
-        if args.json:
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
-        else:
-            for item in payload:
-                print(item["taskId"])
-        return EXIT_OK
-    if args.command == "mjlab" and args.mjlab_command == "play":
-        from robolab_core import LocalWorker, create_job_run
-        from robolab_mjlab_adapter import build_play_command
-
-        parameters = {key: value for key, value in {"num_envs": args.num_envs, "viewer": args.viewer, "agent": args.agent, "checkpoint_file": str(args.checkpoint_file) if args.checkpoint_file else None, "wandb_run_path": args.wandb_run_path, "video": args.video}.items() if value not in (None, False)}
-        try:
-            paths = create_job_run(args.runs_root, action="mjlab.play", parameters={"taskId": args.task_id, **parameters}, allowed_paths=[args.vendor_root])
-            command = build_play_command(args.vendor_root, args.task_id, parameters)
-            vendor_root = args.vendor_root.resolve()
-            import os
-            handle = LocalWorker().start(paths, command, cwd=vendor_root, env={"PYTHONPATH": str(vendor_root) + os.pathsep + os.environ.get("PYTHONPATH", "")})
-        except (OSError, ValueError, PermissionError, subprocess.SubprocessError) as exc:
-            print(f"错误: {exc}", file=sys.stderr)
-            return EXIT_CHECK_FAILED
-        print(f"Job 已创建: {paths.run_dir}")
-        if args.wait:
-            handle.process.wait()
-            print(json.dumps(handle.finalize(), ensure_ascii=False, indent=2))
-            return EXIT_OK if handle.process.returncode == 0 else EXIT_CHECK_FAILED
         return EXIT_OK
     parser.error(f"未知命令: {args.command}")
     return EXIT_USAGE_ERROR

@@ -32,7 +32,7 @@ def test_api_health_jobs_and_artifact_download(tmp_path):
     (runs / "artifacts").mkdir()
     (runs / "artifacts/out.txt").write_text("artifact", encoding="utf-8")
     (runs / "result.json").write_text(json.dumps({"protocol": "robolab-job-v1", "jobId": "job-1", "status": "SUCCEEDED", "artifacts": [{"path": "out.txt"}]}), encoding="utf-8")
-    app = create_app(data_dir=tmp_path / "var", workspace=tmp_path / "skills", vendor_root=tmp_path / "missing-vendor")
+    app = create_app(data_dir=tmp_path / "var", workspace=tmp_path / "skills")
     with TestClient(app) as client:
         assert client.get("/api/v1/health").status_code == 200
         assert len(client.get("/api/v1/actions").json()) >= 4

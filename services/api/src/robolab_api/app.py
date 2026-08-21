@@ -24,12 +24,11 @@ def _watch_job(handle: Any) -> None:
     handle.finalize()
 
 
-def create_app(*, data_dir: str | Path = "var", workspace: str | Path = "skills", vendor_root: str | Path = "vendor/unitree_rl_mjlab", web_root: str | Path = "apps/web/dist") -> FastAPI:
+def create_app(*, data_dir: str | Path = "var", workspace: str | Path = "skills", web_root: str | Path = "apps/web/dist") -> FastAPI:
     store = LocalStore(data_dir)
     app = FastAPI(title="RoboLab", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
     app.state.store = store
     app.state.workspace = Path(workspace)
-    app.state.vendor_root = Path(vendor_root)
     app.state.actions = default_action_registry()
     app.state.web_root = Path(web_root).resolve()
     if (app.state.web_root / "assets").is_dir():
@@ -45,7 +44,7 @@ def create_app(*, data_dir: str | Path = "var", workspace: str | Path = "skills"
 
     @app.get("/api/v1/health")
     def get_health() -> dict[str, object]:
-        report = health(store.data_dir, app.state.vendor_root)
+        report = health(store.data_dir)
         report["worker"] = {"ok": True, "mode": "local-subprocess", "rootExecution": False}
         return report
 

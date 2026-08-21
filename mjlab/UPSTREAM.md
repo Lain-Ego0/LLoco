@@ -6,17 +6,17 @@
 - Package version: `1.6.0`
 - License: Apache License 2.0; see `LICENSE`
 - Target RoboLab source location: `mjlab/`
-- Transitional location before R0.4: `vendor/mjlab/`
 - Verified at: 2026-08-21
 
 ## Verification
 
-The RoboLab tree was compared recursively against a fresh shallow checkout of upstream tag `v1.6.0` at
+The initial RoboLab tree was compared recursively against a fresh shallow checkout of upstream tag `v1.6.0` at
 `0fb8a681136be94ffc636a3dd423cabb97d91f10`, excluding only the upstream checkout's `.git` directory. No file or
 content differences were reported at the time of verification.
 
-This file establishes the starting point for RoboLab's Customized MJLab 1.6 downstream distribution. Future upstream
-imports and RoboLab-specific changes must be made in separate commits and recorded in `ROBOLAB_CHANGES.md`.
+This file establishes the starting point for RoboLab's Customized MJLab 1.6 downstream distribution. R0.6 removed
+Unitree-specific upstream asset/task files from the active downstream tree; that retirement is recorded in
+`ROBOLAB_CHANGES.md`. Future upstream imports and RoboLab-specific changes must be made in separate commits.
 
 ## Update Rules
 

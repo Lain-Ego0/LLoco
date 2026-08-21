@@ -1,14 +1,12 @@
-# B1 contract test fixture：G1 29DoF canonical JointSet。
-# 关节序与 vendor G1 velocity deploy.yaml 的 identity joint_ids_map 一致；
-# actuator 名与关节同名（MJLab BuiltinPositionActuator 约定）。
+# Contract test fixture only: neutral reference-biped joint mapping.
+# It is test data, not evidence of a real robot integration.
 apiVersion: robolab.dev/v1alpha1
 kind: JointSet
 metadata:
-  id: g1.29dof.canonical.v1
+  id: test.reference_biped.joints.v1
   version: 1.0.0
   dof: 29
-  description: Unitree G1 29DoF canonical joint set；推荐增益与默认姿态取自 G1 velocity deploy.yaml，torque/velocity
-    上限为公开规格近似值，L4 实机验证前以 safety/limits.yaml 复核为准。
+  description: Neutral test joint set for schema and mapping contracts.
 base:
   type: free
   rootBody: pelvis

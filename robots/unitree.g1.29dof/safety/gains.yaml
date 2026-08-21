@@ -1,3 +1,0 @@
-status: simulation-only
-source: tests/contract/fixtures/joint_set.g1_29dof.yaml
-note: Recommended and maximum gains are defined per joint in the canonical JointSet fixture.

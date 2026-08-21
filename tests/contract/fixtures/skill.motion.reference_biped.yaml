@@ -2,33 +2,33 @@ apiVersion: robolab.dev/v1alpha1
 kind: MotionSkill
 
 metadata:
-  id: motion.unitree-g1-velocity
-  name: Unitree G1 Velocity
+  id: motion.test-reference-biped-velocity
+  name: Test Reference Biped Velocity Fixture
   version: 0.1.0
-  description: Velocity-command locomotion policy for the Unitree G1 29DoF model.
+  description: Synthetic compatibility fixture; not a real robot or policy.
   license: Apache-2.0
   source:
     repository: https://github.com/Lain-Ego0/RoboLab-Skill
-    revision: refs/tags/g1-velocity-v0.1.0
+    revision: refs/tags/test-reference-biped-v0.1.0
   provenance:
-    repository: https://github.com/unitreerobotics/unitree_rl_mjlab
-    revision: 1425b15f73bd4095f0df53709d7c389c3eb9e790
+    repository: https://example.invalid/test-reference-biped
+    revision: 0123456789abcdef0123456789abcdef01234567
     paths:
-      - deploy/robots/g1/config/policy/velocity/v0/exported/policy.onnx
-      - deploy/robots/g1/config/policy/velocity/v0/params/deploy.yaml
+      - fixture/policy.onnx
+      - fixture/deploy.yaml
 
 spec:
   compatibility:
     platform: ">=0.1.0 <0.2.0"
     skillApi: v1alpha1
     robots:
-      - profile: unitree.g1.29dof
+      - profile: test.reference_biped
         version: ">=1.0.0 <2.0.0"
     controlMode: joint_position
     controlHz: 50
-    jointSet: g1.29dof.canonical.v1
-    observationSchema: unitree.g1.velocity.v0.observation.v1
-    actionSchema: unitree.g1.29dof.joint-position.v1
+    jointSet: test.reference_biped.joints.v1
+    observationSchema: test.reference_biped.velocity.observation.v1
+    actionSchema: test.reference_biped.joint-position.v1
 
   runtime:
     type: onnx
@@ -51,7 +51,7 @@ spec:
     play:
       title: Play in MJLab
       inputSchema: schemas/command.json
-      task: Unitree-G1-Flat
+      task: test.reference_biped.velocity.flat
     simulate:
       title: Run sim-to-sim
       inputSchema: schemas/command.json

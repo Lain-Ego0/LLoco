@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 from robolab_cli.main import EXIT_CHECK_FAILED, EXIT_OK, EXIT_USAGE_ERROR, main
-from conftest import FIXTURES, SKILL_CATALOG
+from conftest import FIXTURES
 
 
 def _make_motion_skill_package(root: Path) -> Path:
@@ -35,10 +35,10 @@ def _make_motion_skill_package(root: Path) -> Path:
             "compatibility": {
                 "platform": ">=0.1.0 <0.2.0",
                 "skillApi": "v1alpha1",
-                "robots": [{"profile": "unitree.g1.29dof", "version": ">=1.0.0 <2.0.0"}],
+                "robots": [{"profile": "test.reference_biped", "version": ">=1.0.0 <2.0.0"}],
                 "controlMode": "joint_position",
                 "controlHz": 50,
-                "jointSet": "g1.29dof.canonical.v1",
+                "jointSet": "test.reference_biped.joints.v1",
                 "observationSchema": "test.observation.v1",
                 "actionSchema": "test.action.v1",
             },
@@ -62,7 +62,7 @@ def _make_motion_skill_package(root: Path) -> Path:
                 "play": {
                     "title": "Play in MJLab",
                     "inputSchema": "schemas/command.json",
-                    "task": "Unitree-G1-Flat",
+                    "task": "test.reference_biped.velocity.flat",
                 }
             },
             "permissions": {
@@ -104,16 +104,16 @@ def motion_skill_package(tmp_path) -> Path:
 
 class TestSingleDocumentCheck:
     def test_valid_profile_exit_ok(self, capsys):
-        assert main(["check", str(FIXTURES / "robot_profile.g1.yaml")]) == EXIT_OK
+        assert main(["check", str(FIXTURES / "robot_profile.reference_biped.yaml")]) == EXIT_OK
         assert "通过" in capsys.readouterr().out
 
     def test_valid_joint_set_exit_ok(self, capsys):
-        assert main(["check", str(FIXTURES / "joint_set.g1_29dof.yaml")]) == EXIT_OK
+        assert main(["check", str(FIXTURES / "joint_set.reference_biped.yaml")]) == EXIT_OK
         assert "无问题" in capsys.readouterr().out
 
     def test_broken_document_exit_1(self, tmp_path, capsys):
         broken = tmp_path / "broken.yaml"
-        doc = yaml.safe_load((FIXTURES / "robot_profile.g1.yaml").read_text())
+        doc = yaml.safe_load((FIXTURES / "robot_profile.reference_biped.yaml").read_text())
         del doc["capabilities"]
         broken.write_text(yaml.safe_dump(doc))
         assert main(["check", str(broken)]) == EXIT_CHECK_FAILED
@@ -133,7 +133,7 @@ class TestCompatibilityCheck:
         code = main([
             "check",
             "--skill", str(motion_skill_package),
-            "--profile", str(FIXTURES / "robot_profile.g1.yaml"),
+            "--profile", str(FIXTURES / "robot_profile.reference_biped.yaml"),
         ])
         assert code == EXIT_OK
         out = capsys.readouterr().out
@@ -141,7 +141,7 @@ class TestCompatibilityCheck:
         assert "SHA-256 校验通过" in out
 
     def test_incompatible_pair_exit_1(self, motion_skill_package, tmp_path, capsys):
-        profile = yaml.safe_load((FIXTURES / "robot_profile.g1.yaml").read_text())
+        profile = yaml.safe_load((FIXTURES / "robot_profile.reference_biped.yaml").read_text())
         profile["control"]["frequencyHz"] = 200
         modified = tmp_path / "profile.yaml"
         modified.write_text(yaml.safe_dump(profile))
@@ -162,7 +162,7 @@ class TestCompatibilityCheck:
         code = main([
             "check",
             "--skill", str(motion_skill_package),
-            "--profile", str(FIXTURES / "robot_profile.g1.yaml"),
+            "--profile", str(FIXTURES / "robot_profile.reference_biped.yaml"),
             "--json",
         ])
         assert code == EXIT_OK
@@ -174,22 +174,6 @@ class TestCompatibilityCheck:
         assert main([
             "check",
             "--skill", str(motion_skill_package),
-            "--profile", str(FIXTURES / "robot_profile.g1.yaml"),
+            "--profile", str(FIXTURES / "robot_profile.reference_biped.yaml"),
         ]) == EXIT_OK
         assert capsys.readouterr().out.count("lint.artifact-ok") == 2
-
-    @pytest.mark.skipif(
-        not (SKILL_CATALOG / "skills/motion/g1_velocity").is_dir(),
-        reason="Sibling RoboLab-Skill checkout is absent",
-    )
-    def test_real_skill_against_profile(self, capsys):
-        """Validate the real catalog package against the fixture Profile."""
-        package = SKILL_CATALOG / "skills/motion/g1_velocity"
-        code = main([
-            "check",
-            "--skill", str(package / "skill.yaml"),
-            "--profile", str(FIXTURES / "robot_profile.g1.yaml"),
-        ])
-        assert code == EXIT_OK
-        out = capsys.readouterr().out
-        assert "SHA-256 校验通过" in out

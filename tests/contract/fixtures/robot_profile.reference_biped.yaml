@@ -1,22 +1,21 @@
-# B1 contract test fixture：G1 29DoF simulation-only Profile。
-# 与 docs/ROBOT_ADAPTATION.md §2 最小内容一致；正式的 robots/unitree.g1.29dof/
-# Profile 在 B2.1 建立后以本 fixture 为基线。
+# Contract test fixture only: a neutral reference biped, not a connected robot.
+# It is intentionally not a real Robot Profile or a deployable asset.
 apiVersion: robolab.dev/v1alpha1
 kind: RobotProfile
 
 metadata:
-  id: unitree.g1.29dof
+  id: test.reference_biped
   version: 1.0.0
-  vendor: Unitree
-  model: G1
-  variant: 29dof
+  vendor: Test Fixture
+  model: Reference Biped
+  variant: neutral
 
 description:
-  mjcf: model/g1.xml
+  mjcf: model/reference.xml
   rootBody: pelvis
   feet: [left_ankle_roll_link, right_ankle_roll_link]
   imuFrame: imu_in_pelvis
-  jointSet: g1.29dof.canonical.v1
+  jointSet: test.reference_biped.joints.v1
 
 control:
   mode: joint_position
