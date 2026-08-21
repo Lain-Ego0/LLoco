@@ -95,7 +95,7 @@ cat "$INSPECTOR/schemas/inspect.input.json"
 
 ```bash
 robolab skill run "$INSPECTOR/skill.yaml" --runs-root "$B7_ROOT/runs" \
-  --params '{"mjcfPath":"/absolute/path/to/model.xml"}' --wait \
+  --params '{"mjcf_path":"/absolute/path/to/model.xml"}' --wait \
   |& tee "$B7_ROOT/logs/inspector-run.txt"
 ```
 
@@ -262,3 +262,47 @@ hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
 
 完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 B7.1/B7.2/B7.3 状态更新为
 `✅`；在此之前 MVP 仅处于 CPU 闭环就绪状态。
+
+## 最新复测（2026-08-21）
+
+- 代码版本：RoboLab `6027dae7a3dea9ac49a02e058e32a08fd529562f`；本地 catalog
+  `32d112be710f984f7e048cbfbb9e82fbe559d625`。完整日志、run 目录和 SHA-256 位于
+  `/home/lxy/RoboLab/var/b7-acceptance-20260821-114501/`。
+- 环境：Python 3.11.15，MJLab 1.2.0，MuJoCo 3.5.0，Torch 2.13.0，Viser 1.1.0，
+  warp-lang 1.12.0，SciPy 1.17.1；CUDA 可用，GPU 为 NVIDIA GeForce RTX 4060 Laptop GPU。
+- B7.1 CPU：`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q tests/contract` 通过，
+  `113 passed, 1 warning`。G1 MotionSkill 的 schema、artifact SHA-256、
+  `unitree.g1.29dof` 兼容性、安装和 G1 task 发现均通过；MJCF Inspector 与 Robot
+  Onboarding 的 manifest 校验、安装以及 Codex export 均通过。
+- MJCF Inspector：按文档/schema 的 `mjcfPath` 参数运行失败（`KeyError: 'mjcf_path'`，
+  run `3d62c404-818a-4b18-84cf-374154406a10`）。以实现实际读取的 `mjcf_path` 重试成功，
+  run `c7405c22-a638-4ffd-9915-44b1591eaaeb` 产生 `report.json`、`report.md`、
+  `robot_profile.draft.yaml`；三个 artifact SHA-256 分别为
+  `70c00d2c2f5db35ab347c129bd36c095e895017e8b64160e03b700c14c51715b`、
+  `1d6764c0979e31dd5626faff4dd7c20de8a49efc151fe93ac4198f3294c74b5d`、
+  `bab54621bd80e31294f7ebfcbf6b406417b42a01ead4d2e7dd5a1131b7e446c6`。这是 catalog
+  输入 schema/验收命令与 worker 参数名不一致的问题，仍需修复后才可将该路径视为完全通过。
+- B7.3 zero-policy：`Unitree-G1-Flat` 在 1 个环境中完成 CUDA 编译并启动 Viser，日志显示
+  `http://localhost:8080`。该 viewer 是持续运行的交互进程；为使自动化复测可返回，180 秒
+  后由保护超时终止（run `0decd9e0-1a36-4db1-a0d3-9f0e095665e6`），因此没有最终 result。
+- B7.3 trained：实际 trained play 失败，run
+  `e33baf4d-c773-41e5-a29e-4b25ab1688a5` 退出码 1，原因是 vendor
+  `PlayConfig` 缺少 `wandb_run_path` 属性。带 `--video` 的原命令还会失败（run
+  `0f95bf54-9d65-46b5-a8df-2c05c20d34c1`，退出码 2），因为 adapter 将布尔 flag 转为
+  `--video`，但当前 vendor 要求该参数显式带值。
+
+本轮因此维持 B7.1/B7.2/B7.3 为 `🔶`：CPU 闭环和 Viser 启动证据已更新，但远程 CI、
+schema 参数不一致修复、trained velocity play，以及人工 viewer/Job 取消与归档验收均未完成。
+
+## 问题修复复测（2026-08-21）
+
+- 已将验收命令中的 Inspector 参数统一为 schema 实际要求的 `mjcf_path`。
+- `robolab_mjlab_adapter` 已按 vendor tyro CLI 约定将布尔参数序列化为显式值，
+  例如 `--video True`；CLI 同时支持 `--checkpoint-file` 和 `--wandb-run-path` 透传。
+- vendor `PlayConfig` 已声明此前被读取但未声明的 `wandb_run_path` 和 `registry_name`，
+  trained play 现在会给出可理解的“缺少 checkpoint/WandB 路径”错误，而不是
+  `AttributeError`。当前仓库没有可供 MJLab RSL-RL 使用的 checkpoint，因此 trained
+  play 仍需提供真实 checkpoint 或 WandB run 才能继续。
+- 修复后 contract suite：`113 passed, 1 warning`。zero + `--video` 已通过 CLI 参数解析并
+  进入 Viser 运行阶段（持续 viewer 进程按预期由测试超时结束）；不再出现“Missing value
+  for argument '--video'”。

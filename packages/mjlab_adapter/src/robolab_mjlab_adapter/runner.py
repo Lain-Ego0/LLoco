@@ -22,7 +22,11 @@ def build_play_command(vendor_root: str | Path, task_id: str, parameters: Mappin
         flag = "--" + key.replace("_", "-")
         if isinstance(value, bool):
             if value:
-                command.append(flag)
+                # The vendored tyro CLI represents booleans as explicit
+                # values (e.g. ``--video True``), rather than store_true
+                # flags.  Emitting the value keeps the adapter compatible
+                # with that contract and avoids an argparse-style mismatch.
+                command.extend([flag, "True"])
         elif value is not None:
             command.extend([flag, str(value)])
     return command

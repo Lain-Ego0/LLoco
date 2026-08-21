@@ -11,7 +11,7 @@ def test_build_play_command_uses_vendor_entrypoint(tmp_path):
     script.parent.mkdir()
     script.write_text("", encoding="utf-8")
     command = build_play_command(tmp_path, "Unitree-G1-Flat", {"num_envs": 2, "video": True})
-    assert command[2:] == ["Unitree-G1-Flat", "--num-envs", "2", "--video"]
+    assert command[2:] == ["Unitree-G1-Flat", "--num-envs", "2", "--video", "True"]
 
 
 def test_discover_tasks_parses_vendor_prettytable_output(tmp_path):

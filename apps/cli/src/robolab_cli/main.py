@@ -104,6 +104,8 @@ def _build_parser() -> argparse.ArgumentParser:
     play.add_argument("--num-envs", type=int)
     play.add_argument("--viewer", choices=("auto", "native", "viser"))
     play.add_argument("--agent", choices=("zero", "random", "trained"))
+    play.add_argument("--checkpoint-file", type=Path)
+    play.add_argument("--wandb-run-path")
     play.add_argument("--video", action="store_true")
     play.add_argument("--wait", action="store_true", help="等待结束并输出 result.json")
     return parser
@@ -340,7 +342,7 @@ def main(argv: list[str] | None = None) -> int:
         from robolab_core import LocalWorker, create_job_run
         from robolab_mjlab_adapter import build_play_command
 
-        parameters = {key: value for key, value in {"num_envs": args.num_envs, "viewer": args.viewer, "agent": args.agent, "video": args.video}.items() if value not in (None, False)}
+        parameters = {key: value for key, value in {"num_envs": args.num_envs, "viewer": args.viewer, "agent": args.agent, "checkpoint_file": str(args.checkpoint_file) if args.checkpoint_file else None, "wandb_run_path": args.wandb_run_path, "video": args.video}.items() if value not in (None, False)}
         try:
             paths = create_job_run(args.runs_root, action="mjlab.play", parameters={"taskId": args.task_id, **parameters}, allowed_paths=[args.vendor_root])
             command = build_play_command(args.vendor_root, args.task_id, parameters)

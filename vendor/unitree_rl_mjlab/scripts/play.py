@@ -23,7 +23,13 @@ from mjlab.viewer import NativeMujocoViewer, ViserPlayViewer
 class PlayConfig:
   agent: Literal["zero", "random", "trained"] = "trained"
   checkpoint_file: str | None = None
+  # Optional WandB run path used when no local checkpoint is supplied.
+  # Keep this field in sync with the lookup below; older vendor snapshots
+  # referenced it without declaring it in PlayConfig.
+  wandb_run_path: str | None = None
   motion_file: str | None = None
+  # Tracking-task demos may provide a registry motion identifier.
+  registry_name: str | None = None
   num_envs: int | None = None
   device: str | None = None
   video: bool = False
