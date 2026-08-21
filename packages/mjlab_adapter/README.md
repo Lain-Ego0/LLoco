@@ -20,4 +20,4 @@
 - 第一版通过子进程调用 vendor 现有 `scripts/train.py`、`play.py` 等入口，等接口稳定后再重构内部实现；
 - 厂商专用逻辑不属于本目录，放 [`integrations/`](../../integrations/)；部署运行时不属于本目录，放 [`runtime/`](../../runtime/)。
 
-设计细节见 [ARCHITECTURE §4.1](../../docs/ARCHITECTURE.md)。
+设计细节见 [ARCHITECTURE §4.1](../../docs/reference/ARCHITECTURE.md)。

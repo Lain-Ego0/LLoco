@@ -127,7 +127,7 @@ MVP 验收标准单独维护在 `MVP_ACCEPTANCE.md`。
 ## 第四轮结果：仓库管理与开工顺序
 
 架构 QA 已完成，以下选择形成实施基线。本文是历史决策记录；当前批次和完成状态以
-`docs/DEVELOPMENT_PLAN.md` 为准。
+`docs/project/DEVELOPMENT_PLAN.md` 为准。
 
 ### Q21. Unitree 上游来源的 Git 管理方式
 

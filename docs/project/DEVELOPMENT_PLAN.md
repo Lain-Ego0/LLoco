@@ -2,7 +2,7 @@
 
 状态：v0.1（2026-08-20 建立）。本文是执行层主线：批次顺序、依赖、状态与追溯。
 
-分工：[ROADMAP](ROADMAP.md) 管“阶段与退出条件”，[MVP_ACCEPTANCE](MVP_ACCEPTANCE.md) 管“怎么算验收”，本文管“现在该干什么、按什么顺序、做到哪了”，并且是**唯一的进度权威**。发生设计取舍时查阅历史决策记录 [DECISIONS_AND_QA](DECISIONS_AND_QA.md)；新决策须先记录在该文件，再同步更新本文和受影响的规范。
+分工：[ROADMAP](ROADMAP.md) 管“阶段与退出条件”，[MVP_ACCEPTANCE](MVP_ACCEPTANCE.md) 管“怎么算验收”，本文管“现在该干什么、按什么顺序、做到哪了”，并且是**唯一的进度权威**。发生设计取舍时查阅[历史决策记录](../history/DECISIONS_AND_QA.md)；新决策须先记录在该文件，再同步更新本文和受影响的规范。
 
 ## 当前位置
 

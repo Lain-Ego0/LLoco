@@ -15,6 +15,6 @@
 - Unitree 训练/仿真/legacy 部署的**上游源码**在 [`vendor/unitree_rl_mjlab/`](../../vendor/unitree_rl_mjlab/)，本目录不放上游代码副本；
 - 与厂商无关的 FSM、推理、安全和遥测放 [`runtime/`](../../runtime/)；
 - 机器人型号描述（simulation-only Profile）放 [`robots/`](../../robots/)；
-- 迁移路径：vendor `deploy/robots/*` 中的 Unitree 专用部分逐步迁入本目录，共享部分迁入 `runtime/`，见 [ROBOT_ADAPTATION §10](../../docs/ROBOT_ADAPTATION.md)。
+- 迁移路径：vendor `deploy/robots/*` 中的 Unitree 专用部分逐步迁入本目录，共享部分迁入 `runtime/`，见 [ROBOT_ADAPTATION §10](../../docs/reference/ROBOT_ADAPTATION.md)。
 
-设计细节见 [ARCHITECTURE §4.3](../../docs/ARCHITECTURE.md) 与 [MJLAB_MAINTENANCE §6](../../docs/MJLAB_MAINTENANCE.md)。
+设计细节见 [ARCHITECTURE §4.3](../../docs/reference/ARCHITECTURE.md) 与 [MJLAB_MAINTENANCE §6](../../docs/history/MJLAB_MAINTENANCE.md)。

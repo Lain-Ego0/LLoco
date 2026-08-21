@@ -12,13 +12,13 @@ python -m pip install -e packages/schemas -e packages/core -e packages/mjlab_ada
 robolab serve
 ```
 
-启动后，终端会打印实际访问地址（默认监听 `127.0.0.1`，端口自动选择），在浏览器打开该地址即可。首次创建环境或需要运行 MJLab/Viser 时，先按 [`docs/ENVIRONMENT_SETUP.md`](docs/ENVIRONMENT_SETUP.md) 安装对应依赖；仅修改 WebUI 后，在 `apps/web/` 执行 `npm install && npm run build`，再重新启动服务。
+启动后，终端会打印实际访问地址（默认监听 `127.0.0.1`，端口自动选择），在浏览器打开该地址即可。首次创建环境或需要运行 MJLab/Viser 时，先按 [`docs/reference/ENVIRONMENT_SETUP.md`](docs/reference/ENVIRONMENT_SETUP.md) 安装对应依赖；仅修改 WebUI 后，在 `apps/web/` 执行 `npm install && npm run build`，再重新启动服务。
 
 One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with Deployment Adaptation and Skill Integration.
 
 RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台，将机器人接入、强化学习训练、仿真验证、策略导出、Skill 安装和实机部署组织成一条可追踪、可复现、可回滚的工作流。
 
-> 当前仓库已完成 B1–B6，正在进行 B7 MVP 验收。`vendor/unitree_rl_mjlab/` 已完成精选导入；schema、Skill 安装链路、Job/Worker、MJLab adapter、三个样板 Skill、loopback API、SQLite/artifact store、`robolab serve` 与最小 WebUI 均已可用。当前批次和剩余工作以 [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md) 为准。
+> 当前仓库已完成 B1–B6，正在进行 B7 MVP 验收。`vendor/unitree_rl_mjlab/` 已完成精选导入；schema、Skill 安装链路、Job/Worker、MJLab adapter、三个样板 Skill、loopback API、SQLite/artifact store、`robolab serve` 与最小 WebUI 均已可用。当前批次和剩余工作以 [`docs/project/DEVELOPMENT_PLAN.md`](docs/project/DEVELOPMENT_PLAN.md) 为准。
 
 ## 核心边界
 
@@ -85,18 +85,10 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 
 ## 文档
 
-- [总体架构](docs/ARCHITECTURE.md)
-- [产品功能与 WebUI](docs/PRODUCT_DESIGN.md)
-- [WebUI 视觉与交互规范](docs/UI_GUIDELINES.md)
-- [Skill 包规范](docs/SKILL_SPEC.md)
-- [Agent Skill 与外部 Agent 集成](docs/AGENT_INTEGRATION.md)
-- [机器人快速适配](docs/ROBOT_ADAPTATION.md)
-- [路线图](docs/ROADMAP.md)
-- [开发主线与批次计划](docs/DEVELOPMENT_PLAN.md)
-- [MVP 验收标准](docs/MVP_ACCEPTANCE.md)
-- [上游来源、许可证与致谢](docs/UPSTREAM_AND_ACKNOWLEDGEMENTS.md)
-- [MJLab 来源树管理方案](docs/MJLAB_MAINTENANCE.md)
-- [历史决策与多轮 QA](docs/DECISIONS_AND_QA.md)
+- [文档索引](docs/README.md)
+- [开发主线与批次计划（当前进度）](docs/project/DEVELOPMENT_PLAN.md)
+- [总体架构](docs/reference/ARCHITECTURE.md)
+- [Skill 包规范](docs/reference/SKILL_SPEC.md)
 
 ## 安全原则
 

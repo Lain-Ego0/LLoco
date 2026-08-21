@@ -1,7 +1,7 @@
 # B7 MVP 验收记录
 
 状态：进行中；创建日期 2026-08-20。本文是 B7 的验收证据记录，当前进度以
-`docs/DEVELOPMENT_PLAN.md` 为准。此记录区分已经完成的 CPU 闭环和依赖
+[`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为准。此记录区分已经完成的 CPU 闭环和依赖
 本地 MJLab/Viser 环境的手动验证，禁止用前者替代后者。
 
 ## 环境基线
@@ -57,5 +57,5 @@
    artifact hash；
 4. 记录最终 GPU/CPU、MuJoCo、MJLab、Viser、Warp 的具体版本与结果。
 
-完成所有条目后，将本表与 `docs/DEVELOPMENT_PLAN.md` 的 B7.1/B7.2 状态更新为
+完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 B7.1/B7.2 状态更新为
 `✅`；在此之前 MVP 仅处于 CPU 闭环就绪状态。

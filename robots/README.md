@@ -16,4 +16,4 @@
 - 机器人 MJCF/mesh 等上游资产保留在 vendor 命名空间，Profile 通过引用与哈希固定，不复制；
 - Profile schema（`RobotProfile v1alpha1`）已在 B1 冻结；使用 `robolab check robots/unitree.g1.29dof/profile.yaml` 验证 manifest。
 
-字段规范见 [ROBOT_ADAPTATION](../docs/ROBOT_ADAPTATION.md)。
+字段规范见 [ROBOT_ADAPTATION](../docs/reference/ROBOT_ADAPTATION.md)。

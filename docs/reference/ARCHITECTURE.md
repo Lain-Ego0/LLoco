@@ -2,7 +2,7 @@
 
 状态：设计基线 v0.3。Q1-Q26、仓库管理与 MVP 范围已冻结；B1–B6 已完成，B7
 MVP 验收演练进行中。本文描述架构边界；当前批次、完成状态与剩余工作以
-[`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为唯一权威。
+[`DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为唯一权威。
 
 ## 1. 设计目标
 
