@@ -1,6 +1,6 @@
 # R2：自研机器人接入
 
-状态：`🔵 ACTIVE`。
+状态：`✅ COMPLETED (simulation-only scope; R3 not activated)`。
 
 ## 目标
 

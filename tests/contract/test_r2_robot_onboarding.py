@@ -77,7 +77,7 @@ def test_snapshot_is_sorted_and_reproducible() -> None:
     first = resolve_robot_config(FIRE / "profile.yaml", ROOT, "community.firedog2_2.velocity.flat")
     second = resolve_robot_config(FIRE / "profile.yaml", ROOT, "community.firedog2_2.velocity.flat")
     assert first == second
-    assert first["snapshotSha256"] == "9fd3a33b4168035cba0d4d10c491b7ae4f08078bd361b0c5cfbb253289fd9f35"
+    assert first["snapshotSha256"] == "78e710edcbe48372539c272307e281972e937b91540431a81f65464ac2860b42"
     assert json.dumps(first, ensure_ascii=False, sort_keys=True) == json.dumps(second, ensure_ascii=False, sort_keys=True)
 
 

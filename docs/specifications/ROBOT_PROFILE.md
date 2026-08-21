@@ -21,6 +21,10 @@ Simulation Adapter / Runtime Driver
 
 ## 2. Robot Profile 最小内容
 
+R1 冻结的 `RobotProfile v1alpha1` 保持兼容。R2 新增明确版本 `robolab.dev/v1beta1`，用于记录 URDF/MJCF 双来源、
+mapping 文件、task/runtime binding 和 provenance；它不改变 v1alpha1，也不要求厂商 SDK。FireDog 2.2 的首版 Profile
+为 `community.firedog2_2@1.0.0`，能力固定为 simulation/training，physical target 与硬件能力全部 disabled。
+
 以下 `community.reference_biped` 仅是用于说明自研机器人字段的占位示例，不表示仓库已经包含该模型或 Profile。R2.1 必须
 在资产来源和许可证确认后选择真实参考机器人。
 

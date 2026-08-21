@@ -77,7 +77,7 @@ RoboLab 使用自己的运动、复现和安全指标验收，不以旧 Unitree/
 
 ## 7. 当前边界
 
-R0 已完成 MJLab 根目录迁移、环境固定、旧 Unitree 整栈退役、smoke 和维护规则。当前只允许推进 R1 定制工具链；首个
-自研/社区参考机器人选择属于 R2，GPU 训练属于 R3，平台纵向整合属于 R4，Runtime 属于 R5，多机器人证明属于 R6。
+R0、R1 已完成 MJLab 根目录迁移、环境固定、旧 Unitree 整栈退役、smoke 和定制工具链基线。当前只允许推进 R2
+FireDog 2.2 simulation-first 接入；GPU 训练属于 R3，平台纵向整合属于 R4，Runtime 属于 R5，多机器人证明属于 R6。
 
 具体执行顺序见 [当前开发计划](../plans/README.md)，跨阶段禁止事项见 [开发约束](CONSTRAINTS.md)。

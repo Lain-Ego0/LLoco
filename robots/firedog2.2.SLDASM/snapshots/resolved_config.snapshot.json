@@ -34,7 +34,7 @@
     "rootBody": "base_link"
   },
   "schema": "robolab.robot-config-snapshot.v1",
-  "snapshotSha256": "9fd3a33b4168035cba0d4d10c491b7ae4f08078bd361b0c5cfbb253289fd9f35",
+  "snapshotSha256": "78e710edcbe48372539c272307e281972e937b91540431a81f65464ac2860b42",
   "task": {
     "actionSchema": "community.firedog2_2.action.joint_position.v1",
     "id": "community.firedog2_2.velocity.flat",
@@ -46,7 +46,7 @@
     "robolab": {
       "id": "robolab_mjlab@1",
       "mjlabUpstreamRevision": "0fb8a681136be94ffc636a3dd423cabb97d91f10",
-      "robolabRevision": "db06d755c80d8572794da9f09f810873efd96ec1"
+      "robolabRevision": "3b9ef4a7561faff4d2ab80351fe20262e1d5ff71"
     }
   }
 }

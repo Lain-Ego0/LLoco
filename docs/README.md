@@ -44,7 +44,7 @@ archive/历史完成报告
 
 ## 4. 当前与后续计划
 
-- [当前开发计划](plans/README.md)：唯一阶段状态来源，当前 `ACTIVE_STAGE: R1`
+- [当前开发计划](plans/README.md)：唯一阶段状态来源，当前 `ACTIVE_STAGE: R2`
 - [R1：MJLab 定制工具链基础](plans/R1_MJLAB_TOOLCHAIN.md)
 - [R2：自研机器人接入](plans/R2_ROBOT_ONBOARDING.md)
 - [R3：运动策略工作流](plans/R3_MOTION_POLICY.md)
