@@ -106,6 +106,11 @@ docs/                         # RoboLab 自己的正式文档
 
 因此保留部署技术不等于把 RoboLab 定位为 Unitree 平台。Unitree 是首个适配器，不是通用 API 的命名来源。
 
+后续仿真、训练和 Play 的迁移以
+[`../reference/SIMULATION_BACKEND_STRATEGY.md`](../reference/SIMULATION_BACKEND_STRATEGY.md) 为准：
+vendor 路径先作为 `unitree_compat` 黄金基线，经过防腐层和双后端等价性验证后，由
+`mjlab_native` 承担默认平台入口。
+
 ## 7. 品牌与文档边界
 
 - 根 README 以 RoboLab 工作流、Skill、Robot Profile 和 WebUI 为主体；

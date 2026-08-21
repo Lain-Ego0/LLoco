@@ -171,7 +171,13 @@ Q1-Q26 已全部完成并固化。下一阶段不再继续扩大设计范围；�
 | D-034 | `Heavily Customized MJLab` 不以大规模修改 vendor 为目标，而以统一 task/train/play/export/evaluate 契约、结构化指标、Robot Profile 适配、Artifact lineage 与独立 Runtime/Deployment Gate 作为达成标准 | 已确认 |
 | D-035 | B1–B6 执行计划归档；B7 作为下一阶段 N0 关闭门禁继续执行，N0 未用真实 trained G1 policy 通过前，不进入 N1–N5 实现 | 已确认 |
 | D-036 | 当前 GPU 被其他 IsaacLab 训练占用；RoboLab 不抢占、不终止、不并行启动 G1 GPU 任务。现有训练结束后先训练或取得可复现 G1 checkpoint | 已确认 |
+| D-037 | RoboLab 根项目继续使用 MIT License；MJLab、MuJoCo、Unitree vendor 等 Apache-2.0 组件保留各自许可证，许可证选择与去 Unitree 架构解耦 | 已确认 |
+| D-038 | 仿真后端采用“先兼容、再抽象、后替换”：先以 Unitree backend 建立 G1 黄金基线，再引入 `SimulationBackend` 防腐层和 RoboLab-native MJLab 后端 | 已确认 |
+| D-039 | RoboLab 必须拥有 Task Registry、train/play/evaluate/export 协议、Robot-to-task binding、observation/action schema、Policy metadata 与 validation；Unitree vendor 路径和 CLI 不进入公共契约 | 架构约束 |
+| D-040 | `mjlab_native` 只有通过与 `unitree_compat` 的结构、数值和行为等价性验证后才能成为默认；Unitree backend 长期保留为兼容与回归后端 | 已确认 |
 
 详细判断见
 [`docs/project/MAINLINE_ALIGNMENT_REVIEW.md`](../project/MAINLINE_ALIGNMENT_REVIEW.md)，
+仿真后端设计见
+[`docs/reference/SIMULATION_BACKEND_STRATEGY.md`](../reference/SIMULATION_BACKEND_STRATEGY.md)，
 执行批次见 [`docs/project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md)。

@@ -22,6 +22,10 @@ python -m pip install "fastapi>=0.110" "uvicorn[standard]>=0.27" "httpx>=0.27"
 python -m pip install -e "packages/mjlab_adapter[mjlab-runtime]" -e vendor/unitree_rl_mjlab
 ```
 
+这条命令是当前 G1 黄金基线的 `unitree_compat` 兼容路径，不是 RoboLab 长期公共 API。
+后续 `mjlab_native` 后端会由自己的 task/train/play 包声明所需依赖；平台代码不得因为
+当前兼容路径而把 vendor checkout 设为所有后端的隐式前置条件。
+
 `mjlab==1.2.0` 的 vendor 代码仍调用 `warp.context`，因此固定
 `warp-lang==1.12.0`。不要让 pip 自动升级到 `warp-lang==1.16.0`：该版本会在
 G1 play 初始化前报 `AttributeError: module 'warp' has no attribute 'context'`。

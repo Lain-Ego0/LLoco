@@ -202,7 +202,7 @@ spec:
     play:
       title: Play in MJLab
       inputSchema: schemas/command.json
-      task: Unitree-G1-Flat
+      task: motion.velocity.flat@1
     deploy:
       title: Prepare real-robot deployment
       inputSchema: schemas/command.json
@@ -215,6 +215,10 @@ spec:
 ```
 
 MotionSkill 的兼容不能只写 `robots: [g1]`。必须同时校验 profile/version、joint set、观测/动作 schema、控制模式、频率、状态估计和安全限制。`robolab check --skill S --profile P` 输出逐条可解释原因（B1.4）。
+
+`task` 使用 RoboLab 稳定 `TaskDefinition` ID，不使用 vendor registry ID 或脚本路径。
+迁移期由 `unitree_compat` 在私有 binding 中将它映射到 `Unitree-G1-Flat`；等价性通过后可由
+`mjlab_native` 实现同一个公开 task ID，MotionSkill 无需修改。
 
 ## 9. AgentSkill 扩展字段
 

@@ -121,7 +121,8 @@ bindings:
 
 ### C. Training Binding
 
-- 将 Robot Profile 绑定到现有 velocity/tracking task factory；
+- 将 Robot Profile 绑定到稳定的 RoboLab `TaskDefinition`，由 backend 选择具体实现；
+- 迁移期可以绑定 `unitree_compat` 的现有 velocity/tracking task factory；
 - 只覆盖机器人特有参数，复用通用 observation/reward/termination；
 - 注册稳定 task id，并导出 observation/action schema hash。
 
@@ -207,8 +208,10 @@ resolve Skill/Profile -> compatibility -> prepare target -> validate
 
 `vendor/unitree_rl_mjlab/deploy/robots/*` 作为受支持的 legacy 后端保留，再分三步消除复制：
 
-1. 提取共享的 FSM、ONNX runner、observation/action 构造和参数加载；
-2. 将各机器人 `Types.h`、mode check、DDS topic 和关节映射变成 Driver/Profile；
-3. 用 Skill manifest 动态配置 `RLBase`、`Mimic` 等 runner，FSM 只管理通用生命周期和安全转换。
+1. 先用 `unitree_compat` 完成 G1 黄金基线并固定 checkpoint/配置/指标；
+2. 提取共享的 FSM、ONNX runner、observation/action 构造和参数加载；
+3. 将各机器人 `Types.h`、mode check、DDS topic 和关节映射变成 Driver/Profile；
+4. 建立 RoboLab-native MJLab task/train/play/export，使用双后端等价性报告验证后切换默认；
+5. 用 Skill manifest 动态配置 runner，FSM 只管理通用生命周期和安全转换。
 
 首个纵向样板建议只选一台机器人完成全链路，再推广到其他型号；不要同时重构所有机器人。

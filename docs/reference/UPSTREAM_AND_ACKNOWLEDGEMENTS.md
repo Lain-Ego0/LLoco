@@ -10,7 +10,7 @@
 
 ### 直接基础与机器人生态
 
-- [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)：RoboLab 内 `vendor/unitree_rl_mjlab/` 的来源和最直接工程基础。
+- [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)：RoboLab 内 `vendor/unitree_rl_mjlab/` 的来源、首个 G1 黄金基线和 `unitree_compat` 兼容后端基础；不作为长期公共平台 API。
 - [mujocolab/mjlab](https://github.com/mujocolab/mjlab)：上游训练环境与高层 API 基础。
 - [unitreerobotics/unitree_sdk2](https://github.com/unitreerobotics/unitree_sdk2)：Unitree 实机通信与控制接口。
 - [unitreerobotics/unitree_mujoco](https://github.com/unitreerobotics/unitree_mujoco)：现有 sim-to-sim 流程的重要组成。

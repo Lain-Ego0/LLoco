@@ -19,6 +19,7 @@
 [`reference/`](reference/) 描述当前系统的设计、行为与使用方式；不记录批次状态或待办。
 
 - [总体架构](reference/ARCHITECTURE.md)
+- [仿真、训练与 Play 后端演进策略](reference/SIMULATION_BACKEND_STRATEGY.md)
 - [产品功能与 WebUI 设计](reference/PRODUCT_DESIGN.md)
 - [WebUI 视觉与交互规范](reference/UI_GUIDELINES.md)
 - [Skill Package 规范](reference/SKILL_SPEC.md)

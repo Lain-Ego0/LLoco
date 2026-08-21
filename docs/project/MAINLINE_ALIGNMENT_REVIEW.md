@@ -73,6 +73,24 @@ Skill/policy -> MJLab play -> validation -> sim-to-sim
 5. 完成 Validate/Deploy 控制面和 WebUI；
 6. 通过故障注入和可复现验收后，再扩展训练平台、第二机器人和内置 Agent。
 
+仿真后端采用独立的迁移路线：
+
+```text
+Unitree backend 黄金基线
+  -> SimulationBackend 防腐层
+  -> RoboLab-native MJLab task/train/play
+  -> 双后端等价性报告
+  -> native 成为默认，Unitree 保留兼容
+```
+
+这不是立即重写 MJLab。RoboLab 继续使用开源 MJLab、MuJoCo-Warp、RSL-RL、Warp 和 Viser，
+但逐步收回 Task Registry、训练/回放协议、Robot-to-task binding、schema、Policy metadata、
+Validation 和 Deployment 的所有权。完整方案见
+[`../reference/SIMULATION_BACKEND_STRATEGY.md`](../reference/SIMULATION_BACKEND_STRATEGY.md)。
+
+许可证保持独立决策：RoboLab 根项目继续 MIT，Unitree vendor 和 MJLab/MuJoCo 等组件保留
+各自的 Apache-2.0 或其他原许可证。
+
 ## 5. 防偏移验收原则
 
 后续工作必须至少满足一项，否则不进入当前阶段：

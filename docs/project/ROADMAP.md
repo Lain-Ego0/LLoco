@@ -36,6 +36,10 @@
 
 执行映射：当前详细计划 N1–N5。N0 未通过前不进入实现。
 
+- 建立 `SimulationBackend` 契约和 backend registry；
+- 将现有 Unitree 路径封装为 `unitree_compat`，不再扩散 vendor CLI/path；
+- 在 `packages/mjlab_tasks` 建立 RoboLab-native G1 velocity task/train/play skeleton；
+- 通过双后端等价性报告后，才将 `mjlab_native` 设为默认；
 - 抽取共享 C++ runtime；
 - 完成首个 simulation target，并定义但不强制实现实机 Driver/Profile；
 - 接入 unitree_mujoco sim-to-sim；

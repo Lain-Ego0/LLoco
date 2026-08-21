@@ -1,6 +1,8 @@
 # Robot Profiles
 
-状态：`unitree.g1.29dof@1.0.0` 是首个正式 simulation-only Profile；模型与任务资产引用 `vendor/unitree_rl_mjlab/` 中已有内容，不复制 vendor 资产。
+状态：`unitree.g1.29dof@1.0.0` 是首个正式 simulation-only Profile；当前黄金基线的模型与任务
+binding 引用 `vendor/unitree_rl_mjlab/`，不复制 vendor 资产。该路径属于 `unitree_compat`；
+长期 Profile 只暴露稳定 task/model binding，不向 Skill 或公共 API 暴露 vendor 路径。
 
 ## 职责
 

@@ -26,7 +26,8 @@ RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台�
 
 ## 核心边界
 
-- **MJLab Integration**：由 `packages/mjlab_adapter/` 对接通用 MJLab，并使用 `vendor/unitree_rl_mjlab/` 中精选的 Unitree 训练/仿真技术来源。
+- **Simulation Backend**：当前由 `packages/mjlab_adapter/` 对接 Unitree 兼容路径并建立 G1 黄金基线；
+  后续通过统一 Backend Registry 同时支持 `unitree_compat` 与 RoboLab 自有 `mjlab_native`。
 - **Robot Profile**：描述“这台机器人是什么、关节如何映射、怎样通信、怎样保证安全”。
 - **Skill Package**：统一承载运动能力、可执行平台功能和 Agent 工作流，包含入口、依赖、权限、文档、兼容性和验证规则。
 - **Platform Core**：负责注册表、任务编排、产物管理、兼容性检查、审计和部署门禁。
@@ -38,7 +39,7 @@ RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台�
 ```text
 RoboLab-Skill ──安装/校验──> Skill Registry ──绑定──> Robot Profile
                                              │
-WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
+WebUI ──API──> Platform Core ──任务──> Backend Registry / Job Worker
                                              │
                                       Simulation Gate
                                              │
@@ -73,7 +74,7 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 
 | 入口 | 职责 | 实现状态 |
 |---|---|---|
-| [`packages/mjlab_adapter/`](packages/mjlab_adapter/) | 把平台 Job 映射到 vendor 中的 train/play/export 脚本 | B3 已实现 task 发现与受控 play 调用；训练启动仍是后续里程碑 |
+| [`packages/mjlab_adapter/`](packages/mjlab_adapter/) | 当前 Unitree/MJLab 兼容适配的过渡入口 | B3 已实现 task 发现与受控 play；N1 后封装为 `unitree_compat`，公共 API 改用 backend/task ID |
 | [`integrations/unitree/`](integrations/unitree/) | Unitree Driver/Profile，首个厂商适配器 | 接口边界，未实现；Unitree 专用逻辑暂仍在 vendor `deploy/` |
 | [`runtime/`](runtime/) | 与厂商无关的 C++ FSM、推理、安全与遥测 | 接口边界，未实现；共享逻辑暂仍在 vendor `deploy/` |
 | [`robots/`](robots/) | 与 Skill 解耦的 Robot Profile | 已实现首个 Unitree G1 29DoF simulation-only Profile；模型资产引用 vendor，不复制 |
@@ -87,12 +88,16 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 5. 一键执行已通过门禁的仿真 Deployment Plan；未来实机适配完成后，由本地 Edge Runtime 完成连接、安全确认与失败回退。
 6. 保存部署会话、遥测摘要、策略版本和操作者审计记录，以便复现与回滚。
 
+迁移期间，`unitree_compat` 提供 G1 黄金基线；双后端等价性通过后，RoboLab 自有
+`mjlab_native` 成为默认。Skill 和公共 API 依赖稳定 task/backend ID，不依赖 vendor 脚本路径。
+
 ## 文档
 
 - [文档索引](docs/README.md)
 - [主线对齐审查](docs/project/MAINLINE_ALIGNMENT_REVIEW.md)
 - [下一阶段详细执行计划（当前进度）](docs/project/DEVELOPMENT_PLAN.md)
 - [总体架构](docs/reference/ARCHITECTURE.md)
+- [仿真、训练与 Play 后端演进策略](docs/reference/SIMULATION_BACKEND_STRATEGY.md)
 - [Skill 包规范](docs/reference/SKILL_SPEC.md)
 
 ## 安全原则

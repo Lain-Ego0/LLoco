@@ -5,7 +5,8 @@
 本地 MJLab/Viser 环境的手动验证，禁止用前者替代后者。
 
 历史执行顺序为 **B7.1 → B7.2 → B7.3**；当前状态统一映射到
-`DEVELOPMENT_PLAN.md` 的 **N0.2–N0.6**。
+`DEVELOPMENT_PLAN.md` 的 **N0.2–N0.7**。其中 N0.6 是为后续双后端迁移新增的
+Unitree sim-to-sim 黄金基线，不改变历史 B7 三项的定义。
 本文只记录证据，不重新定义批次、依赖或完成状态。
 
 ## 环境基线
@@ -219,7 +220,7 @@ B7 只有在以下三项全部完成后才能关闭：
 
 完成后，在本记录补充每条命令、执行时间、退出码、Job/run 路径、结果摘要、artifact
 hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
-`docs/project/DEVELOPMENT_PLAN.md` 中 N0.2–N0.6 更新为 `✅ 日期`。
+`docs/project/DEVELOPMENT_PLAN.md` 中 N0.2–N0.7 更新为 `✅ 日期`。
 
 ## 历史状态快照（截至 2026-08-20）
 
@@ -266,7 +267,7 @@ hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
    artifact hash；
 4. 记录最终 GPU/CPU、MuJoCo、MJLab、Viser、Warp 的具体版本与结果。
 
-完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 N0.2–N0.6 状态更新为
+完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 N0.2–N0.7 状态更新为
 `✅`；在此之前 MVP 仅处于 CPU 闭环就绪状态。
 
 ## 最新复测（2026-08-21）

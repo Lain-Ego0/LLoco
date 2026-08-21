@@ -1,12 +1,14 @@
 # RoboLab 总体架构
 
-状态：设计基线 v0.3。Q1-Q26、仓库管理与 MVP 范围已冻结；B1–B6 已完成，B7 已转为
+状态：设计基线 v0.4。Q1-Q26、仓库管理与 MVP 范围已冻结；B1–B6 已完成，B7 已转为
 下一阶段 N0 关闭门禁，等待真实 G1 checkpoint。本文描述架构边界；当前批次、完成状态与剩余工作以
 [`DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为唯一权威。
 
 ## 1. 设计目标
 
-RoboLab 的目标不是重新实现一个训练框架，而是在定制 MJLab 之上增加稳定的平台边界：
+RoboLab 的目标不是重新实现物理引擎或强化学习算法，而是在开源 MJLab 之上拥有稳定的任务、
+训练、回放、验证和部署边界。具体后端迁移见
+[`SIMULATION_BACKEND_STRATEGY.md`](SIMULATION_BACKEND_STRATEGY.md)：
 
 - 同一套界面覆盖机器人接入、训练、仿真、Skill 管理和部署。
 - 训练产物从产生到实机运行全程可追踪、可校验、可回滚。
@@ -29,8 +31,8 @@ RoboLab 的目标不是重新实现一个训练框架，而是在定制 MJLab �
 └──────────────┬───────────────────────────────┬───────────────┘
                │ jobs                          │ deploy session
 ┌──────────────▼──────────────┐  ┌─────────────▼───────────────┐
-│ Worker / MJLab Adapter      │  │ Edge Runtime                │
-│ train · play · export · sim │  │ FSM · inference · watchdog  │
+│ Worker / Backend Registry   │  │ Edge Runtime                │
+│ train · play · eval · export│  │ FSM · inference · watchdog  │
 └──────────────┬──────────────┘  │ SDK/DDS driver · e-stop     │
                │ artifacts       └─────────────┬───────────────┘
 ┌──────────────▼──────────────┐                │
@@ -48,7 +50,8 @@ Platform API 和 WebUI 属于控制面：创建任务、修改配置、授权部
 | 对象 | 作用 | 稳定标识示例 |
 |---|---|---|
 | `RobotProfile` | 模型、关节语义、仿真参数、驱动与安全边界 | `unitree.g1.29dof@1.0.0` |
-| `TaskDefinition` | MJLab 环境、算法和导出规则 | `velocity.flat@1` |
+| `TaskDefinition` | MJLab 环境、算法和导出规则 | `motion.velocity.flat@1` |
+| `SimulationBackend` | 把稳定任务/配置映射为受控 JobCommand | `unitree_compat@1` |
 | `SkillPackage` | 可安装能力及兼容性契约 | `dance.subject2@1.2.0` |
 | `Artifact` | 模型、动作、配置、日志或报告 | content SHA-256 |
 | `Job` | train/play/export/evaluate 等异步任务 | UUID |
@@ -59,7 +62,8 @@ Platform API 和 WebUI 属于控制面：创建任务、修改配置、授权部
 
 ## 3. 目录结构与当前进度
 
-精选 vendor 导入已完成，`vendor/unitree_rl_mjlab/` 已纳入 Git。B1–B6 已落地；下列目录树说明当前代码边界，未实现项仅指 Phase 2+ 的 Edge、通用 runtime、SDK 与硬件 driver：
+精选 vendor 导入已完成，`vendor/unitree_rl_mjlab/` 已纳入 Git。B1–B6 已落地；下列目录树同时区分
+当前实现和目标边界。`packages/simulation`、`packages/mjlab_tasks` 与 `backends/` 属于 N1+ 目标结构：
 
 ```text
 RoboLab/
@@ -73,8 +77,13 @@ RoboLab/
 ├── packages/
 │   ├── core/                 # 领域模型、registry、兼容性和状态机（B1–B4 已实现）
 │   ├── schemas/              # manifest/profile/JointSet JSON Schema（已实现：v1alpha1）
-│   ├── mjlab_adapter/        # 将平台 Job 映射到现有 scripts（B3 已实现：task 发现/play 命令构造）
+│   ├── mjlab_adapter/        # 过渡实现：当前 vendor task 发现/play 命令构造
+│   ├── simulation/           # 目标：后端无关契约、registry、稳定 task/backend ID
+│   ├── mjlab_tasks/          # 目标：RoboLab 自有 MJLab task、MDP、train/play/export
 │   └── sdk/                  # Skill/Robot 扩展开发工具（未实现）
+├── backends/
+│   ├── unitree_compat/       # 目标：封装 vendor 的兼容/回归后端
+│   └── mjlab_native/         # 目标：RoboLab 自有 MJLab 执行后端
 ├── skills/                   # Skill 工作区；扫描、固定安装、卸载保护与 prepare 已实现（B2）
 │   ├── builtin/              # 随平台发布的 Skill
 │   ├── installed/            # catalog 安装的固定版本
@@ -100,21 +109,29 @@ RoboLab/
 └── THIRD_PARTY_NOTICES.md    # 已存在
 ```
 
-不要在初期同时进行所有内部重构和功能开发。vendor 导入已完成，第一阶段可让 `mjlab_adapter` 以受控子进程调用 vendor 中现有 `scripts/train.py`、`play.py` 和必要部署程序，等接口稳定后再重构内部实现。
+不要在没有行为基线时同时进行所有内部重构。当前先用 `mjlab_adapter` 以受控子进程调用 vendor
+入口完成 G1 黄金基线；随后建立 `SimulationBackend` 防腐层，再实现和验证 `mjlab_native`。
+不得让 vendor CLI 或路径继续扩散到新的公共 API。
 
 上游 `doc/`、演示 GIF、预编译 runtime 和策略产物未进入 active vendor。精选后的 `vendor/unitree_rl_mjlab/deploy/` 只保留必要 Unitree 部署源码和迁移参考；RoboLab 通用 runtime 放根目录 `runtime/`，平台文档放根目录 `docs/`。
 
 ## 4. 扩展边界
 
-### 4.1 MJLab Adapter
+### 4.1 Simulation Backend 与 MJLab Adapter
 
-Adapter 负责：
+平台公共层负责：
 
-- 从现有 registry 发现 task，而不是在 WebUI 手写任务列表。
-- 把经过 schema 校验的配置转换为 CLI 参数或配置文件。
-- 启动隔离的 train/play/export 进程，采集 stdout、指标和退出码。
+- 定义 `TaskDefinition`、`TrainingRecipe`、`PlayConfig`、`EvaluationConfig` 和 `JobCommand`；
+- 通过 `backendId` 解析后端，不在 API/Skill 中接受 vendor 路径；
+- 启动隔离的 train/play/evaluate/export 进程，采集 stdout、指标和退出码。
 - 将 checkpoint、ONNX、deploy.yaml、视频和日志登记为 Artifact。
 - 不把训练进程直接嵌入 API 进程，避免 GPU 上下文和崩溃相互影响。
+
+后端分工：
+
+- `unitree_compat`：封装当前 vendor registry 和 scripts，建立 G1 黄金基线并支持旧 checkpoint；
+- `mjlab_native`：使用 RoboLab 自有 task/train/play/export，等价性通过后成为默认；
+- 现有 `packages/mjlab_adapter/` 是过渡实现，不能成为新的通用 API 命名来源。
 
 ### 4.2 Skill Manager
 

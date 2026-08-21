@@ -49,8 +49,8 @@ G1 trained MotionSkill
 | 批次 | 目标 | 依赖 | 状态 |
 |---|---|---|---|
 | N0 | 关闭 B7：真实 G1 trained MotionSkill 验收 | 当前 GPU 任务结束、G1 checkpoint | ⏸️ 等待外部训练资源 |
-| N1 | 冻结验证与部署领域契约 | N0 | ⬜ 未开始 |
-| N2 | 最小通用 Runtime 与 sim-to-sim target | N1 | ⬜ 未开始 |
+| N1 | 冻结仿真后端与验证/部署领域契约 | N0 | ⬜ 未开始 |
+| N2 | 最小 RoboLab Runtime 与 sim-to-sim target | N1 | ⬜ 未开始 |
 | N3 | Validation/Deployment 控制面与安全门禁 | N2 | ⬜ 未开始 |
 | N4 | Validate/Deploy WebUI 纵向入口 | N3 | ⬜ 未开始 |
 | N5 | 端到端验收、回归与文档收口 | N4 | ⬜ 未开始 |
@@ -69,28 +69,33 @@ G1 trained MotionSkill
 | N0.3 | 固定 MotionSkill 产物 | policy artifact、deploy params、SHA-256、manifest revision | `robolab check` 与 compatibility 全部通过 | ⬜ |
 | N0.4 | 从平台运行真实 trained play | Job input/events/logs/result、Viser 证据、可选视频 | 使用 `agent=trained` 成功启动并产生有效机器人运动，不能使用 zero-policy 代替 | ⬜ |
 | N0.5 | 验证 Job 生命周期与 lineage | cancel/terminal status、config snapshot、artifact hashes | API/CLI 至少一条路径可复现，取消后无残留进程组 | ⬜ |
-| N0.6 | 完成远程 catalog/CI 与 B7 记录 | 远程 CI 链接、最终验收记录 | B7.1/B7.2/B7.3 全部有证据后关闭 | ⬜ |
+| N0.6 | 建立 Unitree sim-to-sim 黄金基线 | 同一 policy 的 unitree_mujoco 配置、轨迹、指标、视频和 hash | 可作为 native 后端的行为对照，不把 trained play 当作 sim-to-sim 替代 | ⬜ |
+| N0.7 | 完成远程 catalog/CI 与 B7/N0 记录 | 远程 CI 链接、最终验收记录 | B7.1/B7.2/B7.3 与新增黄金基线全部有证据后关闭 | ⬜ |
 
 N0 退出条件：真实 G1 Velocity MotionSkill 从固定版本 catalog 安装后，可由 RoboLab 创建
-trained play Job，运行、停止并归档完整结果。
+trained play Job，运行、停止并归档完整结果；同一 policy 完成 Unitree sim-to-sim 黄金基线。
 
-## 5. N1：验证与部署领域契约
+## 5. N1：仿真后端与验证/部署领域契约
 
-目标：在写 Runtime 和页面前，冻结从“已验证策略”到“仿真部署会话”的机器契约。
+目标：在写 Runtime 和页面前，冻结仿真后端防腐层，以及从“已验证策略”到“仿真部署会话”的机器契约。
+N0 的 G1 trained play 是迁移基线；N1 不在没有基线的情况下重写仿真训练路径。
 
 | # | 工作项 | 主要内容 | 验收标准 | 状态 |
 |---|---|---|---|---|
-| N1.1 | `ValidationRun` schema | Skill/Profile/Artifact hash、target、gate、metrics、evidence、status | schema 正反例与版本兼容测试通过 | ⬜ |
-| N1.2 | `DeploymentPlan` schema | 固定输入、runtime config、target、required gates、fallback | 配置变化产生新 revision，不允许浮动 Skill 或 Artifact | ⬜ |
-| N1.3 | `DeploymentSession` 状态机 | CREATED/PREPARING/ARMED/ACTIVE/STOPPING/SAFE/FAILED | 非法转换被机器拒绝并给出原因 | ⬜ |
-| N1.4 | Runtime 协议 | prepare/start/status/stop/safe、heartbeat、session token、事件格式 | contract test 覆盖超时、重复 stop 和失联降级 | ⬜ |
-| N1.5 | Safety Gate 判定 | offline、mjlab_play、sim_to_sim、target capability | 每项通过/失败均可解释且关联证据 hash | ⬜ |
+| N1.1 | `SimulationBackend` 契约 | `discover/train/play/evaluate/export`、backend registry、稳定 TaskDefinition/JobCommand | API/CLI 只使用 backendId 与稳定 task ID，不接受 vendor_root 作为公共契约 | ⬜ |
+| N1.2 | `unitree_compat` 后端 | 封装当前 vendor task discovery、train/play 命令和 G1 旧路径 | N0 G1 基线行为不变，保存 backend revision 与完整命令 snapshot | ⬜ |
+| N1.3 | `ValidationRun` schema | Skill/Profile/Artifact hash、target、gate、metrics、evidence、status | schema 正反例与版本兼容测试通过 | ⬜ |
+| N1.4 | `DeploymentPlan` schema | 固定输入、runtime config、target、required gates、fallback | 配置变化产生新 revision，不允许浮动 Skill 或 Artifact | ⬜ |
+| N1.5 | `DeploymentSession` 状态机 | CREATED/PREPARING/ARMED/ACTIVE/STOPPING/SAFE/FAILED | 非法转换被机器拒绝并给出原因 | ⬜ |
+| N1.6 | Runtime 协议与 Safety Gate | prepare/start/status/stop/safe、heartbeat、session token、offline/mjlab_play/sim_to_sim | contract test 覆盖超时、重复 stop、失联降级和逐项门禁证据 | ⬜ |
 
-N1 退出条件：CLI/测试可以在不启动仿真器的情况下构造计划、执行状态转换并验证所有安全门禁。
+N1 退出条件：CLI/测试可以在不启动仿真器的情况下选择 backend、构造计划、执行状态转换并验证所有安全门禁；
+公共 API 不再拼接或暴露 vendor `play.py` 路径。
 
 ## 6. N2：最小 Runtime 与 sim-to-sim
 
-目标：从 Unitree legacy deploy 中抽出最小可验证的数据面，不追求一次性重构全部机器人。
+目标：从 Unitree legacy deploy 中抽出最小可验证的数据面，并为 RoboLab-native MJLab 后端保留稳定入口，
+不追求一次性重构全部机器人。
 
 | # | 工作项 | 主要内容 | 验收标准 | 状态 |
 |---|---|---|---|---|
@@ -100,9 +105,10 @@ N1 退出条件：CLI/测试可以在不启动仿真器的情况下构造计划�
 | N2.4 | Simulation driver | unitree_mujoco transport、RobotState/RobotCommand 转换 | 厂商类型不泄漏到通用 runner/FSM | ⬜ |
 | N2.5 | Heartbeat/watchdog | deadline、状态超时、命令超时、故障事件 | 人工断开控制面后 runtime 自动安全降级 | ⬜ |
 | N2.6 | G1 sim-to-sim 样板 | G1 Profile binding、deploy config、启动脚本 | N0 policy 在独立 simulator/runtime 中完成稳定会话 | ⬜ |
+| N2.7 | RoboLab-native task layer | `packages/mjlab_tasks` 的 G1 velocity task、MDP、train/play/export 入口 | native 后端可加载同一 Profile/Skill 契约并回放固定 policy；未通过等价性前不设为默认 | ⬜ |
 
 N2 退出条件：命令行能够启动一条 G1 simulation DeploymentPlan，进入 ACTIVE，监控状态，
-并通过显式 stop 或故障注入进入 SAFE。
+并通过显式 stop 或故障注入进入 SAFE；native task layer 至少能用固定 G1 policy 完成 play。
 
 ## 7. N3：Validation/Deployment 控制面
 
@@ -132,11 +138,11 @@ N4 退出条件：用户无需拼接命令即可完成一次仿真部署，同�
 
 | # | 工作项 | 验收标准 | 状态 |
 |---|---|---|---|
-| N5.1 | Happy path | 安装 G1 Skill -> trained play -> validate -> sim-to-sim -> stop/safe 全部通过 | ⬜ |
-| N5.2 | Safety fault injection | API 断开、runtime heartbeat 超时、无效 token、错误 shape 均安全失败 | ⬜ |
-| N5.3 | Reproducibility | 在干净环境依据 snapshot/hash 重放同一流程 | ⬜ |
-| N5.4 | Regression suite | CPU contract tests 与必要 GPU/manual suite 分层记录 | ⬜ |
-| N5.5 | 文档收口 | 架构、运行手册、验收记录、已知限制与回滚步骤同步 | ⬜ |
+| N5.1 | 双后端等价性 | 固定 G1 policy/Profile/seed 下，结构完全一致，数值按版本化阈值比较，行为按统计指标比较 | ⬜ |
+| N5.2 | 默认后端切换 | 等价性通过后 `mjlab_native` 成为默认；API/CLI/Skill/Profile 不暴露 vendor path/task id | ⬜ |
+| N5.3 | Happy path | 安装 G1 Skill -> native trained play -> validate -> sim-to-sim -> stop/safe 全部通过 | ⬜ |
+| N5.4 | Safety 与复现 | 故障注入安全失败，并可在干净环境依据 snapshot/hash 重放同一流程 | ⬜ |
+| N5.5 | 回归与文档收口 | compat/native 分层回归、运行手册、验收记录、已知限制和回滚步骤同步 | ⬜ |
 
 阶段退出条件：实现“一键仿真部署”的准确含义，并以真实 G1 policy 给出可复现证据；
 physical target 仍保持不可激活，直到 Phase 4 的 Driver/Calibration/Safety 验收完成。
@@ -150,6 +156,8 @@ physical target 仍保持不可激活，直到 Phase 4 的 Driver/Calibration/Sa
 - 第二机器人、完整 Robot Onboarding Wizard；
 - CompositeSkill、签名市场和通用插件生态；
 - 实机 motor command 激活。
+- 在 G1 黄金基线和 N1 防腐层完成前，完全重写仿真训练/Play；
+- 未通过双后端等价性验证就删除 vendor 任务、脚本或模型。
 
 只有 N5 关闭后，才重新评估训练平台、第二机器人和受控实机阶段。
 
