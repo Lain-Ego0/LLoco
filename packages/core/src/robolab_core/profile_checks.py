@@ -15,6 +15,8 @@ _PHYSICAL_PREREQUISITES = ("motorCommunication", "sensorStreaming", "calibration
 
 
 def check_robot_profile(profile: dict[str, Any]) -> list[Issue]:
+    if profile.get("apiVersion") == "robolab.dev/v1beta1":
+        return check_robot_profile_vnext(profile)
     issues: list[Issue] = []
     capabilities = profile["capabilities"]
     targets = profile["targets"]
@@ -91,4 +93,26 @@ def check_robot_profile(profile: dict[str, Any]) -> list[Issue]:
                 "capabilities",
             )
         )
+    return issues
+
+
+def check_robot_profile_vnext(profile: dict[str, Any]) -> list[Issue]:
+    """Semantic checks for the explicit R2 RobotProfile v1beta1 contract."""
+    issues: list[Issue] = []
+    capabilities = profile["capabilities"]
+    targets = profile["targets"]
+    if not targets["simulation"]["enabled"]:
+        issues.append(Issue(SEVERITY_ERROR, "profile.simulation-disabled", "v1beta1 simulation-first Profile 必须启用 simulation target", "targets/simulation/enabled"))
+    if targets["physical"]["enabled"] or targets["physical"]["driver"] is not None:
+        issues.append(Issue(SEVERITY_ERROR, "profile.physical-not-simulation-only", "v1beta1 首版禁止 physical target 和 driver", "targets/physical"))
+    required_false = ("motorCommunication", "sensorStreaming", "calibration", "physicalDeployment")
+    for capability in required_false:
+        if capabilities[capability] is not False:
+            issues.append(Issue(SEVERITY_ERROR, "profile.simulation-only-capability", f"simulation-only Profile 的 capabilities/{capability} 必须为 false", f"capabilities/{capability}"))
+    if not capabilities["simulation"] or not capabilities["training"]:
+        issues.append(Issue(SEVERITY_ERROR, "profile.simulation-training-required", "simulation-only Profile 必须同时声明 simulation=true 和 training=true", "capabilities"))
+    if not profile["bindings"]["tasks"]:
+        issues.append(Issue(SEVERITY_ERROR, "profile.task-binding-missing", "至少需要一个通用 task binding", "bindings/tasks"))
+    if profile["metadata"]["id"] != "community.firedog2_2":
+        issues.append(Issue(SEVERITY_WARNING, "profile.reference-id", "FireDog 参考 Profile 的推荐稳定 ID 是 community.firedog2_2", "metadata/id"))
     return issues

@@ -1,0 +1,59 @@
+schema: robolab.robot-provenance.v1
+profile: community.firedog2_2@1.0.0
+source:
+  path: /home/lxy/RoboLab/robots/firedog2.2.SLDASM
+  kind: user-provided local SolidWorks URDF export package
+  revision: null
+  externalValidation: user reports validation in another MJLab setup; not accepted as RoboLab evidence
+  exporter:
+    product: SolidWorks to URDF Exporter (SW2URDF)
+    commit: 1.6.0-4-g7f85cfe
+    build: 1.6.7995.38578
+  packageLicenseDeclaration: BSD
+  author: TODO
+  maintainer: TODO@email.com
+  authorizationStatus: unclear_local_only
+  boundary: package.xml BSD text does not establish redistribution rights for CAD, STL, URDF, CSV or logs
+  sourcePathDisclosure: export.log contains original Windows paths; derived RoboLab files do not use them
+inputs:
+  - {path: CMakeLists.txt, size: 294, sha256: 5ecefbf7706114f0bd23ba289c9b39810926b2cda13bc6fee69972c6d4441520}
+  - {path: config/joint_names_火狗2.2.SLDASM.yaml, size: 236, sha256: dc7a2ee9b792dcf4b045e1ca4b247247ca7f14b140c153502096c138a3a8e886}
+  - {path: export.log, size: 1601390, sha256: 03da26c40e565cd2b5cd60f2415e7f9469c294636f81cace8a2aa9100ae6eb90}
+  - {path: launch/display.launch, size: 509, sha256: 82e4bcee560036aae744a0473e82366d2328223f570681c8beb84a01c544e600}
+  - {path: launch/gazebo.launch, size: 576, sha256: d93051252121d09727f7e678731bde0407cb5011a2677add7a4c1f46eca33dc5}
+  - {path: meshes/base_link.STL, size: 5538784, sha256: e8cc6c1d015b1e3604d77197e2bd548527a725956de95a0c3aba116038c94a06}
+  - {path: meshes/LF.STL, size: 267084, sha256: afb1bb97b29a17b3836203580b329a24e98a108281c71f24e5b33617c8ad63d2}
+  - {path: meshes/LF1.STL, size: 773884, sha256: 510b10bdb7840ffb751b2888ff3d04e562d0b21cf784b857f995ed006d66a0cc}
+  - {path: meshes/LF2.STL, size: 897184, sha256: 3445dac0044a819286aa67f3e7a515166f397eacc68d52034c923a9697fd2509}
+  - {path: meshes/LF3.STL, size: 498084, sha256: 67c4d955b24c4504063be893233dca23edb5fdcc5827ecdf5aa2c52bc5118a83}
+  - {path: meshes/LR.STL, size: 267084, sha256: da604938b6cc9bbe1e8917221193bcebd620fadd306d59718b947365977a2b48}
+  - {path: meshes/LR1.STL, size: 773884, sha256: a65488e9795eca986c73f55e7a2e0201921cf3f2d8e04aa66609cf6e98792dc0}
+  - {path: meshes/LR2.STL, size: 897184, sha256: f69813216b4d839f321780b577f98065110f192d1e1bf8c4e4a05c696ee7fe4d}
+  - {path: meshes/LR3.STL, size: 498084, sha256: d7fe45c78f75c9c1e7851d349e8a19f3376dcacb7f6414ca4caafd09760fb915}
+  - {path: meshes/RF.STL, size: 267084, sha256: 00713546c27c280eec4021b806eb485fc52e585cdf45e51fc501803ff9b90202}
+  - {path: meshes/RF1.STL, size: 773884, sha256: 0b7e51195cae2c1076c0d6f7b2e1b290f5433d3634c40b984648d9faf77f1ca1}
+  - {path: meshes/RF2.STL, size: 895984, sha256: c80c86eb7b57c2b2156f1c96387af2f3bee1b6892d4e28c612132b5f931bf0bb}
+  - {path: meshes/RF3.STL, size: 498084, sha256: b99821223e941787ea26b8d47e865434a0cea4e8a2eaeed3228e862645c9cdff}
+  - {path: meshes/RR.STL, size: 267084, sha256: 2a34c0b7f0d6cda4ad6b01c23cb20c04b698e4e5cf08c55b0e1b57bcb738e054}
+  - {path: meshes/RR1.STL, size: 799884, sha256: 69cf9318159d74f318bacf1f0ad01a4130e57a72e418455fe5e7f5e2832c778a}
+  - {path: meshes/RR2.STL, size: 895984, sha256: 84fdd4bd954e9a9b229d87fcf6751a547987ae126f090c2c4bf966a804f307}
+  - {path: meshes/RR3.STL, size: 498084, sha256: b45d7dc45d33c708a306c35b8284a3802af788d2498b3efd16ce9fcc9559c7bc}
+  - {path: package.xml, size: 663, sha256: 1f3ff44d68ec5840f95f594127caf63c834cf26b238d507c6918fb73f318e54f}
+  - {path: urdf/火狗2.2.SLDASM.csv, size: 9735, sha256: 7a4dc6fdf83da9bd8934eb47bd590ec58b00b19bc05da077c5ecf5c2058844d1}
+  - {path: urdf/火狗2.2.SLDASM.urdf, size: 20460, sha256: 9a98cffad4c2559e881bc9b36a596aea58f1ab0658ee386a5f44e1ccf1119ba1}
+derived:
+  tool: robolab-robot-inspector/1
+  command: robolab robot convert urdf/火狗2.2.SLDASM.urdf --output model/firedog2_2.xml
+  input: urdf/火狗2.2.SLDASM.urdf
+  output: model/firedog2_2.xml
+  outputSha256: 55a2852da8f3c4aa02ed46f7cdab085ccc5401454cd38afb5f26bb979a6eb516
+  manualModifications:
+    - package://火狗2.2.SLDASM/meshes/*.STL -> ../meshes/*.STL
+    - position actuators added using URDF effort/velocity limits
+    - joint state sensors, IMU sites/sensors, foot sites and collision geoms added
+    - no real motor ID, driver, SDK or hardware assumption added
+  diagnostics:
+    - {path: diagnostics/urdf_inspection.json, sha256: 73bab71a19d3ff1eb81d86a890f8dac641a8c22abadfdc257b22fcb69f9547cc}
+    - {path: diagnostics/mjcf_inspection.json, sha256: 7080343b9bc92b78a29f0078c95e1f5d6d17eeee5c29b62d76059274bb521b06}
+    - {path: diagnostics/simulation_smoke.json, sha256: 7685368efe075b0346e1a5ed87513459f41ff607172ef731cb1866c6bb1c3122}
+  reproducible: true

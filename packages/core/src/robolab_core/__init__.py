@@ -50,6 +50,13 @@ from robolab_core.motion import (
     write_artifact_metadata,
 )
 from robolab_core.profile_checks import check_robot_profile
+from robolab_core.robot_config import resolve_robot_config, write_snapshot
+from robolab_core.robot_inspector import (
+    convert_urdf_to_mjcf,
+    inspect_model,
+    json_report,
+)
+from robolab_core.robot_simulation import run_simulation_smoke
 from robolab_core.skill_install import InstallResult, install_skill, uninstall_skill
 from robolab_core.skill_prepare import review_skill
 from robolab_core.skill_workspace import SkillEntry, scan_skill_workspace
@@ -93,22 +100,28 @@ __all__ = [
     "check_compatibility",
     "check_joint_set",
     "check_robot_profile",
+    "convert_urdf_to_mjcf",
     "create_job_run",
     "default_action_registry",
     "default_robot_registry",
     "default_task_registry",
     "export_agent_skill",
+    "inspect_model",
     "install_skill",
+    "json_report",
     "lint_skill_package",
     "load_document",
     "make_evaluation_result",
     "persist_motion_job",
     "read_events",
+    "resolve_robot_config",
     "resolve_toolchain_identity",
     "review_skill",
     "run_mjlab_cpu_smoke",
+    "run_simulation_smoke",
     "scan_skill_workspace",
     "uninstall_skill",
     "validate_document",
     "write_artifact_metadata",
+    "write_snapshot",
 ]

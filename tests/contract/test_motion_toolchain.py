@@ -60,7 +60,9 @@ def test_robot_registry_is_versioned_and_not_vendor_path_based() -> None:
         registry.resolve("robolab.sim.example", "2.0.0")
     with pytest.raises(DuplicateRegistryEntryError):
         registry.register(entry)
-    assert default_robot_registry().list() == []
+    assert [entry.id for entry in default_robot_registry().list()] == [
+        "community.firedog2_2"
+    ]
 
 
 def test_task_registry_validates_config_and_keeps_robot_separate() -> None:

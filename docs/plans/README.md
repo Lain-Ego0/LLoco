@@ -25,12 +25,12 @@ R6 多机器人证明与发布 ⬜
 - MJLab 1.6 位于根目录 `mjlab/`，upstream 为 `v1.6.0` / `0fb8a681136be94ffc636a3dd423cabb97d91f10`；
 - Unitree active 栈已删除；不能恢复旧 adapter、G1 Profile 或 `--vendor-root`；
 - 默认环境为 `robolab-mjlab16`：Python 3.11.15、Torch 2.9.0、CUDA 12.8、Warp 1.14.0、MuJoCo/MuJoCo-Warp 3.11.0、RSL-RL 5.4.2；
-- R0 smoke、路径、symlink、NOTICE、Markdown link 和 contract 结果已记录；contract suite 当前为 `105 passed, 1 warning`；
-- R1 的 RoboLab train/play/evaluate/export 仍未完成；GPU 训练当前不启动。
+- R0 smoke、路径、symlink、NOTICE、Markdown link 和 contract 结果已记录；R1 基线与退出证据见归档报告；
+- R2 的唯一参考机器人是 FireDog 2.2，目标为 simulation-first 接入；GPU 训练当前不启动。
 
 ## 当前阶段
 
-R1 是唯一允许主动实现的阶段。先阅读 [R1 计划](R1_MJLAB_TOOLCHAIN.md)。R2–R6 只用于理解后续目标，不得提前实现阶段性大功能。
+R2 是唯一允许主动实现的阶段。先阅读 [R2 计划](R2_ROBOT_ONBOARDING.md)。R3–R6 只用于理解后续目标，不得提前实现阶段性大功能。
 
 ## 执行与切换规则
 
@@ -39,7 +39,7 @@ R1 是唯一允许主动实现的阶段。先阅读 [R1 计划](R1_MJLAB_TOOLCHA
 3. 工作项只有同时具备实现、测试和可定位证据时才能标记完成；CPU、GPU、Viewer 与硬件证据必须分别记录；
 4. 阶段退出条件全部满足后，先更新完成报告与本页，再激活下一阶段；不能只修改某个阶段文件中的状态；
 5. 阶段状态发生冲突时，以本页为准，并立即修正文档冲突；归档、聊天记录和 Git 历史不覆盖本页状态；
-6. 当前 GPU 被占用只阻止需要 GPU 的验收，不阻止 R1 的 CPU 契约、配置、registry 和命令构造工作。
+6. 当前 GPU 被占用只阻止需要 GPU 的验收，不阻止 R2 的 CPU contract、Inspector、配置和仿真闭环工作。
 
 ## 计划文件
 

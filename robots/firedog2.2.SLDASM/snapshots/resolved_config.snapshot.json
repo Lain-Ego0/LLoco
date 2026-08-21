@@ -1,0 +1,52 @@
+{
+  "mapping": {
+    "path": "robots/firedog2.2.SLDASM/bindings/actuator_sensor_mapping.yaml",
+    "sha256": "521405d70ea1482a0cd63b6104c67f59b190e52f350839836a6f3a2e50130123"
+  },
+  "model": {
+    "path": "robots/firedog2.2.SLDASM/model/firedog2_2.xml",
+    "sha256": "55a2852da8f3c4aa02ed46f7cdab085ccc5401454cd38afb5f26bb979a6eb516"
+  },
+  "profile": {
+    "id": "community.firedog2_2",
+    "sha256": "c46154a8f958296dd580c2075bdb04e44dfd76d35b20e072f300b865e1d2e2b6",
+    "version": "1.0.0"
+  },
+  "resolved": {
+    "contactFrames": [
+      "RF3_foot",
+      "RR3_foot",
+      "LR3_foot",
+      "LF3_foot"
+    ],
+    "control": {
+      "actionScale": 0.5,
+      "frequencyHz": 50,
+      "latencyMs": 0,
+      "mode": "joint_position"
+    },
+    "feet": [
+      "RF3_foot",
+      "RR3_foot",
+      "LR3_foot",
+      "LF3_foot"
+    ],
+    "rootBody": "base_link"
+  },
+  "schema": "robolab.robot-config-snapshot.v1",
+  "snapshotSha256": "9fd3a33b4168035cba0d4d10c491b7ae4f08078bd361b0c5cfbb253289fd9f35",
+  "task": {
+    "actionSchema": "community.firedog2_2.action.joint_position.v1",
+    "id": "community.firedog2_2.velocity.flat",
+    "observationSchema": "community.firedog2_2.observation.joint_state.v1",
+    "version": "1.0.0"
+  },
+  "toolchain": {
+    "mjlabUpstreamRevision": "0fb8a681136be94ffc636a3dd423cabb97d91f10",
+    "robolab": {
+      "id": "robolab_mjlab@1",
+      "mjlabUpstreamRevision": "0fb8a681136be94ffc636a3dd423cabb97d91f10",
+      "robolabRevision": "db06d755c80d8572794da9f09f810873efd96ec1"
+    }
+  }
+}

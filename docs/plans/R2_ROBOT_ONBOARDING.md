@@ -1,16 +1,18 @@
 # R2：自研机器人接入
 
-状态：`⬜ NOT ACTIVE`。
+状态：`🔵 ACTIVE`。
 
 ## 目标
 
-选择一个来源和许可证清晰的自研、爱好者或社区可复现参考机器人，证明 RoboLab 的机器人抽象适用于自研、爱好者和比赛机器人。
+以 FireDog 2.2 为固定参考机器人，完成来源可追溯、许可证边界明确的 simulation-first 接入，证明 RoboLab 的机器人抽象适用于自研、爱好者和比赛机器人。
 
 ## 进入条件
 
 - R1 退出条件全部通过；
 - Robot/Task Registry 和配置生成接口稳定；
-- `plans/README.md` 将 `ACTIVE_STAGE` 明确切换为 R2。
+- `plans/README.md` 已将 `ACTIVE_STAGE` 明确切换为 R2。
+
+参考资产：`/home/lxy/RoboLab/robots/firedog2.2.SLDASM/`。该目录是用户提供的原始资产包，不是公共 Registry ID。
 
 ## 本阶段不做
 
@@ -32,5 +34,5 @@
 
 ## 退出条件
 
-真实参考机器人通过 Profile 加载到 Customized MJLab 1.6，完成 reset、动作驱动、观测生成、配置快照和 Viewer 证据；不得把
-厂商 SDK 或品牌目录作为 simulation-first 前置依赖。
+真实参考机器人通过 Profile 加载到 Customized MJLab 1.6，完成 reset、动作驱动、观测生成、配置快照和真实 Viewer 证据；不得把
+厂商 SDK 或品牌目录作为 simulation-first 前置依赖。Viewer、许可证和硬件证据必须分别记录，不得由文档状态替代。

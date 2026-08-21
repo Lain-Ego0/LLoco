@@ -20,6 +20,8 @@ SUPPORTED_KINDS = KNOWN_KINDS
 _KIND_LABEL = {
     "RobotProfile": "RobotProfile",
     "JointSet": "JointSet",
+    "ActuatorSensorMapping": "ActuatorSensorMapping",
+    "TaskBinding": "TaskBinding",
     "MotionSkill": "MotionSkill",
     "PlatformSkill": "PlatformSkill",
     "AgentSkill": "AgentSkill",
@@ -91,6 +93,8 @@ def validate_document(
         report.extend(check_robot_profile(document))
     elif kind == "JointSet":
         report.extend(check_joint_set(document))
+    elif kind == "ActuatorSensorMapping":
+        report.extend(check_actuator_sensor_mapping(document))
     elif kind in ("MotionSkill", "PlatformSkill", "AgentSkill"):
         report.extend(
             lint_skill_package(
@@ -99,3 +103,24 @@ def validate_document(
             )
         )
     return report
+
+
+def check_actuator_sensor_mapping(document: dict[str, Any]) -> list[Issue]:
+    """Cross-field checks for the R2 actuator/sensor mapping manifest."""
+    issues: list[Issue] = []
+    actuators = document["actuators"]
+    for field in ("canonicalJoint",):
+        values = [item[field] for item in actuators]
+        for value in sorted({item for item in values if values.count(item) > 1}):
+            issues.append(Issue(SEVERITY_ERROR, "mapping.duplicate-name", f"actuator {field} 重复: {value!r}", f"actuators/{field}"))
+    for item in actuators:
+        low, high = item["limits"]["position"]
+        if low >= high:
+            issues.append(Issue(SEVERITY_ERROR, "mapping.limit-direction", f"{item['canonicalJoint']!r} position limit lower 必须小于 upper", f"actuators/{item['canonicalJoint']}/limits/position"))
+    indices = sorted(item["policy"]["actionIndex"] for item in actuators)
+    if indices != list(range(len(indices))):
+        issues.append(Issue(SEVERITY_ERROR, "mapping.action-index-not-contiguous", f"actionIndex 必须连续从 0 开始，实际 {indices}", "actuators/policy/actionIndex"))
+    sensor_indices = sorted(item["policy"]["observationIndex"] for item in document["sensors"])
+    if sensor_indices and sensor_indices != list(range(len(sensor_indices))):
+        issues.append(Issue(SEVERITY_ERROR, "mapping.observation-index-not-contiguous", f"observationIndex 必须连续从 0 开始，实际 {sensor_indices}", "sensors/policy/observationIndex"))
+    return issues

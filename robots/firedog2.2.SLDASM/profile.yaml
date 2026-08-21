@@ -1,0 +1,73 @@
+apiVersion: robolab.dev/v1beta1
+kind: RobotProfile
+metadata:
+  id: community.firedog2_2
+  version: 1.0.0
+  robot: FireDog
+  model: firedog2.2
+  variant: community_export
+description:
+  urdf: urdf/火狗2.2.SLDASM.urdf
+  mjcf: model/firedog2_2.xml
+  rootBody: base_link
+  feet: [RF3_foot, RR3_foot, LR3_foot, LF3_foot]
+  contactFrames: [RF3_foot, RR3_foot, LR3_foot, LF3_foot]
+  imuFrame: imu
+  jointSet: community.firedog2_2.joints.v1
+  mappings: bindings/actuator_sensor_mapping.yaml
+  provenanceRef: provenance.yaml
+control:
+  mode: joint_position
+  frequencyHz: 50
+  actionScale: 0.5
+  latencyMs: 0
+targets:
+  simulation:
+    type: mujoco
+    enabled: true
+  physical:
+    enabled: false
+    driver: null
+bindings:
+  tasks:
+    - id: community.firedog2_2.velocity.flat
+      version: 1.0.0
+      observationSchema: community.firedog2_2.observation.joint_state.v1
+      actionSchema: community.firedog2_2.action.joint_position.v1
+  runtime:
+    type: simulation
+    driver: null
+  simulation: bindings/simulation.yaml
+safety:
+  fallbackState: damping
+  commandTimeoutMs: 100
+  stateTimeoutMs: 100
+capabilities:
+  simulation: true
+  training: true
+  motorCommunication: false
+  sensorStreaming: false
+  calibration: false
+  physicalDeployment: false
+provenance:
+  source: /home/lxy/RoboLab/robots/firedog2.2.SLDASM
+  revision: null
+  rawAssetRoot: .
+  assetLicense: BSD declared by package.xml; individual CAD/STL/URDF/CSV rights not confirmed
+  authorizationStatus: unclear_local_only
+  inputs:
+    - {path: urdf/火狗2.2.SLDASM.urdf, sha256: 9a98cffad4c2559e881bc9b36a596aea58f1ab0658ee386a5f44e1ccf1119ba1}
+    - {path: urdf/火狗2.2.SLDASM.csv, sha256: 7a4dc6fdf83da9bd8934eb47bd590ec58b00b19bc05da077c5ecf5c2058844d1}
+    - {path: package.xml, sha256: 1f3ff44d68ec5840f95f594127caf63c834cf26b238d507c6918fb73f318e54f}
+    - {path: export.log, sha256: 03da26c40e565cd2b5cd60f2415e7f9469c294636f81cace8a2aa9100ae6eb90}
+  derived:
+    tool: robolab-robot-inspector/1
+    command: robolab robot convert urdf/火狗2.2.SLDASM.urdf --output model/firedog2_2.xml
+    output: model/firedog2_2.xml
+    outputSha256: 55a2852da8f3c4aa02ed46f7cdab085ccc5401454cd38afb5f26bb979a6eb516
+    reproducible: true
+    manualModifications:
+      - normalize package://火狗2.2.SLDASM/meshes to ../meshes
+      - add position actuators from URDF effort limits
+      - add joint state and IMU sensors, foot sites, collision geoms
+      - continuous wheel joints remain unlimited in MJCF; JointSet uses a finite inspection window

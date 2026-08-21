@@ -1,0 +1,189 @@
+<mujoco model="firedog2_2">
+  <compiler angle="radian" autolimits="true" />
+  <option timestep="0.002" gravity="0 0 -9.81" />
+  <asset>
+    <mesh name="LF" file="../meshes/LF.STL" />
+    <mesh name="LF1" file="../meshes/LF1.STL" />
+    <mesh name="LF2" file="../meshes/LF2.STL" />
+    <mesh name="LF3" file="../meshes/LF3.STL" />
+    <mesh name="LR" file="../meshes/LR.STL" />
+    <mesh name="LR1" file="../meshes/LR1.STL" />
+    <mesh name="LR2" file="../meshes/LR2.STL" />
+    <mesh name="LR3" file="../meshes/LR3.STL" />
+    <mesh name="RF" file="../meshes/RF.STL" />
+    <mesh name="RF1" file="../meshes/RF1.STL" />
+    <mesh name="RF2" file="../meshes/RF2.STL" />
+    <mesh name="RF3" file="../meshes/RF3.STL" />
+    <mesh name="RR" file="../meshes/RR.STL" />
+    <mesh name="RR1" file="../meshes/RR1.STL" />
+    <mesh name="RR2" file="../meshes/RR2.STL" />
+    <mesh name="RR3" file="../meshes/RR3.STL" />
+    <mesh name="base_link" file="../meshes/base_link.STL" />
+  </asset>
+  <worldbody>
+    <body name="base_link">
+      <freejoint name="base_free" />
+      <inertial pos="0.0079 -0.0097 0.0600" mass="6.4660" fullinertia="0.0670 0.1464 0.1959 0.0013 0.0002 -0.0009" />
+      <geom name="base_link_visual" type="mesh" mesh="base_link" contype="0" conaffinity="0" rgba="1 1 1 1" />
+      <geom name="base_link_collision" type="mesh" mesh="base_link" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+      <site name="imu" pos="0 0 0.06" size="0.01" type="sphere" />
+      <body name="RF" pos="0.184 -0.1 0.075" euler="0 0 0">
+        <inertial pos="0.0589 0.0026 0.0000" mass="0.9326" fullinertia="0.0006 0.0011 0.0007 0.0000 0.0000 0.0000" />
+        <geom name="RF_visual" type="mesh" mesh="RF" contype="0" conaffinity="0" rgba="1 1 1 1" />
+        <geom name="RF_collision" type="mesh" mesh="RF" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+        <joint name="RF_joint" type="hinge" axis="1 0 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+        <body name="RF1" pos="0.0611 -0.016359 9.5117E-05" euler="0 0 0">
+          <inertial pos="-0.0042 -0.0480 -0.0165" mass="1.2465" fullinertia="0.0043 0.0046 0.0014 -0.0002 -0.0007 -0.0006" />
+          <geom name="RF1_visual" type="mesh" mesh="RF1" contype="0" conaffinity="0" rgba="1 1 1 1" />
+          <geom name="RF1_collision" type="mesh" mesh="RF1" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+          <joint name="RF1_joint" type="hinge" axis="0 -1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+          <body name="RF2" pos="-0.018426 -0.078417 -0.25543" euler="0 0 0">
+            <inertial pos="0.0206 0.0004 -0.1718" mass="0.4492" fullinertia="0.0037 0.0039 0.0003 0.0000 -0.0001 0.0000" />
+            <geom name="RF2_visual" type="mesh" mesh="RF2" contype="0" conaffinity="0" rgba="1 1 1 1" />
+            <geom name="RF2_collision" type="mesh" mesh="RF2" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+            <joint name="RF2_joint" type="hinge" axis="0 -1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+            <body name="RF3" pos="0.0049156 -0.0047548 -0.25579" euler="0 0 0">
+              <inertial pos="-0.0005 -0.0487 -0.0001" mass="0.6405" fullinertia="0.0017 0.0032 0.0017 0.0000 0.0000 0.0000" />
+              <geom name="RF3_visual" type="mesh" mesh="RF3" contype="0" conaffinity="0" rgba="0.79608 0.82353 0.93725 1" />
+              <geom name="RF3_collision" type="mesh" mesh="RF3" group="0" contype="1" conaffinity="1" rgba="0.79608 0.82353 0.93725 1" />
+              <site name="RF3_foot" pos="0 0 0" size="0.02" type="sphere" rgba="0.2 0.8 0.2 0.8" />
+              <joint name="RF3_joint" type="hinge" axis="0 -1 0" damping="0.2" frictionloss="0.01" limited="false" />
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="RR" pos="-0.184 -0.1 0.075" euler="0 0 0">
+        <inertial pos="-0.0589 0.0026 0.0000" mass="0.9326" fullinertia="0.0006 0.0011 0.0007 0.0000 0.0000 0.0000" />
+        <geom name="RR_visual" type="mesh" mesh="RR" contype="0" conaffinity="0" rgba="1 1 1 1" />
+        <geom name="RR_collision" type="mesh" mesh="RR" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+        <joint name="RR_joint" type="hinge" axis="-1 0 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+        <body name="RR1" pos="-0.0611 -0.01639 0" euler="0 0 0">
+          <inertial pos="-0.0005 -0.0488 -0.0187" mass="1.3504" fullinertia="0.0044 0.0049 0.0017 -0.0001 -0.0005 -0.0007" />
+          <geom name="RR1_visual" type="mesh" mesh="RR1" contype="0" conaffinity="0" rgba="0.86667 0.9098 1 1" />
+          <geom name="RR1_collision" type="mesh" mesh="RR1" group="0" contype="1" conaffinity="1" rgba="0.86667 0.9098 1 1" />
+          <joint name="RR1_joint" type="hinge" axis="0 -1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+          <body name="RR2" pos="-0.019158 -0.078386 -0.25528" euler="0 0 0">
+            <inertial pos="0.0213 0.0004 -0.1719" mass="0.4492" fullinertia="0.0037 0.0039 0.0003 0.0000 -0.0001 0.0000" />
+            <geom name="RR2_visual" type="mesh" mesh="RR2" contype="0" conaffinity="0" rgba="1 1 1 1" />
+            <geom name="RR2_collision" type="mesh" mesh="RR2" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+            <joint name="RR2_joint" type="hinge" axis="0 -1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+            <body name="RR3" pos="0.0056469 -0.0047857 -0.25594" euler="0 0 0">
+              <inertial pos="-0.0005 -0.0487 -0.0001" mass="0.6405" fullinertia="0.0017 0.0032 0.0017 0.0000 0.0000 0.0000" />
+              <geom name="RR3_visual" type="mesh" mesh="RR3" contype="0" conaffinity="0" rgba="0.79608 0.82353 0.93725 1" />
+              <geom name="RR3_collision" type="mesh" mesh="RR3" group="0" contype="1" conaffinity="1" rgba="0.79608 0.82353 0.93725 1" />
+              <site name="RR3_foot" pos="0 0 0" size="0.02" type="sphere" rgba="0.2 0.8 0.2 0.8" />
+              <joint name="RR3_joint" type="hinge" axis="0 -1 0" damping="0.2" frictionloss="0.01" limited="false" />
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="LR" pos="-0.184 0.1 0.075" euler="0 0 0">
+        <inertial pos="-0.0589 -0.0026 0.0000" mass="0.9326" fullinertia="0.0006 0.0011 0.0007 0.0000 0.0000 0.0000" />
+        <geom name="LR_visual" type="mesh" mesh="LR" contype="0" conaffinity="0" rgba="0.86667 0.9098 1 1" />
+        <geom name="LR_collision" type="mesh" mesh="LR" group="0" contype="1" conaffinity="1" rgba="0.86667 0.9098 1 1" />
+        <joint name="LR_joint" type="hinge" axis="-1 0 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+        <body name="LR1" pos="-0.0611 0.01639 0" euler="0 0 0">
+          <inertial pos="-0.0044 0.0478 -0.0165" mass="1.2369" fullinertia="0.0043 0.0046 0.0014 0.0002 -0.0007 0.0006" />
+          <geom name="LR1_visual" type="mesh" mesh="LR1" contype="0" conaffinity="0" rgba="0.86667 0.9098 1 1" />
+          <geom name="LR1_collision" type="mesh" mesh="LR1" group="0" contype="1" conaffinity="1" rgba="0.86667 0.9098 1 1" />
+          <joint name="LR1_joint" type="hinge" axis="0 1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+          <body name="LR2" pos="-0.019158 0.078386 -0.25528" euler="0 0 0">
+            <inertial pos="0.0213 -0.0004 -0.1719" mass="0.4492" fullinertia="0.0037 0.0039 0.0003 0.0000 -0.0001 0.0000" />
+            <geom name="LR2_visual" type="mesh" mesh="LR2" contype="0" conaffinity="0" rgba="1 1 1 1" />
+            <geom name="LR2_collision" type="mesh" mesh="LR2" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+            <joint name="LR2_joint" type="hinge" axis="0 1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+            <body name="LR3" pos="0.0056469 0.0047857 -0.25594" euler="0 0 0">
+              <inertial pos="-0.0001 0.0487 -0.0005" mass="0.6405" fullinertia="0.0017 0.0032 0.0017 0.0000 0.0000 0.0000" />
+              <geom name="LR3_visual" type="mesh" mesh="LR3" contype="0" conaffinity="0" rgba="0.79608 0.82353 0.93725 1" />
+              <geom name="LR3_collision" type="mesh" mesh="LR3" group="0" contype="1" conaffinity="1" rgba="0.79608 0.82353 0.93725 1" />
+              <site name="LR3_foot" pos="0 0 0" size="0.02" type="sphere" rgba="0.2 0.8 0.2 0.8" />
+              <joint name="LR3_joint" type="hinge" axis="0 1 0" damping="0.2" frictionloss="0.01" limited="false" />
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="LF" pos="0.184 0.1 0.075" euler="0 0 0">
+        <inertial pos="0.0589 -0.0026 0.0000" mass="0.9326" fullinertia="0.0006 0.0011 0.0007 0.0000 0.0000 0.0000" />
+        <geom name="LF_visual" type="mesh" mesh="LF" contype="0" conaffinity="0" rgba="1 1 1 1" />
+        <geom name="LF_collision" type="mesh" mesh="LF" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+        <joint name="LF_joint" type="hinge" axis="1 0 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+        <body name="LF1" pos="0.0611 0.01639 0" euler="0 0 0">
+          <inertial pos="-0.0043 0.0478 -0.0165" mass="1.2369" fullinertia="0.0043 0.0046 0.0014 0.0002 -0.0007 0.0006" />
+          <geom name="LF1_visual" type="mesh" mesh="LF1" contype="0" conaffinity="0" rgba="0.86667 0.9098 1 1" />
+          <geom name="LF1_collision" type="mesh" mesh="LF1" group="0" contype="1" conaffinity="1" rgba="0.86667 0.9098 1 1" />
+          <joint name="LF1_joint" type="hinge" axis="0 1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+          <body name="LF2" pos="-0.018426 0.078386 -0.25534" euler="0 0 0">
+            <inertial pos="0.0238 -0.0004 -0.1716" mass="0.4492" fullinertia="0.0037 0.0039 0.0003 0.0000 -0.0001 0.0000" />
+            <geom name="LF2_visual" type="mesh" mesh="LF2" contype="0" conaffinity="0" rgba="1 1 1 1" />
+            <geom name="LF2_collision" type="mesh" mesh="LF2" group="0" contype="1" conaffinity="1" rgba="1 1 1 1" />
+            <joint name="LF2_joint" type="hinge" axis="0 1 0" damping="0.2" frictionloss="0.01" range="-3.1416 3.1416" />
+            <body name="LF3" pos="0.0093044 0.0047857 -0.25583" euler="0 0 0">
+              <inertial pos="-0.0001 0.0487 -0.0005" mass="0.6405" fullinertia="0.0017 0.0032 0.0017 0.0000 0.0000 0.0000" />
+              <geom name="LF3_visual" type="mesh" mesh="LF3" contype="0" conaffinity="0" rgba="0.79608 0.82353 0.93725 1" />
+              <geom name="LF3_collision" type="mesh" mesh="LF3" group="0" contype="1" conaffinity="1" rgba="0.79608 0.82353 0.93725 1" />
+              <site name="LF3_foot" pos="0 0 0" size="0.02" type="sphere" rgba="0.2 0.8 0.2 0.8" />
+              <joint name="LF3_joint" type="hinge" axis="0 1 0" damping="0.2" frictionloss="0.01" limited="false" />
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="act_RF_joint" joint="RF_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_RF1_joint" joint="RF1_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_RF2_joint" joint="RF2_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_RF3_joint" joint="RF3_joint" kp="40" kv="4" ctrlrange="-3.14159265 3.14159265" forcerange="-14 14" />
+    <position name="act_RR_joint" joint="RR_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_RR1_joint" joint="RR1_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_RR2_joint" joint="RR2_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_RR3_joint" joint="RR3_joint" kp="40" kv="4" ctrlrange="-3.14159265 3.14159265" forcerange="-14 14" />
+    <position name="act_LR_joint" joint="LR_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_LR1_joint" joint="LR1_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_LR2_joint" joint="LR2_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_LR3_joint" joint="LR3_joint" kp="40" kv="4" ctrlrange="-3.14159265 3.14159265" forcerange="-14 14" />
+    <position name="act_LF_joint" joint="LF_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_LF1_joint" joint="LF1_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_LF2_joint" joint="LF2_joint" kp="40" kv="4" ctrlrange="-3.1416 3.1416" forcerange="-40 40" />
+    <position name="act_LF3_joint" joint="LF3_joint" kp="40" kv="4" ctrlrange="-3.14159265 3.14159265" forcerange="-14 14" />
+  </actuator>
+  <sensor>
+    <jointpos name="sense_RF_joint_position" joint="RF_joint" />
+    <jointvel name="sense_RF_joint_velocity" joint="RF_joint" />
+    <jointpos name="sense_RF1_joint_position" joint="RF1_joint" />
+    <jointvel name="sense_RF1_joint_velocity" joint="RF1_joint" />
+    <jointpos name="sense_RF2_joint_position" joint="RF2_joint" />
+    <jointvel name="sense_RF2_joint_velocity" joint="RF2_joint" />
+    <jointpos name="sense_RF3_joint_position" joint="RF3_joint" />
+    <jointvel name="sense_RF3_joint_velocity" joint="RF3_joint" />
+    <jointpos name="sense_RR_joint_position" joint="RR_joint" />
+    <jointvel name="sense_RR_joint_velocity" joint="RR_joint" />
+    <jointpos name="sense_RR1_joint_position" joint="RR1_joint" />
+    <jointvel name="sense_RR1_joint_velocity" joint="RR1_joint" />
+    <jointpos name="sense_RR2_joint_position" joint="RR2_joint" />
+    <jointvel name="sense_RR2_joint_velocity" joint="RR2_joint" />
+    <jointpos name="sense_RR3_joint_position" joint="RR3_joint" />
+    <jointvel name="sense_RR3_joint_velocity" joint="RR3_joint" />
+    <jointpos name="sense_LR_joint_position" joint="LR_joint" />
+    <jointvel name="sense_LR_joint_velocity" joint="LR_joint" />
+    <jointpos name="sense_LR1_joint_position" joint="LR1_joint" />
+    <jointvel name="sense_LR1_joint_velocity" joint="LR1_joint" />
+    <jointpos name="sense_LR2_joint_position" joint="LR2_joint" />
+    <jointvel name="sense_LR2_joint_velocity" joint="LR2_joint" />
+    <jointpos name="sense_LR3_joint_position" joint="LR3_joint" />
+    <jointvel name="sense_LR3_joint_velocity" joint="LR3_joint" />
+    <jointpos name="sense_LF_joint_position" joint="LF_joint" />
+    <jointvel name="sense_LF_joint_velocity" joint="LF_joint" />
+    <jointpos name="sense_LF1_joint_position" joint="LF1_joint" />
+    <jointvel name="sense_LF1_joint_velocity" joint="LF1_joint" />
+    <jointpos name="sense_LF2_joint_position" joint="LF2_joint" />
+    <jointvel name="sense_LF2_joint_velocity" joint="LF2_joint" />
+    <jointpos name="sense_LF3_joint_position" joint="LF3_joint" />
+    <jointvel name="sense_LF3_joint_velocity" joint="LF3_joint" />
+    <accelerometer name="imu_accel" site="imu" />
+    <gyro name="imu_gyro" site="imu" />
+  </sensor>
+  <keyframe>
+    <key name="default" qpos="0 0 0.55 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" ctrl="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" />
+  </keyframe>
+</mujoco>

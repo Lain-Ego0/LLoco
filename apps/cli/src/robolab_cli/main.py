@@ -19,12 +19,18 @@ from robolab_core import (
     build_play_command,
     build_train_command,
     check_compatibility,
+    convert_urdf_to_mjcf,
     default_robot_registry,
     default_task_registry,
+    inspect_model,
+    json_report,
     load_document,
     persist_motion_job,
+    resolve_robot_config,
     resolve_toolchain_identity,
+    run_simulation_smoke,
     validate_document,
+    write_snapshot,
 )
 from robolab_core.issues import SEVERITY_ERROR, Issue
 
@@ -59,6 +65,26 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Skill 包目录（artifact/README/LICENSE 校验用），默认取 skill.yaml 所在目录",
     )
     check.add_argument("--json", action="store_true", help="以 JSON 输出机器可读结果")
+
+    robot = sub.add_parser("robot", help="FireDog/RoboLab Robot Profile 工具")
+    robot_sub = robot.add_subparsers(dest="robot_command", required=True)
+    robot_inspect = robot_sub.add_parser("inspect", help="诊断 MJCF 或 URDF")
+    robot_inspect.add_argument("model", type=Path)
+    robot_inspect.add_argument("--json", action="store_true")
+    robot_convert = robot_sub.add_parser("convert", help="确定性 URDF -> MJCF 转换")
+    robot_convert.add_argument("urdf", type=Path)
+    robot_convert.add_argument("--output", type=Path, required=True)
+    robot_convert.add_argument("--json", action="store_true")
+    robot_snapshot = robot_sub.add_parser("snapshot", help="生成 Profile + task resolved snapshot")
+    robot_snapshot.add_argument("profile", type=Path)
+    robot_snapshot.add_argument("--repo-root", type=Path, default=Path("."))
+    robot_snapshot.add_argument("--task", default=None)
+    robot_snapshot.add_argument("--output", type=Path, required=True)
+    robot_snapshot.add_argument("--json", action="store_true")
+    robot_sim = robot_sub.add_parser("simulate", help="CPU load/reset/action/observation smoke")
+    robot_sim.add_argument("model", type=Path)
+    robot_sim.add_argument("--joints", required=True, help="逗号分隔的 canonical/MJCF joint names")
+    robot_sim.add_argument("--json", action="store_true")
 
     def add_motion_common(command: argparse.ArgumentParser) -> None:
         command.add_argument("--task", required=True, help="RoboLab 稳定 task id")
@@ -286,6 +312,36 @@ def _run_check(args: argparse.Namespace) -> int:
     return EXIT_OK if all(r.ok for r in reports) else EXIT_CHECK_FAILED
 
 
+def _run_robot(args: argparse.Namespace) -> int:
+    try:
+        if args.robot_command == "inspect":
+            payload = inspect_model(args.model)
+            if args.json:
+                print(json_report(payload), end="")
+            else:
+                print(f"{payload['format']} {payload['path']}")
+                print(f"counts={json.dumps(payload['counts'], ensure_ascii=False, sort_keys=True)}")
+                for issue in payload["diagnostics"]:
+                    print(f"{issue['severity']}({issue['rule']}) [{issue['path']}] {issue['message']}")
+                print("通过" if payload["ok"] else "未通过")
+            return EXIT_OK if payload["ok"] else EXIT_CHECK_FAILED
+        if args.robot_command == "convert":
+            payload = convert_urdf_to_mjcf(args.urdf, args.output)
+            print(json_report(payload), end="") if args.json else print(f"已生成 MJCF: {payload['output']}\nSHA-256: {payload['outputSha256']}")
+            return EXIT_OK
+        if args.robot_command == "simulate":
+            payload = run_simulation_smoke(args.model, [item.strip() for item in args.joints.split(",") if item.strip()])
+            print(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) if args.json else f"通过: load/reset/action/observation; action={payload['actionDimension']} observation={payload['observation']['afterDimension']}")
+            return EXIT_OK
+        payload = resolve_robot_config(args.profile, args.repo_root, args.task)
+        write_snapshot(payload, args.output)
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) if args.json else f"已生成 snapshot: {args.output}\nSHA-256: {payload['snapshotSha256']}")
+        return EXIT_OK
+    except (OSError, ValueError, KeyError) as exc:
+        print(f"错误(robot): {exc}", file=sys.stderr)
+        return EXIT_USAGE_ERROR
+
+
 def _json_object(value: str, name: str) -> dict:
     try:
         parsed = json.loads(value)
@@ -404,6 +460,8 @@ def _run_motion_command(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    if args.command == "robot":
+        return _run_robot(args)
     if args.command == "check":
         if not args.paths and not (args.skill and args.profile):
             print(
@@ -424,7 +482,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             for entry in payload["tasks"]:
                 print(f"task {entry['id']}@{entry['version']} ({entry['capability']})")
-            print("R1 未选择真实 Robot Profile；robots registry 为空")
+            for entry in payload["robots"]:
+                print(f"robot {entry['id']}@{entry['version']} ({', '.join(entry['capabilities'])})")
         return EXIT_OK
     if args.command == "skill" and args.skill_command == "list":
         from robolab_core import scan_skill_workspace

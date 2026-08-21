@@ -1,0 +1,430 @@
+apiVersion: robolab.dev/v1alpha1
+kind: JointSet
+metadata:
+  id: community.firedog2_2.joints.v1
+  version: 1.0.0
+  dof: 16
+  description: FireDog 2.2 canonical four-leg sixteen-joint simulation mapping
+base:
+  type: free
+  rootBody: base_link
+  qposDim: 7
+  qvelDim: 6
+joints:
+  - name: RF_joint
+    group: rf_leg
+    mjcf:
+      joint: RF_joint
+      qposIndex: 7
+      qvelIndex: 6
+      actuator: act_RF_joint
+      actuatorIndex: 0
+    policy:
+      observationIndex: 0
+      actionIndex: 0
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: RF1_joint
+    group: rf_leg
+    mjcf:
+      joint: RF1_joint
+      qposIndex: 8
+      qvelIndex: 7
+      actuator: act_RF1_joint
+      actuatorIndex: 1
+    policy:
+      observationIndex: 1
+      actionIndex: 1
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: RF2_joint
+    group: rf_leg
+    mjcf:
+      joint: RF2_joint
+      qposIndex: 9
+      qvelIndex: 8
+      actuator: act_RF2_joint
+      actuatorIndex: 2
+    policy:
+      observationIndex: 2
+      actionIndex: 2
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: RF3_joint
+    group: rf_leg
+    mjcf:
+      joint: RF3_joint
+      qposIndex: 10
+      qvelIndex: 9
+      actuator: act_RF3_joint
+      actuatorIndex: 3
+    policy:
+      observationIndex: 3
+      actionIndex: 3
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.141592654
+        upper: 3.141592654
+      velocity: 27.2271
+      torque: 14.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: RR_joint
+    group: rr_leg
+    mjcf:
+      joint: RR_joint
+      qposIndex: 11
+      qvelIndex: 10
+      actuator: act_RR_joint
+      actuatorIndex: 4
+    policy:
+      observationIndex: 4
+      actionIndex: 4
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: RR1_joint
+    group: rr_leg
+    mjcf:
+      joint: RR1_joint
+      qposIndex: 12
+      qvelIndex: 11
+      actuator: act_RR1_joint
+      actuatorIndex: 5
+    policy:
+      observationIndex: 5
+      actionIndex: 5
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: RR2_joint
+    group: rr_leg
+    mjcf:
+      joint: RR2_joint
+      qposIndex: 13
+      qvelIndex: 12
+      actuator: act_RR2_joint
+      actuatorIndex: 6
+    policy:
+      observationIndex: 6
+      actionIndex: 6
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: RR3_joint
+    group: rr_leg
+    mjcf:
+      joint: RR3_joint
+      qposIndex: 14
+      qvelIndex: 13
+      actuator: act_RR3_joint
+      actuatorIndex: 7
+    policy:
+      observationIndex: 7
+      actionIndex: 7
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.141592654
+        upper: 3.141592654
+      velocity: 27.2271
+      torque: 14.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LR_joint
+    group: lr_leg
+    mjcf:
+      joint: LR_joint
+      qposIndex: 15
+      qvelIndex: 14
+      actuator: act_LR_joint
+      actuatorIndex: 8
+    policy:
+      observationIndex: 8
+      actionIndex: 8
+    hardware:
+      motorId: null
+    direction: -1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LR1_joint
+    group: lr_leg
+    mjcf:
+      joint: LR1_joint
+      qposIndex: 16
+      qvelIndex: 15
+      actuator: act_LR1_joint
+      actuatorIndex: 9
+    policy:
+      observationIndex: 9
+      actionIndex: 9
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LR2_joint
+    group: lr_leg
+    mjcf:
+      joint: LR2_joint
+      qposIndex: 17
+      qvelIndex: 16
+      actuator: act_LR2_joint
+      actuatorIndex: 10
+    policy:
+      observationIndex: 10
+      actionIndex: 10
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LR3_joint
+    group: lr_leg
+    mjcf:
+      joint: LR3_joint
+      qposIndex: 18
+      qvelIndex: 17
+      actuator: act_LR3_joint
+      actuatorIndex: 11
+    policy:
+      observationIndex: 11
+      actionIndex: 11
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.141592654
+        upper: 3.141592654
+      velocity: 27.2271
+      torque: 14.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LF_joint
+    group: lf_leg
+    mjcf:
+      joint: LF_joint
+      qposIndex: 19
+      qvelIndex: 18
+      actuator: act_LF_joint
+      actuatorIndex: 12
+    policy:
+      observationIndex: 12
+      actionIndex: 12
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LF1_joint
+    group: lf_leg
+    mjcf:
+      joint: LF1_joint
+      qposIndex: 20
+      qvelIndex: 19
+      actuator: act_LF1_joint
+      actuatorIndex: 13
+    policy:
+      observationIndex: 13
+      actionIndex: 13
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LF2_joint
+    group: lf_leg
+    mjcf:
+      joint: LF2_joint
+      qposIndex: 21
+      qvelIndex: 20
+      actuator: act_LF2_joint
+      actuatorIndex: 14
+    policy:
+      observationIndex: 14
+      actionIndex: 14
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.1416
+        upper: 3.1416
+      velocity: 12.5664
+      torque: 40.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+  - name: LF3_joint
+    group: lf_leg
+    mjcf:
+      joint: LF3_joint
+      qposIndex: 22
+      qvelIndex: 21
+      actuator: act_LF3_joint
+      actuatorIndex: 15
+    policy:
+      observationIndex: 15
+      actionIndex: 15
+    hardware:
+      motorId: null
+    direction: 1
+    zeroOffsetRad: 0.0
+    gearRatio: 1.0
+    limits:
+      position:
+        lower: -3.141592654
+        upper: 3.141592654
+      velocity: 27.2271
+      torque: 14.0
+    defaultPosition: 0.0
+    gains:
+      recommended: {kp: 40.0, kd: 4.0}
+      maximum: {kp: 80.0, kd: 8.0}
+

@@ -1,0 +1,695 @@
+{
+  "actuators": [
+    {
+      "joint": "RF_joint",
+      "name": "act_RF_joint",
+      "type": "position"
+    },
+    {
+      "joint": "RF1_joint",
+      "name": "act_RF1_joint",
+      "type": "position"
+    },
+    {
+      "joint": "RF2_joint",
+      "name": "act_RF2_joint",
+      "type": "position"
+    },
+    {
+      "joint": "RF3_joint",
+      "name": "act_RF3_joint",
+      "type": "position"
+    },
+    {
+      "joint": "RR_joint",
+      "name": "act_RR_joint",
+      "type": "position"
+    },
+    {
+      "joint": "RR1_joint",
+      "name": "act_RR1_joint",
+      "type": "position"
+    },
+    {
+      "joint": "RR2_joint",
+      "name": "act_RR2_joint",
+      "type": "position"
+    },
+    {
+      "joint": "RR3_joint",
+      "name": "act_RR3_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LR_joint",
+      "name": "act_LR_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LR1_joint",
+      "name": "act_LR1_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LR2_joint",
+      "name": "act_LR2_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LR3_joint",
+      "name": "act_LR3_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LF_joint",
+      "name": "act_LF_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LF1_joint",
+      "name": "act_LF1_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LF2_joint",
+      "name": "act_LF2_joint",
+      "type": "position"
+    },
+    {
+      "joint": "LF3_joint",
+      "name": "act_LF3_joint",
+      "type": "position"
+    }
+  ],
+  "bodies": [
+    "base_link",
+    "RF",
+    "RF1",
+    "RF2",
+    "RF3",
+    "RR",
+    "RR1",
+    "RR2",
+    "RR3",
+    "LR",
+    "LR1",
+    "LR2",
+    "LR3",
+    "LF",
+    "LF1",
+    "LF2",
+    "LF3"
+  ],
+  "counts": {
+    "actuator": 16,
+    "body": 17,
+    "geom": 34,
+    "joint": 16,
+    "keyframe": 1,
+    "mesh": 17,
+    "sensor": 34,
+    "site": 5
+  },
+  "diagnostics": [],
+  "format": "mjcf",
+  "geoms": [
+    {
+      "mesh": "base_link",
+      "name": "base_link_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "base_link",
+      "name": "base_link_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF",
+      "name": "RF_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF",
+      "name": "RF_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF1",
+      "name": "RF1_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF1",
+      "name": "RF1_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF2",
+      "name": "RF2_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF2",
+      "name": "RF2_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF3",
+      "name": "RF3_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RF3",
+      "name": "RF3_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR",
+      "name": "RR_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR",
+      "name": "RR_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR1",
+      "name": "RR1_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR1",
+      "name": "RR1_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR2",
+      "name": "RR2_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR2",
+      "name": "RR2_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR3",
+      "name": "RR3_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "RR3",
+      "name": "RR3_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR",
+      "name": "LR_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR",
+      "name": "LR_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR1",
+      "name": "LR1_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR1",
+      "name": "LR1_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR2",
+      "name": "LR2_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR2",
+      "name": "LR2_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR3",
+      "name": "LR3_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LR3",
+      "name": "LR3_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF",
+      "name": "LF_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF",
+      "name": "LF_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF1",
+      "name": "LF1_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF1",
+      "name": "LF1_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF2",
+      "name": "LF2_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF2",
+      "name": "LF2_collision",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF3",
+      "name": "LF3_visual",
+      "type": "mesh"
+    },
+    {
+      "mesh": "LF3",
+      "name": "LF3_collision",
+      "type": "mesh"
+    }
+  ],
+  "inspector": "robolab-robot-inspector/1",
+  "joints": [
+    {
+      "name": "RF_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "RF1_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "RF2_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "RF3_joint",
+      "range": "",
+      "type": "hinge"
+    },
+    {
+      "name": "RR_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "RR1_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "RR2_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "RR3_joint",
+      "range": "",
+      "type": "hinge"
+    },
+    {
+      "name": "LR_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "LR1_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "LR2_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "LR3_joint",
+      "range": "",
+      "type": "hinge"
+    },
+    {
+      "name": "LF_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "LF1_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "LF2_joint",
+      "range": "-3.1416 3.1416",
+      "type": "hinge"
+    },
+    {
+      "name": "LF3_joint",
+      "range": "",
+      "type": "hinge"
+    }
+  ],
+  "keyframes": [
+    "default"
+  ],
+  "meshes": [
+    {
+      "exists": true,
+      "file": "../meshes/LF.STL",
+      "name": "LF",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/LF1.STL",
+      "name": "LF1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF1.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/LF2.STL",
+      "name": "LF2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF2.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/LF3.STL",
+      "name": "LF3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF3.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/LR.STL",
+      "name": "LR",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/LR1.STL",
+      "name": "LR1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR1.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/LR2.STL",
+      "name": "LR2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR2.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/LR3.STL",
+      "name": "LR3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR3.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RF.STL",
+      "name": "RF",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RF1.STL",
+      "name": "RF1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF1.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RF2.STL",
+      "name": "RF2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF2.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RF3.STL",
+      "name": "RF3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF3.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RR.STL",
+      "name": "RR",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RR1.STL",
+      "name": "RR1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR1.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RR2.STL",
+      "name": "RR2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR2.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/RR3.STL",
+      "name": "RR3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR3.STL"
+    },
+    {
+      "exists": true,
+      "file": "../meshes/base_link.STL",
+      "name": "base_link",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/base_link.STL"
+    }
+  ],
+  "ok": true,
+  "path": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/model/firedog2_2.xml",
+  "rootBodies": [
+    "base_link"
+  ],
+  "sensors": [
+    {
+      "joint": "RF_joint",
+      "name": "sense_RF_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RF_joint",
+      "name": "sense_RF_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "RF1_joint",
+      "name": "sense_RF1_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RF1_joint",
+      "name": "sense_RF1_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "RF2_joint",
+      "name": "sense_RF2_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RF2_joint",
+      "name": "sense_RF2_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "RF3_joint",
+      "name": "sense_RF3_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RF3_joint",
+      "name": "sense_RF3_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "RR_joint",
+      "name": "sense_RR_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RR_joint",
+      "name": "sense_RR_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "RR1_joint",
+      "name": "sense_RR1_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RR1_joint",
+      "name": "sense_RR1_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "RR2_joint",
+      "name": "sense_RR2_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RR2_joint",
+      "name": "sense_RR2_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "RR3_joint",
+      "name": "sense_RR3_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "RR3_joint",
+      "name": "sense_RR3_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LR_joint",
+      "name": "sense_LR_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LR_joint",
+      "name": "sense_LR_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LR1_joint",
+      "name": "sense_LR1_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LR1_joint",
+      "name": "sense_LR1_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LR2_joint",
+      "name": "sense_LR2_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LR2_joint",
+      "name": "sense_LR2_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LR3_joint",
+      "name": "sense_LR3_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LR3_joint",
+      "name": "sense_LR3_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LF_joint",
+      "name": "sense_LF_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LF_joint",
+      "name": "sense_LF_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LF1_joint",
+      "name": "sense_LF1_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LF1_joint",
+      "name": "sense_LF1_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LF2_joint",
+      "name": "sense_LF2_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LF2_joint",
+      "name": "sense_LF2_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "LF3_joint",
+      "name": "sense_LF3_joint_position",
+      "site": "",
+      "type": "jointpos"
+    },
+    {
+      "joint": "LF3_joint",
+      "name": "sense_LF3_joint_velocity",
+      "site": "",
+      "type": "jointvel"
+    },
+    {
+      "joint": "",
+      "name": "imu_accel",
+      "site": "imu",
+      "type": "accelerometer"
+    },
+    {
+      "joint": "",
+      "name": "imu_gyro",
+      "site": "imu",
+      "type": "gyro"
+    }
+  ],
+  "sites": [
+    "imu",
+    "RF3_foot",
+    "RR3_foot",
+    "LR3_foot",
+    "LF3_foot"
+  ]
+}

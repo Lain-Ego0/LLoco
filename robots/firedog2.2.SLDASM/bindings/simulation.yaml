@@ -1,0 +1,14 @@
+profile: profile.yaml
+model: model/firedog2_2.xml
+jointSet: joint_set.yaml
+mapping: bindings/actuator_sensor_mapping.yaml
+taskBinding: bindings/task_binding.yaml
+controlFrequencyHz: 50
+physicsTimestep: 0.002
+decimation: 10
+assumptions:
+  - XML position actuators use kp=40 and kv=4.
+  - IMU sensors are simulation-only frame sensors at the base imu site.
+  - Mesh collision uses the exported STL directly.
+  - No real motor identifiers or hardware transport is provided.
+

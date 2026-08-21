@@ -1,0 +1,40 @@
+apiVersion: robolab.dev/v1beta1
+kind: RobotProfile
+metadata:
+  id: community.firedog2_2
+  version: 1.0.0
+  robot: FireDog
+  model: firedog2.2
+  variant: invalid
+description:
+  urdf: /tmp/firedog.urdf
+  mjcf: model/firedog2_2.xml
+  rootBody: base_link
+  feet: [RF3_foot]
+  contactFrames: [RF3_foot]
+  jointSet: community.firedog2_2.joints.v1
+  mappings: bindings/actuator_sensor_mapping.yaml
+control: {mode: joint_position, frequencyHz: 50, actionScale: 0.5}
+targets:
+  simulation: {type: mujoco, enabled: true}
+  physical: {enabled: true, driver: fake.driver}
+bindings:
+  tasks: []
+  runtime: {type: simulation, driver: null}
+  simulation: bindings/simulation.yaml
+safety: {fallbackState: damping, commandTimeoutMs: 100, stateTimeoutMs: 100}
+capabilities:
+  simulation: true
+  training: true
+  motorCommunication: true
+  sensorStreaming: false
+  calibration: false
+  physicalDeployment: false
+provenance:
+  source: invalid
+  revision: null
+  rawAssetRoot: .
+  assetLicense: unclear
+  authorizationStatus: unclear_local_only
+  inputs: [{path: package.xml, sha256: 1f3ff44d68ec5840f95f594127caf63c834cf26b238d507c6918fb73f318e54f}]
+  derived: {tool: test, command: test, output: model/firedog2_2.xml, outputSha256: a2dd57482621864558b85a01391b6ae38df47e6a36448e9445cb36f4361a9502, reproducible: true}

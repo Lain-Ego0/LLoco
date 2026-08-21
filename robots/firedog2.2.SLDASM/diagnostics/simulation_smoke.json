@@ -1,0 +1,31 @@
+{
+  "actionDimension": 16,
+  "backend": "mujoco-via-customized-mjlab-1.6",
+  "contacts": 2,
+  "limits": {
+    "allDefaultPositionsValid": true,
+    "checked": 12,
+    "continuousUnchecked": 4
+  },
+  "load": true,
+  "model": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/model/firedog2_2.xml",
+  "namedAction": {
+    "actuator": "act_RF_joint",
+    "applied": true,
+    "joint": "RF_joint",
+    "value": 0.05
+  },
+  "observation": {
+    "afterDimension": 32,
+    "beforeDimension": 32,
+    "finite": true,
+    "valuesChanged": true
+  },
+  "physicsTimeAfterStep": 0.002,
+  "reset": {
+    "keyframe": "default",
+    "qposDimension": 23,
+    "qvelDimension": 22,
+    "time": 0.0
+  }
+}

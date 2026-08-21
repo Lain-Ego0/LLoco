@@ -323,9 +323,23 @@ def default_task_registry() -> TaskRegistry:
 
 
 def default_robot_registry() -> RobotRegistry:
-    """R1 intentionally has no selected reference robot."""
+    """Return the R2 FireDog simulation-only Robot Profile binding."""
 
-    return RobotRegistry()
+    return RobotRegistry(
+        [
+            RobotBinding(
+                id="community.firedog2_2",
+                version="1.0.0",
+                entity="mjlab.tasks.firedog2_2.firedog2_2_env_cfg.firedog2_2_velocity_env_cfg",
+                config="robots.firedog2_2.profile",
+                capabilities=("simulation", "training"),
+                metadata={
+                    "profile": "robots/firedog2.2.SLDASM/profile.yaml",
+                    "physicalDeployment": False,
+                },
+            )
+        ]
+    )
 
 
 @dataclass(frozen=True)

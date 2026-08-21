@@ -1,8 +1,7 @@
 # Robot Profiles
 
-状态：`unitree.g1.29dof@1.0.0` 是历史首个 simulation-only Profile，已在 R0.6 连同相关破损风险的 vendor symlink 一起删除。
-它不再定义 RoboLab 的通用 Profile 或任务契约。R2 必须加入一个自研、爱好者或社区可复现的参考机器人；长期 Profile
-通过 Customized MJLab 1.6 的稳定 task/model binding 工作，不向 Skill 或公共 API 暴露 vendor 路径。
+状态：R2 当前固定接入 FireDog 2.2，公共 Profile ID 为 `community.firedog2_2`。目录名保留用户提供的原始资产命名，
+不作为公共 Registry ID，也不向 Skill 或公共 API 暴露路径。
 
 ## 职责
 

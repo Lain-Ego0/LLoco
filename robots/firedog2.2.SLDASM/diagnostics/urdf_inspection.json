@@ -1,0 +1,412 @@
+{
+  "actuators": [],
+  "bodies": [
+    "LF",
+    "LF1",
+    "LF2",
+    "LF3",
+    "LR",
+    "LR1",
+    "LR2",
+    "LR3",
+    "RF",
+    "RF1",
+    "RF2",
+    "RF3",
+    "RR",
+    "RR1",
+    "RR2",
+    "RR3",
+    "base_link"
+  ],
+  "counts": {
+    "actuator": 0,
+    "body": 17,
+    "geom": 34,
+    "joint": 16,
+    "keyframe": 0,
+    "mesh": 34,
+    "sensor": 0,
+    "site": 0
+  },
+  "diagnostics": [],
+  "format": "urdf",
+  "geoms": [],
+  "inspector": "robolab-robot-inspector/1",
+  "joints": [
+    {
+      "child": "RF",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "RF_joint",
+      "parent": "base_link",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "RF1",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "RF1_joint",
+      "parent": "RF",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "RF2",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "RF2_joint",
+      "parent": "RF1",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "RF3",
+      "effort": "14",
+      "lower": "",
+      "name": "RF3_joint",
+      "parent": "RF2",
+      "type": "continuous",
+      "upper": "",
+      "velocity": "27.2271"
+    },
+    {
+      "child": "RR",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "RR_joint",
+      "parent": "base_link",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "RR1",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "RR1_joint",
+      "parent": "RR",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "RR2",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "RR2_joint",
+      "parent": "RR1",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "RR3",
+      "effort": "14",
+      "lower": "",
+      "name": "RR3_joint",
+      "parent": "RR2",
+      "type": "continuous",
+      "upper": "",
+      "velocity": "27.2271"
+    },
+    {
+      "child": "LR",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "LR_joint",
+      "parent": "base_link",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "LR1",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "LR1_joint",
+      "parent": "LR",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "LR2",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "LR2_joint",
+      "parent": "LR1",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "LR3",
+      "effort": "14",
+      "lower": "",
+      "name": "LR3_joint",
+      "parent": "LR2",
+      "type": "continuous",
+      "upper": "",
+      "velocity": "27.2271"
+    },
+    {
+      "child": "LF",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "LF_joint",
+      "parent": "base_link",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "LF1",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "LF1_joint",
+      "parent": "LF",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "LF2",
+      "effort": "40",
+      "lower": "-3.1416",
+      "name": "LF2_joint",
+      "parent": "LF1",
+      "type": "revolute",
+      "upper": "3.1416",
+      "velocity": "12.5664"
+    },
+    {
+      "child": "LF3",
+      "effort": "14",
+      "lower": "",
+      "name": "LF3_joint",
+      "parent": "LF2",
+      "type": "continuous",
+      "upper": "",
+      "velocity": "27.2271"
+    }
+  ],
+  "keyframes": [],
+  "meshes": [
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/base_link.STL",
+      "link": "base_link",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/base_link.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/base_link.STL",
+      "link": "base_link",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/base_link.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF.STL",
+      "link": "RF",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF.STL",
+      "link": "RF",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF1.STL",
+      "link": "RF1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF1.STL",
+      "link": "RF1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF2.STL",
+      "link": "RF2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF2.STL",
+      "link": "RF2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF3.STL",
+      "link": "RF3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF3.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RF3.STL",
+      "link": "RF3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RF3.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR.STL",
+      "link": "RR",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR.STL",
+      "link": "RR",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR1.STL",
+      "link": "RR1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR1.STL",
+      "link": "RR1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR2.STL",
+      "link": "RR2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR2.STL",
+      "link": "RR2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR3.STL",
+      "link": "RR3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR3.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/RR3.STL",
+      "link": "RR3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/RR3.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR.STL",
+      "link": "LR",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR.STL",
+      "link": "LR",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR1.STL",
+      "link": "LR1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR1.STL",
+      "link": "LR1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR2.STL",
+      "link": "LR2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR2.STL",
+      "link": "LR2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR3.STL",
+      "link": "LR3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR3.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LR3.STL",
+      "link": "LR3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LR3.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF.STL",
+      "link": "LF",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF.STL",
+      "link": "LF",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF1.STL",
+      "link": "LF1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF1.STL",
+      "link": "LF1",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF1.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF2.STL",
+      "link": "LF2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF2.STL",
+      "link": "LF2",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF2.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF3.STL",
+      "link": "LF3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF3.STL"
+    },
+    {
+      "exists": true,
+      "file": "package://火狗2.2.SLDASM/meshes/LF3.STL",
+      "link": "LF3",
+      "resolved": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/meshes/LF3.STL"
+    }
+  ],
+  "ok": true,
+  "path": "/home/lxy/RoboLab/robots/firedog2.2.SLDASM/urdf/火狗2.2.SLDASM.urdf",
+  "rootBodies": [
+    "base_link"
+  ],
+  "sensors": [],
+  "sites": []
+}

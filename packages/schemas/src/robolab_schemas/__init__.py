@@ -11,13 +11,20 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 API_VERSION = "robolab.dev/v1alpha1"
+PROFILE_VNEXT_API_VERSION = "robolab.dev/v1beta1"
 
 _SCHEMA_FILES = {
     "RobotProfile": "robot_profile.v1alpha1.schema.json",
     "JointSet": "joint_set.v1alpha1.schema.json",
+    "ActuatorSensorMapping": "actuator_sensor_mapping.v1alpha1.schema.json",
+    "TaskBinding": "task_binding.v1alpha1.schema.json",
     "MotionSkill": "skill_package.v1alpha1.schema.json",
     "PlatformSkill": "skill_package.v1alpha1.schema.json",
     "AgentSkill": "skill_package.v1alpha1.schema.json",
+}
+
+_VERSIONED_SCHEMA_FILES = {
+    ("RobotProfile", PROFILE_VNEXT_API_VERSION): "robot_profile.v1beta1.schema.json",
 }
 
 KNOWN_KINDS = tuple(_SCHEMA_FILES)
@@ -39,10 +46,12 @@ def detect_kind(document: dict[str, Any]) -> str:
             f"无法识别的 kind={kind!r}；支持 {', '.join(KNOWN_KINDS)}"
         )
     api_version = document.get("apiVersion")
-    if api_version != API_VERSION:
+    if api_version not in {API_VERSION, PROFILE_VNEXT_API_VERSION}:
         raise UnknownKindError(
-            f"无法识别的 apiVersion={api_version!r}；当前仅支持 {API_VERSION}"
+            f"无法识别的 apiVersion={api_version!r}；当前仅支持 {API_VERSION} 和 {PROFILE_VNEXT_API_VERSION}"
         )
+    if api_version == PROFILE_VNEXT_API_VERSION and kind != "RobotProfile":
+        raise UnknownKindError(f"{kind} 不支持 apiVersion={api_version}")
     return kind
 
 
@@ -56,6 +65,15 @@ def load_schema(kind: str) -> dict[str, Any]:
 
 
 @cache
+def load_schema_for_document(kind: str, api_version: str) -> dict[str, Any]:
+    filename = _VERSIONED_SCHEMA_FILES.get((kind, api_version))
+    if filename is None:
+        return load_schema(kind)
+    resource = resources.files(__package__).joinpath(f"data/{filename}")
+    return json.loads(resource.read_text(encoding="utf-8"))
+
+
+@cache
 def get_validator(kind: str) -> Draft202012Validator:
     return Draft202012Validator(load_schema(kind))
 
@@ -65,7 +83,8 @@ def validate_schema(
 ) -> list[ValidationError]:
     """Return structural validation errors sorted by document path."""
     resolved = kind or detect_kind(document)
-    errors = list(get_validator(resolved).iter_errors(document))
+    schema = load_schema_for_document(resolved, str(document.get("apiVersion", API_VERSION)))
+    errors = list(Draft202012Validator(schema).iter_errors(document))
     return sorted(errors, key=lambda e: list(e.absolute_path))
 
 

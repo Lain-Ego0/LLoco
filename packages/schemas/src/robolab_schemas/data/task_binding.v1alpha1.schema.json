@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robolab.dev/schemas/task_binding.v1alpha1.json",
+  "title": "RoboLab TaskBinding v1alpha1",
+  "type": "object", "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "task", "mjlab", "dimensions"],
+  "properties": {
+    "apiVersion": {"const": "robolab.dev/v1alpha1"}, "kind": {"const": "TaskBinding"},
+    "metadata": {"type": "object", "additionalProperties": false, "required": ["id", "version"], "properties": {"id": {"type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$"}, "version": {"type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"}}},
+    "task": {"type": "object", "additionalProperties": false, "required": ["id", "version", "family"], "properties": {"id": {"type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$"}, "version": {"type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"}, "family": {"enum": ["velocity_tracking", "joint_smoke"]}}},
+    "mjlab": {"type": "object", "additionalProperties": false, "required": ["upstreamRevision", "configFactory", "backend"], "properties": {"upstreamRevision": {"type": "string", "minLength": 1}, "configFactory": {"type": "string", "minLength": 1}, "backend": {"const": "customized_mjlab_1.6"}}},
+    "dimensions": {"type": "object", "additionalProperties": false, "required": ["action", "observation"], "properties": {"action": {"type": "integer", "minimum": 1}, "observation": {"type": "integer", "minimum": 1}}}
+  }
+}

@@ -1,0 +1,17 @@
+apiVersion: robolab.dev/v1alpha1
+kind: TaskBinding
+metadata:
+  id: community.firedog2_2.velocity.flat
+  version: 1.0.0
+task:
+  id: robolab.motion.velocity.flat
+  version: 1.0.0
+  family: velocity_tracking
+mjlab:
+  upstreamRevision: 0fb8a681136be94ffc636a3dd423cabb97d91f10
+  configFactory: mjlab.tasks.firedog2_2.firedog2_2_env_cfg:firedog2_2_velocity_env_cfg
+  backend: customized_mjlab_1.6
+dimensions:
+  action: 16
+  observation: 32
+

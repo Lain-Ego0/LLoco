@@ -1,0 +1,505 @@
+apiVersion: robolab.dev/v1alpha1
+kind: ActuatorSensorMapping
+metadata:
+  id: community.firedog2_2.mapping.v1
+  version: 1.0.0
+  frequencyHz: 50
+actuators:
+  - canonicalJoint: RF_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_RF_joint, index: 0}
+    policy: {actionIndex: 0}
+    hardwareMotorId: null
+  - canonicalJoint: RF1_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_RF1_joint, index: 1}
+    policy: {actionIndex: 1}
+    hardwareMotorId: null
+  - canonicalJoint: RF2_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_RF2_joint, index: 2}
+    policy: {actionIndex: 2}
+    hardwareMotorId: null
+  - canonicalJoint: RF3_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.141592654, 3.141592654]
+      velocity: 27.2271
+      torque: 14.0
+    mjcf: {name: act_RF3_joint, index: 3}
+    policy: {actionIndex: 3}
+    hardwareMotorId: null
+  - canonicalJoint: RR_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_RR_joint, index: 4}
+    policy: {actionIndex: 4}
+    hardwareMotorId: null
+  - canonicalJoint: RR1_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_RR1_joint, index: 5}
+    policy: {actionIndex: 5}
+    hardwareMotorId: null
+  - canonicalJoint: RR2_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_RR2_joint, index: 6}
+    policy: {actionIndex: 6}
+    hardwareMotorId: null
+  - canonicalJoint: RR3_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.141592654, 3.141592654]
+      velocity: 27.2271
+      torque: 14.0
+    mjcf: {name: act_RR3_joint, index: 7}
+    policy: {actionIndex: 7}
+    hardwareMotorId: null
+  - canonicalJoint: LR_joint
+    type: position
+    unit: rad
+    direction: -1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_LR_joint, index: 8}
+    policy: {actionIndex: 8}
+    hardwareMotorId: null
+  - canonicalJoint: LR1_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_LR1_joint, index: 9}
+    policy: {actionIndex: 9}
+    hardwareMotorId: null
+  - canonicalJoint: LR2_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_LR2_joint, index: 10}
+    policy: {actionIndex: 10}
+    hardwareMotorId: null
+  - canonicalJoint: LR3_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.141592654, 3.141592654]
+      velocity: 27.2271
+      torque: 14.0
+    mjcf: {name: act_LR3_joint, index: 11}
+    policy: {actionIndex: 11}
+    hardwareMotorId: null
+  - canonicalJoint: LF_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_LF_joint, index: 12}
+    policy: {actionIndex: 12}
+    hardwareMotorId: null
+  - canonicalJoint: LF1_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_LF1_joint, index: 13}
+    policy: {actionIndex: 13}
+    hardwareMotorId: null
+  - canonicalJoint: LF2_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.1416, 3.1416]
+      velocity: 12.5664
+      torque: 40.0
+    mjcf: {name: act_LF2_joint, index: 14}
+    policy: {actionIndex: 14}
+    hardwareMotorId: null
+  - canonicalJoint: LF3_joint
+    type: position
+    unit: rad
+    direction: 1
+    gear: 1.0
+    frequencyHz: 50
+    latencyMs: 0
+    limits:
+      position: [-3.141592654, 3.141592654]
+      velocity: 27.2271
+      torque: 14.0
+    mjcf: {name: act_LF3_joint, index: 15}
+    policy: {actionIndex: 15}
+    hardwareMotorId: null
+sensors:
+  - name: sense_RF_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF_joint_position, index: 0}
+    policy: {observationIndex: 0}
+  - name: sense_RF_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF_joint_velocity, index: 1}
+    policy: {observationIndex: 1}
+  - name: sense_RF1_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF1_joint_position, index: 2}
+    policy: {observationIndex: 2}
+  - name: sense_RF1_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF1_joint_velocity, index: 3}
+    policy: {observationIndex: 3}
+  - name: sense_RF2_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF2_joint_position, index: 4}
+    policy: {observationIndex: 4}
+  - name: sense_RF2_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF2_joint_velocity, index: 5}
+    policy: {observationIndex: 5}
+  - name: sense_RF3_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF3_joint_position, index: 6}
+    policy: {observationIndex: 6}
+  - name: sense_RF3_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RF3_joint_velocity, index: 7}
+    policy: {observationIndex: 7}
+  - name: sense_RR_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR_joint_position, index: 8}
+    policy: {observationIndex: 8}
+  - name: sense_RR_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR_joint_velocity, index: 9}
+    policy: {observationIndex: 9}
+  - name: sense_RR1_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR1_joint_position, index: 10}
+    policy: {observationIndex: 10}
+  - name: sense_RR1_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR1_joint_velocity, index: 11}
+    policy: {observationIndex: 11}
+  - name: sense_RR2_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR2_joint_position, index: 12}
+    policy: {observationIndex: 12}
+  - name: sense_RR2_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR2_joint_velocity, index: 13}
+    policy: {observationIndex: 13}
+  - name: sense_RR3_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR3_joint_position, index: 14}
+    policy: {observationIndex: 14}
+  - name: sense_RR3_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_RR3_joint_velocity, index: 15}
+    policy: {observationIndex: 15}
+  - name: sense_LR_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR_joint_position, index: 16}
+    policy: {observationIndex: 16}
+  - name: sense_LR_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR_joint_velocity, index: 17}
+    policy: {observationIndex: 17}
+  - name: sense_LR1_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR1_joint_position, index: 18}
+    policy: {observationIndex: 18}
+  - name: sense_LR1_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR1_joint_velocity, index: 19}
+    policy: {observationIndex: 19}
+  - name: sense_LR2_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR2_joint_position, index: 20}
+    policy: {observationIndex: 20}
+  - name: sense_LR2_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR2_joint_velocity, index: 21}
+    policy: {observationIndex: 21}
+  - name: sense_LR3_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR3_joint_position, index: 22}
+    policy: {observationIndex: 22}
+  - name: sense_LR3_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LR3_joint_velocity, index: 23}
+    policy: {observationIndex: 23}
+  - name: sense_LF_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF_joint_position, index: 24}
+    policy: {observationIndex: 24}
+  - name: sense_LF_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF_joint_velocity, index: 25}
+    policy: {observationIndex: 25}
+  - name: sense_LF1_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF1_joint_position, index: 26}
+    policy: {observationIndex: 26}
+  - name: sense_LF1_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF1_joint_velocity, index: 27}
+    policy: {observationIndex: 27}
+  - name: sense_LF2_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF2_joint_position, index: 28}
+    policy: {observationIndex: 28}
+  - name: sense_LF2_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF2_joint_velocity, index: 29}
+    policy: {observationIndex: 29}
+  - name: sense_LF3_joint_position
+    type: joint_position
+    unit: rad
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF3_joint_position, index: 30}
+    policy: {observationIndex: 30}
+  - name: sense_LF3_joint_velocity
+    type: joint_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: sense_LF3_joint_velocity, index: 31}
+    policy: {observationIndex: 31}
+  - name: imu_accel
+    type: imu_acceleration
+    unit: m/s^2
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: imu_accel, index: 32}
+    policy: {observationIndex: 32}
+  - name: imu_gyro
+    type: imu_angular_velocity
+    unit: rad/s
+    direction: 1
+    frequencyHz: 50
+    latencyMs: 0
+    mjcf: {name: imu_gyro, index: 33}
+    policy: {observationIndex: 33}
+

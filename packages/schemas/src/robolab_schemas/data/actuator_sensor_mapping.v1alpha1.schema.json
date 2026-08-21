@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robolab.dev/schemas/actuator_sensor_mapping.v1alpha1.json",
+  "title": "RoboLab ActuatorSensorMapping v1alpha1",
+  "type": "object", "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "actuators", "sensors"],
+  "properties": {
+    "apiVersion": {"const": "robolab.dev/v1alpha1"}, "kind": {"const": "ActuatorSensorMapping"},
+    "metadata": {"type": "object", "additionalProperties": false, "required": ["id", "version"], "properties": {"id": {"type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$"}, "version": {"$ref": "#/$defs/semver"}, "frequencyHz": {"type": "integer", "minimum": 1}}},
+    "actuators": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/actuator"}},
+    "sensors": {"type": "array", "items": {"$ref": "#/$defs/sensor"}}
+  },
+  "$defs": {
+    "semver": {"type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"},
+    "limits": {"type": "object", "additionalProperties": false, "required": ["position", "velocity", "torque"], "properties": {"position": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}, "velocity": {"type": "number", "exclusiveMinimum": 0}, "torque": {"type": "number", "exclusiveMinimum": 0}}},
+    "mjcf": {"type": "object", "additionalProperties": false, "required": ["name", "index"], "properties": {"name": {"type": "string", "minLength": 1}, "index": {"type": "integer", "minimum": 0}}},
+    "actuator": {"type": "object", "additionalProperties": false, "required": ["canonicalJoint", "type", "unit", "direction", "gear", "frequencyHz", "latencyMs", "limits", "mjcf", "policy"], "properties": {"canonicalJoint": {"type": "string", "minLength": 1}, "type": {"enum": ["position", "velocity", "torque"]}, "unit": {"type": "string", "minLength": 1}, "direction": {"enum": [1, -1]}, "gear": {"type": "number", "exclusiveMinimum": 0}, "frequencyHz": {"type": "number", "exclusiveMinimum": 0}, "latencyMs": {"type": "number", "minimum": 0}, "limits": {"$ref": "#/$defs/limits"}, "mjcf": {"$ref": "#/$defs/mjcf"}, "policy": {"type": "object", "additionalProperties": false, "required": ["actionIndex"], "properties": {"actionIndex": {"type": "integer", "minimum": 0}}}, "hardwareMotorId": {"type": ["integer", "null"], "minimum": 0}}},
+    "sensor": {"type": "object", "additionalProperties": false, "required": ["name", "type", "unit", "frequencyHz", "latencyMs", "mjcf", "policy"], "properties": {"name": {"type": "string", "minLength": 1}, "type": {"enum": ["joint_position", "joint_velocity", "imu_acceleration", "imu_angular_velocity", "contact"]}, "unit": {"type": "string", "minLength": 1}, "direction": {"enum": [1, -1]}, "frequencyHz": {"type": "number", "exclusiveMinimum": 0}, "latencyMs": {"type": "number", "minimum": 0}, "mjcf": {"$ref": "#/$defs/mjcf"}, "policy": {"type": "object", "additionalProperties": false, "required": ["observationIndex"], "properties": {"observationIndex": {"type": "integer", "minimum": 0}}}}}
+  }
+}

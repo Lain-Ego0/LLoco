@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robolab.dev/schemas/robot_profile.v1beta1.json",
+  "title": "RoboLab RobotProfile v1beta1",
+  "description": "R2 simulation-first Robot Profile. v1alpha1 remains frozen and is not modified.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "description", "control", "targets", "bindings", "safety", "capabilities", "provenance"],
+  "properties": {
+    "apiVersion": {"const": "robolab.dev/v1beta1"},
+    "kind": {"const": "RobotProfile"},
+    "metadata": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "robot", "model", "variant"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$"},
+        "version": {"$ref": "#/$defs/semver"},
+        "robot": {"type": "string", "minLength": 1},
+        "model": {"type": "string", "minLength": 1},
+        "variant": {"type": "string", "minLength": 1}
+      }
+    },
+    "description": {
+      "type": "object", "additionalProperties": false,
+      "required": ["urdf", "mjcf", "rootBody", "feet", "contactFrames", "jointSet", "mappings"],
+      "properties": {
+        "urdf": {"$ref": "#/$defs/relPath"},
+        "mjcf": {"$ref": "#/$defs/relPath"},
+        "rootBody": {"type": "string", "minLength": 1},
+        "feet": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+        "contactFrames": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+        "imuFrame": {"type": "string", "minLength": 1},
+        "jointSet": {"type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$"},
+        "mappings": {"$ref": "#/$defs/relPath"},
+        "provenanceRef": {"$ref": "#/$defs/relPath"}
+      }
+    },
+    "control": {
+      "type": "object", "additionalProperties": false, "required": ["mode", "frequencyHz", "actionScale"],
+      "properties": {
+        "mode": {"enum": ["joint_position", "joint_velocity", "joint_torque"]},
+        "frequencyHz": {"type": "integer", "minimum": 1},
+        "actionScale": {"type": "number", "exclusiveMinimum": 0},
+        "latencyMs": {"type": "number", "minimum": 0}
+      }
+    },
+    "targets": {
+      "type": "object", "additionalProperties": false, "required": ["simulation", "physical"],
+      "properties": {
+        "simulation": {"type": "object", "additionalProperties": false, "required": ["type", "enabled"], "properties": {"type": {"const": "mujoco"}, "enabled": {"type": "boolean"}}},
+        "physical": {"type": "object", "additionalProperties": false, "required": ["enabled", "driver"], "properties": {"enabled": {"const": false}, "driver": {"type": "null"}}}
+      }
+    },
+    "bindings": {
+      "type": "object", "additionalProperties": false, "required": ["tasks", "runtime", "simulation"],
+      "properties": {
+        "tasks": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["id", "version", "observationSchema", "actionSchema"], "properties": {"id": {"type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$"}, "version": {"$ref": "#/$defs/semver"}, "observationSchema": {"type": "string", "minLength": 1}, "actionSchema": {"type": "string", "minLength": 1}}}},
+        "runtime": {"type": "object", "additionalProperties": false, "required": ["type", "driver"], "properties": {"type": {"const": "simulation"}, "driver": {"type": "null"}}},
+        "simulation": {"$ref": "#/$defs/relPath"}
+      }
+    },
+    "safety": {
+      "type": "object", "additionalProperties": false, "required": ["fallbackState", "commandTimeoutMs", "stateTimeoutMs"],
+      "properties": {"fallbackState": {"enum": ["passive", "damping", "fixstand"]}, "commandTimeoutMs": {"type": "integer", "minimum": 1}, "stateTimeoutMs": {"type": "integer", "minimum": 1}}
+    },
+    "capabilities": {
+      "type": "object", "additionalProperties": false,
+      "required": ["simulation", "training", "motorCommunication", "sensorStreaming", "calibration", "physicalDeployment"],
+      "properties": {"simulation": {"const": true}, "training": {"const": true}, "motorCommunication": {"const": false}, "sensorStreaming": {"const": false}, "calibration": {"const": false}, "physicalDeployment": {"const": false}}
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false, "required": ["source", "revision", "rawAssetRoot", "assetLicense", "authorizationStatus", "inputs", "derived"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1}, "revision": {"type": ["string", "null"]}, "rawAssetRoot": {"$ref": "#/$defs/relPath"},
+        "assetLicense": {"type": "string", "minLength": 1}, "authorizationStatus": {"enum": ["confirmed", "unclear_local_only", "denied"]},
+        "inputs": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"$ref": "#/$defs/relPath"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}},
+        "derived": {"type": "object", "additionalProperties": false, "required": ["tool", "command", "output", "outputSha256", "reproducible"], "properties": {"tool": {"type": "string", "minLength": 1}, "command": {"type": "string", "minLength": 1}, "output": {"$ref": "#/$defs/relPath"}, "outputSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "reproducible": {"type": "boolean"}, "manualModifications": {"type": "array", "items": {"type": "string"}}}}
+      }
+    }
+  },
+  "$defs": {
+    "semver": {"type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"},
+    "relPath": {"type": "string", "minLength": 1, "not": {"pattern": "^(?:/|[A-Za-z]:)|(^|/)\\.\\.(/|$)"}}
+  }
+}
