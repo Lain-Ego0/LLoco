@@ -77,8 +77,7 @@ RoboLab/
 ├── robots/                          # Robot Profile 与模型 binding
 ├── skills/                          # builtin/installed/dev Skill 工作区
 ├── runtime/                         # 厂商和仿真器无关的部署数据面
-├── integrations/
-│   └── unitree/                     # 一个具体厂商 Driver/SDK adapter
+├── integrations/                    # R4+ 具体厂商 Driver/SDK adapter
 ├── tests/                           # contract/integration/hardware 测试
 ├── docs/
 └── var/                             # 本地运行数据，gitignore
@@ -153,8 +152,8 @@ DRAFT -> COMPATIBLE -> OFFLINE_VALIDATED -> SIM_VALIDATED
 
 ## 9. Unitree 退役边界
 
-- R0.6 删除 `vendor/unitree_rl_mjlab/`、`packages/mjlab_adapter/`、G1 Profile 和 Unitree Integration；
-- CLI/API 同步删除 `vendor_root`、旧 discovery/play 和 vendor health check；
+- R0.6 已删除 `vendor/unitree_rl_mjlab/`、`packages/mjlab_adapter/`、G1 Profile 和 Unitree Integration；
+- CLI/API 已删除 `vendor_root`、旧 discovery/play 和 vendor health check；
 - 当前发布物不再提供 Unitree legacy checkpoint 或 sim-to-sim 兼容承诺；
 - 未来重新支持 G1 时，必须通过和自研机器人相同的 Robot Profile、Task、Artifact 和 Runtime 契约接入；
 - 历史来源、许可证事实和 commit 继续保留在 Git 与历史文档中。

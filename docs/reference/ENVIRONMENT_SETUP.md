@@ -1,14 +1,14 @@
 # RoboLab 本地环境安装
 
-状态：2026-08-21 修订。默认环境服务于 RoboLab 定制 MJLab 1.6 主线；Unitree/MJLab 1.2 仅作为隔离的 legacy 环境。
+状态：2026-08-21 修订。默认环境服务于 RoboLab 定制 MJLab 1.6 主线；Unitree/MJLab 1.2 不再是可安装的当前路线。
 
 ## 1. 平台控制面
 
 在 RoboLab 根目录执行：
 
 ```bash
-conda activate robolab
-python -m pip install -e packages/schemas -e packages/core -e packages/mjlab_adapter \
+conda activate robolab-mjlab16
+python -m pip install -e mjlab -e packages/schemas -e packages/core \
   -e services/api -e services/worker -e apps/cli
 ```
 
@@ -20,42 +20,30 @@ python -m pip install "fastapi>=0.110" "uvicorn[standard]>=0.27" "httpx>=0.27"
 
 ## 2. 默认 MJLab 1.6 主线环境
 
-R0.4 完成后，默认环境必须安装仓库内固定 revision 的 `mjlab/` 及其依赖：
+默认环境名为 `robolab-mjlab16`。首次创建并安装仓库内固定 revision：
 
 ```bash
+conda create -n robolab-mjlab16 python=3.11
+conda activate robolab-mjlab16
 python -m pip install -e mjlab
 ```
 
-MJLab 1.6 的确切 Torch、MuJoCo-Warp、Warp、RSL-RL 和 Python 版本以 `mjlab/pyproject.toml`、环境锁文件和
-`mjlab/UPSTREAM.md` 为准。R0.4 迁移完成前，旧路径只作为过渡位置，不得继续新增依赖；每次依赖变更必须有 smoke 和回归记录。
+MJLab 1.6 的确切依赖以 `mjlab/pyproject.toml`、`mjlab/uv.lock` 和 `mjlab/UPSTREAM.md` 为准。当前锁文件关键版本为
+Torch 2.9.0、Warp 1.14.0、MuJoCo-Warp 3.11.0、MuJoCo 3.11.0 和 RSL-RL 5.4.2；不得与旧 MJLab 1.2/Warp 1.12 混装。
 
-默认环境必须能够运行 Customized MJLab 的 import、registry、最小模型加载、CPU smoke test 和平台 Job。默认安装不应
-把 `vendor/unitree_rl_mjlab` 作为所有后端的隐式依赖。
+默认环境必须能够运行 Customized MJLab 的 import、registry、最小模型加载和 CPU smoke test。R1 的 RoboLab train/play/
+evaluate/export 入口尚未实现，当前 CLI 不提供伪造的 MJLab 子命令。
 
-## 3. Unitree legacy 环境（仅 R0.6 删除前的历史复现）
+## 3. 历史 Unitree 环境说明
 
-R0.6 执行前，只有需要复查已有历史证据时才使用以下命令。R0.6 后该目录和 package 将被删除，本节只保留历史说明，
-不得作为当前安装路线：
-
-```bash
-python -m pip install -e "packages/mjlab_adapter[mjlab-runtime]" -e vendor/unitree_rl_mjlab
-```
-
-这条命令属于 `unitree_legacy_mjlab_1_2` 环境路径，不能作为 RoboLab 1.6 默认环境的安装说明。当前 legacy 适配器固定：
-
-- `mjlab==1.2.0`；
-- `mujoco-warp==3.5.0`；
-- `warp-lang==1.12.0`；
-- 该环境特有的 Torch、Viser 和其他依赖。
-
-旧 vendor 代码仍调用 `warp.context`，因此不要让 pip 在 legacy 环境中自动升级到不兼容的 Warp 版本。legacy 环境应与
-MJLab 1.6 环境分开创建或至少使用独立 lock 文件，禁止混装两个版本的 MJLab/Warp/MuJoCo-Warp。
+Unitree/MJLab 1.2 环境、adapter 和 vendor 已从 active tree 删除。历史 Artifact 如需复查，必须从 Git 历史和历史记录恢复
+原始环境信息；本文件不提供可执行的 legacy 安装命令。
 
 ## 4. 启动本地服务
 
 ```bash
 cd /home/lxy/RoboLab
-conda activate robolab
+conda activate robolab-mjlab16
 robolab serve
 ```
 
@@ -74,8 +62,7 @@ npm run build
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q tests/contract
 ```
 
-测试应明确标记 `cpu`、`mjlab_1_6`、`unitree_legacy`、`gpu` 和 `hardware`。Unitree legacy 测试通过不代表 MJLab 1.6
-定制工具链通过；反之亦然。
+contract 测试在平台 CPU 环境运行；MJLab 1.6 smoke 在 `robolab-mjlab16` 独立环境运行。CPU 与 GPU 检查必须分开记录。
 
 ## 6. 环境记录要求
 
@@ -88,9 +75,4 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q tests/contract
 - GPU/CUDA 信息（如适用）；
 - 安装命令或 lock 文件 hash。
 
-如果环境属于 Unitree legacy，Artifact 中必须写入：
-
-```text
-toolchain: unitree_legacy_mjlab_1_2
-product_default: false
-```
+Unitree legacy 不属于当前默认安装路线；历史结果必须明确标记为已退役工具链。

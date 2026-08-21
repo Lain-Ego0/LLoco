@@ -21,8 +21,8 @@ RoboLab 定制 MJLab 工具链
 自研机器人 + 成品机器人
 ```
 
-Unitree RL MJLab 只在 R0.6 前作为待退役参考存在，随后从 active tree 删除。MJLab 1.6 定制主线不等待 Unitree G1
-checkpoint，也不以旧 Unitree 行为逐帧等价作为开发前提。历史代码可从 Git 和固定上游 commit 恢复，无需保留兼容后端。
+Unitree RL MJLab 已在 R0.6 从 active tree 删除。MJLab 1.6 定制主线不等待 Unitree checkpoint，也不以旧 Unitree 行为逐帧
+等价作为开发前提。历史代码可从 Git 和固定上游 commit 恢复，无需保留兼容后端。
 
 ## 2. 代码所有权和边界
 
@@ -40,17 +40,10 @@ checkpoint，也不以旧 Unitree 行为逐帧等价作为开发前提。历史�
 MJLab 定制代码不应包含 WebUI、Skill catalog、Artifact Store、API 数据库或厂商 SDK。平台控制面位于
 `packages/`、`services/` 和 `apps/`；部署数据面位于 `runtime/`；厂商专用代码位于 `integrations/<vendor>/`。
 
-### 2.2 Unitree reference/compat
+### 2.2 Retired Unitree reference
 
-R0.6 删除前，`vendor/unitree_rl_mjlab/` 只能用于：
-
-- G1 任务、模型、参数和旧 checkpoint 诊断；
-- Unitree sim-to-sim 参考；
-- Unitree Driver/Robot Profile 的迁移资料。
-
-它不应扩散到公共 API、Skill manifest、通用 task ID、平台目录或 Runtime 协议。现有
-`packages/mjlab_adapter/` 与 Unitree vendor 同批删除，不改名为 `backends/unitree_compat/`，也不保留一个继续调用旧
-Unitree 脚本的伪通用后端。
+Unitree 任务、模型、旧 checkpoint、sim-to-sim 和 Driver 资料只保留在 Git 历史与历史文档中；它们不属于公共 API、Skill
+manifest、通用 task ID、平台目录或 Runtime 协议。不得重新创建 adapter 或伪通用兼容后端。
 
 ## 3. 稳定平台契约
 

@@ -18,7 +18,7 @@
         "id": {
           "type": "string",
           "pattern": "^[a-z0-9]+(\\.[a-z0-9_-]+)+$",
-          "description": "稳定点分标识，如 unitree.g1.29dof"
+          "description": "稳定点分标识，例如 test.reference_biped；不得把测试 fixture 当成真实机器人"
         },
         "version": { "$ref": "#/$defs/semver" },
         "vendor": { "type": "string", "minLength": 1 },

@@ -19,7 +19,7 @@ Unitree RL MJLab 只作为 R0.6 前的退役输入，不是总路线的根节点
 
 ## 历史完成部分
 
-- ✅ 建立 `vendor/unitree_rl_mjlab/` 的来源追踪、许可证和精选导入记录；
+- ✅ 在历史记录中建立 `vendor/unitree_rl_mjlab/` 的来源追踪、许可证和精选导入记录；该路径已退役；
 - ✅ 冻结 `RobotProfile`、`JointSet` 和 `SkillPackage` 最小 schema；
 - ✅ 实现基础 lint、兼容性检查、Skill 安装、Job、API、Worker 和 WebUI 骨架；
 - ✅ 建立 G1 29DoF simulation-only Profile 和旧 MJLab/Unitree 兼容入口。
@@ -30,7 +30,7 @@ Unitree RL MJLab 只作为 R0.6 前的退役输入，不是总路线的根节点
 
 ### R0：MJLab 1.6 基座固定
 
-固定 upstream commit、默认依赖环境、许可证、修改账本、smoke test 和同步规则；将 `vendor/mjlab/` 移到根目录
+固定 upstream commit、默认依赖环境、许可证、修改账本、smoke test 和同步规则；已将 `vendor/mjlab/` 移到根目录
 `mjlab/`，并完整退役 Unitree vendor、adapter、G1 Profile、Integration、默认参数和专用测试。
 
 ### R1：定制 MJLab 工具链
