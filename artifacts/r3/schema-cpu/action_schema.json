@@ -1,0 +1,56 @@
+{
+  "schema": "robolab.action-schema.v1",
+  "id": "robolab.motion.velocity.flat.action",
+  "version": "1.0.0",
+  "task": "robolab.motion.velocity.flat@1.0.0",
+  "profile": "community.firedog2_2@1.0.0",
+  "dimension": 16,
+  "dtype": "float32",
+  "finite": true,
+  "controlFrequencyHz": 50.0,
+  "fields": [
+    {
+      "stableName": "joint_pos",
+      "shape": [
+        16
+      ],
+      "dtype": "float32",
+      "unit": "normalized_policy_action",
+      "frame": "joint_order",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 0.5,
+      "clipping": null,
+      "source": "mjlab.envs.mdp.actions.actions.JointPositionAction",
+      "order": 0,
+      "flatOffset": [
+        0,
+        16
+      ],
+      "jointOrder": [
+        "RF_joint",
+        "RF1_joint",
+        "RF2_joint",
+        "RF3_joint",
+        "RR_joint",
+        "RR1_joint",
+        "RR2_joint",
+        "RR3_joint",
+        "LR_joint",
+        "LR1_joint",
+        "LR2_joint",
+        "LR3_joint",
+        "LF_joint",
+        "LF1_joint",
+        "LF2_joint",
+        "LF3_joint"
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "98cad0bd76c5c1365346fc96010eb667e684be030ecdefe6ff78675d52a323d2"
+    }
+  ],
+  "hash": "5dfd0cfcbd6e22a355de7893372b925ad741be714ded5121819091aafa646ed2"
+}

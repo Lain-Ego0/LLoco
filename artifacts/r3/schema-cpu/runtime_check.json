@@ -1,0 +1,15 @@
+{
+  "actorShape": [
+    1,
+    64
+  ],
+  "criticShape": [
+    1,
+    64
+  ],
+  "actionDimension": 16,
+  "dtype": "float32",
+  "finite": true,
+  "device": "cpu",
+  "seed": 20260821
+}

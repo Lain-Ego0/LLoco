@@ -1,0 +1,484 @@
+{
+  "schema": "robolab.observation-schema.v1",
+  "id": "robolab.motion.velocity.flat.observation",
+  "version": "1.0.0",
+  "task": "robolab.motion.velocity.flat@1.0.0",
+  "profile": "community.firedog2_2@1.0.0",
+  "runtime": {
+    "device": "cpu",
+    "numEnvs": 1,
+    "seed": 20260821,
+    "controlFrequencyHz": 50.0
+  },
+  "groups": {
+    "actor": {
+      "shape": [
+        64
+      ],
+      "dtype": "float32",
+      "finite": true,
+      "fieldNames": [
+        "actor.base_lin_vel",
+        "actor.base_ang_vel",
+        "actor.projected_gravity",
+        "actor.joint_pos",
+        "actor.joint_vel",
+        "actor.actions",
+        "actor.command",
+        "actor.foot_contact"
+      ]
+    },
+    "critic": {
+      "shape": [
+        64
+      ],
+      "dtype": "float32",
+      "finite": true,
+      "fieldNames": [
+        "critic.base_lin_vel",
+        "critic.base_ang_vel",
+        "critic.projected_gravity",
+        "critic.joint_pos",
+        "critic.joint_vel",
+        "critic.actions",
+        "critic.command",
+        "critic.foot_contact"
+      ]
+    }
+  },
+  "fields": [
+    {
+      "stableName": "actor.base_lin_vel",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -5.0,
+        5.0
+      ],
+      "source": "mjlab.envs.mdp.observations.base_lin_vel",
+      "order": 0,
+      "flatOffset": [
+        0,
+        3
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "f0edf9810d50fc5f4a416a6206bf25b935e10c82ce983c6f9d88042e04db2992"
+    },
+    {
+      "stableName": "actor.base_ang_vel",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -5.0,
+        5.0
+      ],
+      "source": "mjlab.envs.mdp.observations.base_ang_vel",
+      "order": 1,
+      "flatOffset": [
+        3,
+        6
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "3cf73f3574117419dbb00d27134852af4e5a3d159ca71e3943d884a271b7a3ba"
+    },
+    {
+      "stableName": "actor.projected_gravity",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -1.2,
+        1.2
+      ],
+      "source": "mjlab.envs.mdp.observations.projected_gravity",
+      "order": 2,
+      "flatOffset": [
+        6,
+        9
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "7262a4a3fbcbefea9b4daee7c0907f9a1398c93fa2f2c5fe5ede4f36179dc43a"
+    },
+    {
+      "stableName": "actor.joint_pos",
+      "shape": [
+        16
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -3.5,
+        3.5
+      ],
+      "source": "mjlab.envs.mdp.observations.joint_pos_rel",
+      "order": 3,
+      "flatOffset": [
+        9,
+        25
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "c464d424a2e1e9e3a4f47f5d6367808060b2799045cc3dad835aa4cc9f8f9484"
+    },
+    {
+      "stableName": "actor.joint_vel",
+      "shape": [
+        16
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -20.0,
+        20.0
+      ],
+      "source": "mjlab.envs.mdp.observations.joint_vel_rel",
+      "order": 4,
+      "flatOffset": [
+        25,
+        41
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "777c64bbb02475d1c90337054be1d9127fe084cdb8e8da93b54e40ef0554691f"
+    },
+    {
+      "stableName": "actor.actions",
+      "shape": [
+        16
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "task",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -1.0,
+        1.0
+      ],
+      "source": "mjlab.envs.mdp.observations.last_action",
+      "order": 5,
+      "flatOffset": [
+        41,
+        57
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "3ed8d46d79e84d0a232def132f09289d0acf90bc34a1676e05fb7e3fc73372ab"
+    },
+    {
+      "stableName": "actor.command",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "task",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -2.0,
+        2.0
+      ],
+      "source": "mjlab.envs.mdp.observations.generated_commands",
+      "order": 6,
+      "flatOffset": [
+        57,
+        60
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "30b6192f29709d2e156ecbb50c21afa0a3c148fa65c0592ca4f713479aafd292"
+    },
+    {
+      "stableName": "actor.foot_contact",
+      "shape": [
+        4
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "task",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        0.0,
+        1.0
+      ],
+      "source": "mjlab.tasks.velocity.mdp.observations.foot_contact",
+      "order": 7,
+      "flatOffset": [
+        60,
+        64
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "315cfb30604baa9f4a015d15fdb8e2d8996f744ccc0b4957433f72730d5888ce"
+    },
+    {
+      "stableName": "critic.base_lin_vel",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -5.0,
+        5.0
+      ],
+      "source": "mjlab.envs.mdp.observations.base_lin_vel",
+      "order": 0,
+      "flatOffset": [
+        0,
+        3
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "99e79a6274b0eb3b5bbe3bd9962bcfb85d392960b3ac10f41581bc4f2ac2a8d4"
+    },
+    {
+      "stableName": "critic.base_ang_vel",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -5.0,
+        5.0
+      ],
+      "source": "mjlab.envs.mdp.observations.base_ang_vel",
+      "order": 1,
+      "flatOffset": [
+        3,
+        6
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "690cebc49a6b99f5bfd16459db6c107278cd909e03f1b27d1eb0f2292ef3b5f3"
+    },
+    {
+      "stableName": "critic.projected_gravity",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -1.2,
+        1.2
+      ],
+      "source": "mjlab.envs.mdp.observations.projected_gravity",
+      "order": 2,
+      "flatOffset": [
+        6,
+        9
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "4501abe1947b504e99b061c61930d7cd74c6c6505ef21c1fa4bd3373faaf0420"
+    },
+    {
+      "stableName": "critic.joint_pos",
+      "shape": [
+        16
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -3.5,
+        3.5
+      ],
+      "source": "mjlab.envs.mdp.observations.joint_pos_rel",
+      "order": 3,
+      "flatOffset": [
+        9,
+        25
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "5ea5fe61adf2de2771907a3375ef9bf6095d9a571ac14839f2d4e0fe12b338ba"
+    },
+    {
+      "stableName": "critic.joint_vel",
+      "shape": [
+        16
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "base",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -20.0,
+        20.0
+      ],
+      "source": "mjlab.envs.mdp.observations.joint_vel_rel",
+      "order": 4,
+      "flatOffset": [
+        25,
+        41
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "6f660153a22b7158b2060bfd3c199f2313b82f1fd457f18ffa9bdbe603aef484"
+    },
+    {
+      "stableName": "critic.actions",
+      "shape": [
+        16
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "task",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -1.0,
+        1.0
+      ],
+      "source": "mjlab.envs.mdp.observations.last_action",
+      "order": 5,
+      "flatOffset": [
+        41,
+        57
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "48a349f09879b68cabde6db637ca0d290a5af26ad05bb9d537eeeb342a47dd3d"
+    },
+    {
+      "stableName": "critic.command",
+      "shape": [
+        3
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "task",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        -2.0,
+        2.0
+      ],
+      "source": "mjlab.envs.mdp.observations.generated_commands",
+      "order": 6,
+      "flatOffset": [
+        57,
+        60
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "6fbef769abcfd54b87419c6aa85ac2a7332c0ead66ced9c5baecad9c1e83c8fc"
+    },
+    {
+      "stableName": "critic.foot_contact",
+      "shape": [
+        4
+      ],
+      "dtype": "float32",
+      "unit": "mixed_si_or_normalized",
+      "frame": "task",
+      "history": {
+        "length": 0,
+        "flattened": true
+      },
+      "scale": 1.0,
+      "clipping": [
+        0.0,
+        1.0
+      ],
+      "source": "mjlab.tasks.velocity.mdp.observations.foot_contact",
+      "order": 7,
+      "flatOffset": [
+        60,
+        64
+      ],
+      "task": "robolab.motion.velocity.flat@1.0.0",
+      "profile": "community.firedog2_2@1.0.0",
+      "hash": "c42e56760ed291f13ca1ec1bfefa57a4200abbc544b3f17df9e5793aec663146"
+    }
+  ],
+  "hash": "5b0ccbb8f27cb9988e3d2039b064ac4a00306c9d853c4f024d01f8b8c883217a"
+}

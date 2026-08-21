@@ -299,7 +299,7 @@ class TaskRegistry:
 
 
 def default_task_registry() -> TaskRegistry:
-    """Return the R1 CPU smoke task; no real robot is selected in R1."""
+    """Return the stable public R1 smoke and R3 velocity task definitions."""
 
     return TaskRegistry(
         [
@@ -317,7 +317,34 @@ def default_task_registry() -> TaskRegistry:
                 },
                 entrypoint="mjlab.tasks.cartpole.cartpole_balance_env_cfg",
                 metadata={"evidence": "mjlab/tests/smoke_test.py"},
-            )
+            ),
+            TaskDefinition(
+                id="robolab.motion.velocity.flat",
+                version="1.0.0",
+                capability="simulation.gpu_ppo",
+                config_schema={
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["numEnvs", "device"],
+                    "properties": {
+                        "numEnvs": {"type": "integer", "minimum": 1},
+                        "device": {"enum": ["cuda"]},
+                        "gpuIds": {
+                            "type": "array",
+                            "items": {"type": "integer", "minimum": 0},
+                        },
+                        "iterations": {"type": "integer", "minimum": 1},
+                        "seed": {"type": "integer", "minimum": 0},
+                    },
+                },
+                entrypoint="mjlab.tasks.firedog2_2.firedog2_2_env_cfg.firedog2_2_velocity_flat_env_cfg",
+                requires_robot=True,
+                metadata={
+                    "observationSchema": "robolab.motion.velocity.flat.observation@1.0.0",
+                    "actionSchema": "robolab.motion.velocity.flat.action@1.0.0",
+                    "evidence": "mjlab/src/mjlab/tasks/firedog2_2",
+                },
+            ),
         ]
     )
 
