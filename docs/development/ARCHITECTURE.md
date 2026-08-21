@@ -1,13 +1,12 @@
 # RoboLab 总体架构
 
 状态：设计基线 v0.5，2026-08-21 生效。本文描述长期架构边界；当前批次和实施状态以
-[`DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为唯一权威。
+[`plans/README.md`](../plans/README.md) 为唯一权威。
 
 ## 1. 产品与技术目标
 
 RoboLab 是基于深度定制 MJLab 1.6 工具链的一站式运动控制开发与部署平台，服务商业成品机器人、实验室自研机器人、
-爱好者机器人和比赛机器人。完整技术决策见
-[`MJLAB_1_6_TECHNICAL_DIRECTION.md`](../project/MJLAB_1_6_TECHNICAL_DIRECTION.md)。
+爱好者机器人和比赛机器人。完整技术决策见 [`MAINLINE.md`](MAINLINE.md)。
 
 项目不是重新实现物理引擎或强化学习算法，而是在 MJLab、MuJoCo、MuJoCo-Warp、Warp 和 RSL-RL 之上建立并维护：
 
@@ -41,7 +40,7 @@ RoboLab 是基于深度定制 MJLab 1.6 工具链的一站式运动控制开发�
 ┌──────────────▼────────────────────────────────▼───────────────┐
 │ Robot Adaptation                                             │
 │ Robot Profile · MJCF · Actuator · Sensor · Calibration       │
-│ Custom Robot Driver · Unitree Driver · Other Drivers          │
+│ Custom Robot Driver · Commercial Robot Drivers               │
 └───────────────────────────────────────────────────────────────┘
 ```
 
@@ -55,7 +54,7 @@ Skill 和 Artifact 是跨层对象：Skill 描述可安装能力和权限，Arti
 | Customized MJLab 1.6 | 机器人、任务、MDP、训练、回放、评测、导出和仿真指标 | 上游源码已存在；RoboLab 定制尚未开始 |
 | Platform Core | Schema、兼容性、Action、Job、Artifact 和部署门禁 | B1–B6 骨架已实现 |
 | Skill System | MotionSkill、PlatformSkill、AgentSkill 的安装、权限和调用 | 当前完成度最高 |
-| Robot Adaptation | MJCF/Profile、执行器、传感器、控制周期、Driver 和标定 | G1 simulation-only 样板已存在；通用接入待实现 |
+| Robot Adaptation | MJCF/Profile、执行器、传感器、控制周期、Driver 和标定 | 仅有中性测试 fixture；真实参考机器人待 R2 选择 |
 | Edge Runtime | ONNX 推理、FSM、watchdog、遥测和 stop/safe | 仅有接口边界 |
 | Unitree Legacy Reference | 历史 G1 旧任务、模型、部署和 sim-to-sim 来源 | R0.6 从 active tree 删除，Git 历史保留 |
 
@@ -84,8 +83,8 @@ RoboLab/
 ```
 
 `mjlab/` 是仓库一级目录，但仍与 RoboLab Platform 保持独立的 pyproject、源码、测试、上游记录和修改账本边界。
-当同步和发布边界稳定后，再评估是否拆成独立 `RoboLab-MJLab` 仓库。Unitree 旧栈退役和迁移细节见
-[`UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md`](../project/UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md)。
+当同步和发布边界稳定后，再评估是否拆成独立 `RoboLab-MJLab` 仓库。MJLab 根目录迁移和旧栈退役结果见
+[R0 完成报告](../archive/R0_COMPLETION_REPORT.md)；完整操作记录只从 Git 历史审计，不再作为当前执行说明保留。
 
 ## 5. Customized MJLab 工具链
 

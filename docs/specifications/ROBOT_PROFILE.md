@@ -211,14 +211,14 @@ resolve Skill/Profile -> compatibility -> prepare target -> validate
 
 ## 10. 对现有代码的渐进重构
 
-重构顺序应围绕 Customized MJLab 1.6 和自研机器人，而不是围绕 Unitree 旧目录：
+重构顺序应围绕 Customized MJLab 1.6 和通用机器人适配，而不是围绕任何厂商旧目录：
 
 1. 固定 MJLab 1.6 upstream revision、默认环境和 RoboLab 修改账本；
 2. 建立定制 MJLab 的 Robot/Task Registry、train/play/evaluate/export 入口；
-3. 选择一个非 Unitree 自研或简化参考机器人，完成 MJCF/Profile、执行器、传感器和 simulation-first 接入；
+3. 选择一个自研、爱好者或社区可复现的参考机器人，完成 MJCF/Profile、执行器、传感器和 simulation-first 接入；
 4. 提取通用 FSM、ONNX runner、observation/action 构造、参数加载和 DeploymentSession；
 5. 将各具体机器人的 DDS、SDK、motor ID、mode check 和关节映射放入 `integrations/<vendor>/` 或专用 Driver/Profile；
 6. 将 G1 作为普通成品机器人适配器接入相同的 Task、Artifact、Skill 和 Runtime 契约；
 7. 用独立运动指标和部署安全证据验收，不以旧 Unitree checkpoint 的逐帧等价作为默认切换门禁。
 
-首个纵向样板仍应一次只选一台机器人，但该样板不能永久只使用 G1；R2 必须加入非 Unitree 机器人验证。
+首个纵向样板仍应一次只选一台机器人，但不能把历史 G1 样板固化为公共前提；R2 必须加入可复现的自研或社区机器人验证。

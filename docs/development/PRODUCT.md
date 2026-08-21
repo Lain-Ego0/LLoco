@@ -78,7 +78,7 @@ RoboLab 是面向成品与自研机器人的运动控制工程工作台，不只
 当前 R0–R6 必须形成一个完整纵向闭环：
 
 1. 发现或创建 Customized MJLab 1.6 tasks；
-2. 从公开或自研 MJCF 创建一个非 Unitree simulation-only Robot Profile；
+2. 从公开或自研 MJCF 创建一个自研、爱好者或社区可复现的 simulation-only Robot Profile；
 3. 在 Customized MJLab 1.6 中完成任务训练或可信策略回放、评测和导出；
 4. 从 `RoboLab-Skill` 安装一个 MotionSkill 和一个可执行 PlatformSkill；
 5. 准备/复用 Conda 环境，审查权限并通过 contract test；
@@ -90,7 +90,7 @@ RoboLab 是面向成品与自研机器人的运动控制工程工作台，不只
 
 实际硬件适配完成前，physical target 保持不可激活。R6 之后再考虑平台内置 Agent 页面、CompositeSkill、签名、
 更强隔离、Docker、远程 Worker 和多人模式。详细批次只以
-[`../project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为准。
+[`../plans/README.md`](../plans/README.md) 为准。
 
 ## 4. 关键 UX 原则
 

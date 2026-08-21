@@ -1,39 +1,63 @@
-# RoboLab 文档索引
+# RoboLab 文档入口
 
-本目录按用途划分，避免将项目进度与长期项目说明混写。
+本目录严格按阅读和执行顺序组织。除 `plans/README.md` 外，其他文档不定义当前阶段状态；`archive/` 不具有执行权。
 
-## 项目执行与进度
+## 推荐阅读顺序
 
-[`project/`](project/) 存放当前计划、路线图、主线审查和仍在进行的验收记录。其中
-[`project/DEVELOPMENT_PLAN.md`](project/DEVELOPMENT_PLAN.md) 是当前批次、完成状态与剩余工作的
-**唯一权威来源**。
+```text
+guide/使用指南
+  ↓
+development/开发主线
+  ↓
+development/开发约束与稳定规范
+  ↓
+plans/当前阶段与后续阶段计划
+  ↓
+archive/历史完成报告
+```
 
-- [主线对齐审查](project/MAINLINE_ALIGNMENT_REVIEW.md)
-- [MJLab 1.6 深度定制技术主线](project/MJLAB_1_6_TECHNICAL_DIRECTION.md)
-- [Unitree 整栈退役与 MJLab 根目录迁移](project/UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md)
-- [下一阶段详细执行计划](project/DEVELOPMENT_PLAN.md)
-- [实施路线图](project/ROADMAP.md)
-- [Phase 0–1 MVP 历史验收标准](project/MVP_ACCEPTANCE.md)
-- [Unitree/MJLab 1.2 B7 历史验收记录](project/B7_ACCEPTANCE_RECORD.md)
+## 1. 使用指南
 
-## 当前参考说明
+- [使用指南总览](guide/README.md)
+- [环境与安装](guide/ENVIRONMENT.md)
+- [CLI 与 WebUI](guide/CLI_AND_WEB.md)
+- [Skill 与机器人](guide/SKILLS_AND_ROBOTS.md)
 
-[`reference/`](reference/) 描述当前系统的设计、行为与使用方式；不记录批次状态或待办。
+## 2. 开发主线
 
-- [总体架构](reference/ARCHITECTURE.md)
-- [MJLab 1.6 深度定制与仿真工具链策略](reference/SIMULATION_BACKEND_STRATEGY.md)
-- [产品功能与 WebUI 设计](reference/PRODUCT_DESIGN.md)
-- [WebUI 视觉与交互规范](reference/UI_GUIDELINES.md)
-- [Skill Package 规范](reference/SKILL_SPEC.md)
-- [Agent Skill 与外部 Agent 集成](reference/AGENT_INTEGRATION.md)
-- [机器人快速适配规范](reference/ROBOT_ADAPTATION.md)
-- [本地环境安装](reference/ENVIRONMENT_SETUP.md)
-- [上游来源、许可证与致谢](reference/UPSTREAM_AND_ACKNOWLEDGEMENTS.md)
+- [RoboLab 开发主线](development/MAINLINE.md)：项目定义、技术路线和最终证明目标
+- [总体架构](development/ARCHITECTURE.md)：Platform、MJLab、Runtime 和 Robot Adaptation 分层
+- [产品设计](development/PRODUCT.md)：用户、页面、工作流和产品边界
+- [MJLab 维护规则](development/MJLAB_MAINTENANCE.md)：upstream、下游修改、测试和回滚
 
-## 历史记录
+## 3. 开发约束与稳定规范
 
-[`history/`](history/) 保留已完成的决策和来源管理记录，用于审计与追溯，不能作为当前进度依据。
+- [开发约束](development/CONSTRAINTS.md)：跨阶段强制规则，自动 Agent 必须遵守
+- [Skill Package](specifications/SKILL.md)
+- [Robot Profile](specifications/ROBOT_PROFILE.md)
+- [Runtime 与部署](specifications/RUNTIME_AND_DEPLOYMENT.md)
+- [Agent 集成](specifications/AGENT.md)
+- [UI 规范](specifications/UI.md)
+- [上游、许可证与致谢](legal/UPSTREAM_AND_ACKNOWLEDGEMENTS.md)
 
-- [决策记录与多轮 QA](history/DECISIONS_AND_QA.md)
-- [Unitree RL MJLab 精选 Vendor 方案](history/MJLAB_MAINTENANCE.md)
-- [Phase 0–1（B1–B7）开发计划归档](history/PHASE_0_1_DEVELOPMENT_PLAN.md)
+这些规范定义稳定对象和接口；它们不能覆盖当前阶段计划，也不能把未实现能力描述成已完成。
+
+## 4. 当前与后续计划
+
+- [当前开发计划](plans/README.md)：唯一阶段状态来源，当前 `ACTIVE_STAGE: R1`
+- [R1：MJLab 定制工具链基础](plans/R1_MJLAB_TOOLCHAIN.md)
+- [R2：自研机器人接入](plans/R2_ROBOT_ONBOARDING.md)
+- [R3：运动策略工作流](plans/R3_MOTION_POLICY.md)
+- [R4：Skill、平台与验证整合](plans/R4_PLATFORM_INTEGRATION.md)
+- [R5：部署 Runtime 与适配](plans/R5_DEPLOYMENT_RUNTIME.md)
+- [R6：多机器人证明与发布](plans/R6_MULTI_ROBOT.md)
+
+## 5. 历史归档
+
+- [归档规则](archive/README.md)
+- [R0 完成报告](archive/R0_COMPLETION_REPORT.md)
+- [Phase 0–1 平台骨架摘要](archive/PHASE_0_1_SUMMARY.md)
+- [Unitree 早期路线摘要](archive/LEGACY_UNITREE_SUMMARY.md)
+- [早期决策摘要](archive/EARLY_DECISIONS.md)
+
+历史完整文件、旧命令和原始决策可从 Git 历史查看，不复制到当前执行文档。
