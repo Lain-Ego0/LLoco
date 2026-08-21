@@ -51,6 +51,7 @@ def create_job_run(
     *,
     action: str,
     parameters: Mapping[str, Any],
+    metadata: Mapping[str, Any] | None = None,
     allowed_paths: Sequence[str | Path] = (),
     platform_version: str = "0.1.0",
     job_id: str | None = None,
@@ -70,6 +71,7 @@ def create_job_run(
         "jobId": identifier,
         "action": action,
         "parameters": dict(parameters),
+        "metadata": dict(metadata or {}),
         "allowedPaths": [str(Path(item).resolve()) for item in allowed_paths],
         "platformVersion": platform_version,
     })

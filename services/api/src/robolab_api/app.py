@@ -48,6 +48,27 @@ def create_app(*, data_dir: str | Path = "var", workspace: str | Path = "skills"
         report["worker"] = {"ok": True, "mode": "local-subprocess", "rootExecution": False}
         return report
 
+    @app.get("/api/v1/motion/toolchain")
+    def motion_toolchain() -> dict[str, str]:
+        from robolab_core import resolve_toolchain_identity
+
+        try:
+            return resolve_toolchain_identity().to_dict()
+        except ValueError as exc:
+            raise HTTPException(503, str(exc)) from exc
+
+    @app.get("/api/v1/motion/tasks")
+    def motion_tasks() -> list[dict[str, Any]]:
+        from robolab_core import default_task_registry
+
+        return [entry.to_dict() for entry in default_task_registry().list()]
+
+    @app.get("/api/v1/motion/robots")
+    def motion_robots() -> list[dict[str, Any]]:
+        from robolab_core import default_robot_registry
+
+        return [entry.to_dict() for entry in default_robot_registry().list()]
+
     @app.get("/api/v1/skills")
     def list_skills() -> list[dict[str, Any]]:
         from robolab_core import load_document, scan_skill_workspace

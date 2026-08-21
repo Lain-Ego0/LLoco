@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from functools import lru_cache
+from functools import cache, lru_cache
 from importlib import resources
 from typing import Any
 
@@ -21,6 +21,8 @@ _SCHEMA_FILES = {
 }
 
 KNOWN_KINDS = tuple(_SCHEMA_FILES)
+
+_MOTION_SCHEMA_FILE = "motion_command.v1.schema.json"
 
 
 class UnknownKindError(ValueError):
@@ -44,7 +46,7 @@ def detect_kind(document: dict[str, Any]) -> str:
     return kind
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_schema(kind: str) -> dict[str, Any]:
     """Load the JSON Schema for a kind, with caching."""
     if kind not in _SCHEMA_FILES:
@@ -53,13 +55,35 @@ def load_schema(kind: str) -> dict[str, Any]:
     return json.loads(resource.read_text(encoding="utf-8"))
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_validator(kind: str) -> Draft202012Validator:
     return Draft202012Validator(load_schema(kind))
 
 
-def validate_schema(document: dict[str, Any], kind: str | None = None) -> list[ValidationError]:
+def validate_schema(
+    document: dict[str, Any], kind: str | None = None
+) -> list[ValidationError]:
     """Return structural validation errors sorted by document path."""
     resolved = kind or detect_kind(document)
     errors = list(get_validator(resolved).iter_errors(document))
     return sorted(errors, key=lambda e: list(e.absolute_path))
+
+
+@lru_cache(maxsize=1)
+def load_motion_schema() -> dict[str, Any]:
+    """Load the stable RoboLab motion JobCommand schema."""
+    resource = resources.files(__package__).joinpath(f"data/{_MOTION_SCHEMA_FILE}")
+    return json.loads(resource.read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def get_motion_validator() -> Draft202012Validator:
+    return Draft202012Validator(load_motion_schema())
+
+
+def validate_motion_command(document: dict[str, Any]) -> list[ValidationError]:
+    """Return structural errors for a ``robolab-motion-v1`` JobCommand."""
+    return sorted(
+        get_motion_validator().iter_errors(document),
+        key=lambda e: list(e.absolute_path),
+    )

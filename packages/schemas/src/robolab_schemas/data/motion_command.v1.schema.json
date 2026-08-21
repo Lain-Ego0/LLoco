@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robolab.dev/schemas/motion_command.v1.json",
+  "title": "RoboLab motion JobCommand v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "operation", "toolchain", "task", "robot", "resolvedConfig", "spec", "runtime", "result"],
+  "properties": {
+    "protocol": { "const": "robolab-motion-v1" },
+    "operation": { "enum": ["train", "play", "evaluate", "export"] },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "mjlabUpstreamRevision", "robolabRevision"],
+      "properties": {
+        "id": { "const": "robolab_mjlab@1" },
+        "mjlabUpstreamRevision": { "$ref": "#/$defs/sha1" },
+        "robolabRevision": { "$ref": "#/$defs/sha1" }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "$ref": "#/$defs/stableId" },
+        "version": { "$ref": "#/$defs/semver" }
+      }
+    },
+    "robot": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["id", "version", "mjlab", "capabilities", "metadata"],
+      "properties": {
+        "id": { "$ref": "#/$defs/stableId" },
+        "version": { "$ref": "#/$defs/semver" },
+        "mjlab": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entity", "config"],
+          "properties": {
+            "entity": { "$ref": "#/$defs/importRef" },
+            "config": { "$ref": "#/$defs/importRef" }
+          }
+        },
+        "capabilities": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "metadata": { "type": "object" }
+      }
+    },
+    "resolvedConfig": { "type": "object" },
+    "spec": { "type": "object" },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolchain", "backend", "operation"],
+      "properties": {
+        "toolchain": { "const": "robolab_mjlab@1" },
+        "backend": { "const": "customized_mjlab_1_6" },
+        "operation": { "enum": ["train", "play", "evaluate", "export"] }
+      }
+    },
+    "result": { "type": "object" }
+  },
+  "$defs": {
+    "sha1": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "stableId": { "type": "string", "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)+$" },
+    "importRef": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_.]*$" },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    }
+  }
+}

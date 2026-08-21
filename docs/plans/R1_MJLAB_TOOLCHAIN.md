@@ -1,6 +1,6 @@
 # R1：MJLab 定制工具链基础
 
-状态：`🔶 ACTIVE`。
+状态：`✅ COMPLETED`。完成证据见 [R1 完成报告](../archive/R1_COMPLETION_REPORT.md)。
 
 ## 目标
 
