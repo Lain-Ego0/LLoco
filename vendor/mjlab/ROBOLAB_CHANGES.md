@@ -1,6 +1,7 @@
 # RoboLab Changes to MJLab
 
-This ledger tracks downstream modifications made to the MJLab 1.6 source under `vendor/mjlab/`.
+This ledger tracks downstream modifications made to the MJLab 1.6 source under target path `mjlab/`. Before the R0.4
+pure path-move commit, the same files temporarily remain under `vendor/mjlab/`.
 
 The initial baseline exactly matches upstream `mujocolab/mjlab@0fb8a681136be94ffc636a3dd423cabb97d91f10`
 (`v1.6.0`) as recorded in `UPSTREAM.md`. No RoboLab source modification had been recorded when this ledger was created.

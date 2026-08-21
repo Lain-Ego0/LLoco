@@ -2,7 +2,8 @@
 
 状态：v1.0，2026-08-21 启用。本文是当前批次、依赖、完成状态和剩余工作的唯一权威来源。
 
-旧版 Unitree-first N0–N5 计划已经被本计划取代。历史 B1–B7 实现和验收事实继续保留在
+旧版 Unitree-first N0–N5 计划已经被本计划取代。Unitree 整栈退役和 MJLab 根目录迁移的强制执行说明见
+[`UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md`](UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md)。历史 B1–B7 实现和验收事实继续保留在
 [`../history/PHASE_0_1_DEVELOPMENT_PLAN.md`](../history/PHASE_0_1_DEVELOPMENT_PLAN.md) 与
 [`B7_ACCEPTANCE_RECORD.md`](B7_ACCEPTANCE_RECORD.md)，但不再作为 MJLab 1.6 主线的串行前置门禁。
 
@@ -36,8 +37,8 @@ Robot MJCF / Robot Profile
 
 - ✅ B1–B6 平台骨架已实现：schema、Skill、CLI、Worker、API、WebUI 和 Artifact Store；
 - ✅ 2026-08-21 文档主线修订后重新运行 CPU contract suite：`113 passed, 1 warning`；该结果不自动代表后续 MJLab 1.6 源码修改仍通过；
-- ✅ `vendor/mjlab/` 已包含 MJLab 1.6.0 源码；
-- ✅ `vendor/unitree_rl_mjlab/` 已固定 Unitree 上游 revision，并可作为 legacy/reference；
+- ✅ 当前 `vendor/mjlab/` 已包含 MJLab 1.6.0 源码；R0.4 将整体迁移到根目录 `mjlab/`；
+- 🔶 Unitree 旧栈尚在 active tree，R0.6 退役批次将删除其源码、adapter、G1 Profile、Integration 和专用测试；
 - ✅ G1 zero-policy 已启动旧 MJLab/Viser 路径；它只证明兼容入口可启动，不是运动能力验收；
 - ⬜ MJLab 1.6 upstream commit、RoboLab 修改记录和默认环境尚未正式固定；
 - ⬜ RoboLab 定制的 Robot/Task/Train/Play/Evaluate/Export 工具链尚未实现；
@@ -91,15 +92,16 @@ Robot MJCF / Robot Profile
 | # | 工作项 | 交付物 | 验收标准 | 状态 |
 |---|---|---|---|---|
 | R0.1 | 同步项目决策和活动文档 | 技术方向、架构、路线图、环境、适配和 Skill 文档 | 活动文档已统一为 MJLab 1.6 主线；旧 B7/MVP 明确标记历史 | ✅ 完成（2026-08-21） |
-| R0.2 | 固定 MJLab 1.6 上游来源 | `vendor/mjlab/UPSTREAM.md` | 已确认 `v1.6.0`/`0fb8a681...`，并与 fresh checkout 递归比较无差异 | ✅ 完成（2026-08-21） |
-| R0.3 | 建立 RoboLab 修改账本 | `vendor/mjlab/ROBOLAB_CHANGES.md` | 已建立强制字段；当前基线尚无 RoboLab 行为修改 | ✅ 完成（2026-08-21） |
-| R0.4 | 建立默认 MJLab 1.6 环境 | 新 environment lock/setup 文档 | 默认安装不安装 Unitree vendor；版本与 `vendor/mjlab/pyproject.toml` 一致 | ⬜ 未开始 |
-| R0.5 | 建立 legacy 环境隔离 | 单独 Unitree/MJLab 1.2 安装说明 | 不与默认 1.6 环境混装；命令和用途明确标记 legacy | ⬜ 未开始 |
-| R0.6 | MJLab 1.6 smoke test | CPU/import/list-envs/model/viewer 测试与记录 | import、registry、最小模型加载成功；GPU 项单独标记 | ⬜ 未开始 |
-| R0.7 | 建立修改与同步规则 | contributor/upstream sync 说明 | 上游同步有基线、冲突记录、回归和回滚步骤 | ⬜ 未开始 |
+| R0.2 | 固定 MJLab 1.6 上游来源 | `mjlab/UPSTREAM.md`（迁移前为 `vendor/mjlab/UPSTREAM.md`） | 已确认 `v1.6.0`/`0fb8a681...`，并与 fresh checkout 递归比较无差异 | ✅ 完成（2026-08-21） |
+| R0.3 | 建立 RoboLab 修改账本 | `mjlab/ROBOLAB_CHANGES.md`（迁移前为 `vendor/mjlab/ROBOLAB_CHANGES.md`） | 已建立强制字段；当前基线尚无 RoboLab 行为修改 | ✅ 完成（2026-08-21） |
+| R0.4 | 迁移 MJLab 到根目录 | `vendor/mjlab/` -> `mjlab/` 的纯路径迁移提交 | 内容不变、历史可追踪、所有路径引用更新、无 nested `.git` | ⬜ 未开始 |
+| R0.5 | 建立默认 MJLab 1.6 环境 | 新 environment lock/setup 文档 | 默认安装 `mjlab/`；版本与 `mjlab/pyproject.toml` 一致 | ⬜ 未开始 |
+| R0.6 | 退役 Unitree 整栈 | 删除 vendor、adapter、G1 Profile、Integration、默认参数和专用测试 | 无破损 symlink；active code/docs/install 不依赖 Unitree | ⬜ 未开始 |
+| R0.7 | MJLab 1.6 smoke test | CPU/import/list-envs/model/viewer 测试与记录 | import、registry、最小模型加载成功；GPU 项单独标记 | ⬜ 未开始 |
+| R0.8 | 建立修改与同步规则 | contributor/upstream sync 说明 | 上游同步有基线、冲突记录、回归和回滚步骤 | ⬜ 未开始 |
 
 R0 退出条件：任何开发者都能确定 RoboLab 使用哪个 MJLab commit、哪些代码由 RoboLab 修改、如何安装默认环境、如何运行
-最小测试，以及如何区分 legacy Unitree 环境。
+最小测试，并且 active tree 中已经不存在 Unitree legacy 依赖。
 
 ## 6. R1：RoboLab 定制 MJLab 工具链基础
 
@@ -207,9 +209,9 @@ R5 退出条件：命令行和平台能够启动一条自研机器人 simulation
 | # | 工作项 | 验收标准 | 状态 |
 |---|---|---|---|
 | R6.1 | 自研机器人完整闭环 | Profile -> train/play/evaluate/export -> Skill -> sim deploy 全通过 | ⬜ 未开始 |
-| R6.2 | 成品机器人适配 | 建议 G1；使用相同公共对象和 Runtime 接口 | ⬜ 未开始 |
+| R6.2 | 成品机器人适配 | 到 R6 再选择合适机型；使用相同公共对象和 Runtime 接口，不预设必须是 G1 | ⬜ 未开始 |
 | R6.3 | 抽象复用审查 | 第二机器人不复制完整 task、runner、FSM 或 Skill 工作流 | ⬜ 未开始 |
-| R6.4 | Unitree legacy 迁移报告 | 可复用项、不兼容项、旧 checkpoint 处理和来源归属明确 | ⬜ 未开始 |
+| R6.4 | 早期选型迁移报告 | 记录已删除依赖、可复用经验、历史来源和重新接入条件 | ⬜ 未开始 |
 | R6.5 | Upstream sync rehearsal | 模拟同步较新 MJLab revision，记录冲突和回归 | ⬜ 未开始 |
 | R6.6 | End-to-end acceptance | 干净环境按锁定依赖重放两类机器人代表流程 | ⬜ 未开始 |
 | R6.7 | 文档和发布 | 用户指南、开发指南、已知限制、许可证和回滚同步 | ⬜ 未开始 |
@@ -217,9 +219,9 @@ R5 退出条件：命令行和平台能够启动一条自研机器人 simulation
 R6 退出条件：至少一个自研机器人和一个成品机器人共享 RoboLab 的 Task、Artifact、Skill、Validation 和 Runtime 契约，
 并分别给出可复查证据。
 
-## 12. Unitree legacy 工作流
+## 12. Unitree 退役前历史复现
 
-以下工作允许保留，但不是主线门禁：
+以下工作只允许在 R0.6 删除前用于补充已有历史记录，不应继续投资为兼容产品：
 
 - 获取或训练旧 G1 velocity checkpoint；
 - 运行旧 MJLab 1.2 trained play；
@@ -227,7 +229,7 @@ R6 退出条件：至少一个自研机器人和一个成品机器人共享 Robo
 - 诊断旧 checkpoint 能否迁移到 MJLab 1.6；
 - 从 vendor 提取 G1 模型、参数和部署经验。
 
-执行这些工作时必须标记：
+如确需执行，必须标记：
 
 ```text
 toolchain: unitree_legacy_mjlab_1_2
@@ -235,7 +237,7 @@ product_default: false
 blocks_robolab_mjlab_1_6: false
 ```
 
-不允许因为旧策略尚未完成而停止 R0、R1、R2、R4 的 CPU 工作或 R5 Runtime 骨架。
+R0.6 完成后不再提供这些运行入口。历史代码可从 Git 恢复，但 active tree 不保留兼容环境。
 
 ## 13. 当前范围冻结
 
@@ -247,7 +249,7 @@ R0–R6 期间明确不做：
 - 在安全 Runtime 验收前激活 physical motor command；
 - 为追求“深度定制”而无目的重写 MuJoCo、RSL-RL 或 MJLab 已满足需求的模块；
 - 把 Unitree SDK、DDS message 或 motor ID 加入公共 Robot/Task/Skill schema；
-- 未记录 upstream revision 和回归证据就同步或覆盖 `vendor/mjlab`。
+- 未记录 upstream revision 和回归证据就同步或覆盖 `mjlab/`。
 
 ## 14. 状态维护
 

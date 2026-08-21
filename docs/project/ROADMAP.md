@@ -15,7 +15,7 @@ MJLab 1.6 基座固定
   -> 自研机器人 + 成品机器人验证
 ```
 
-Unitree RL MJLab 是 legacy/reference 路线，不是总路线的根节点。
+Unitree RL MJLab 只作为 R0.6 前的退役输入，不是总路线的根节点；R0.6 后从 active tree 删除。
 
 ## 历史完成部分
 
@@ -30,7 +30,8 @@ Unitree RL MJLab 是 legacy/reference 路线，不是总路线的根节点。
 
 ### R0：MJLab 1.6 基座固定
 
-固定 upstream commit、默认依赖环境、许可证、修改账本、smoke test 和同步规则。
+固定 upstream commit、默认依赖环境、许可证、修改账本、smoke test 和同步规则；将 `vendor/mjlab/` 移到根目录
+`mjlab/`，并完整退役 Unitree vendor、adapter、G1 Profile、Integration、默认参数和专用测试。
 
 ### R1：定制 MJLab 工具链
 

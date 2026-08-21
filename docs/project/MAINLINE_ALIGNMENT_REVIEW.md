@@ -51,13 +51,13 @@ MJLab 1.6 upstream revision
   -> custom robot and commercial robot proof
 ```
 
-Unitree 路线调整为：
+Unitree 路线在 R0.6 前仅作为退役输入，R0.6 后不再存在于 active tree：
 
 ```text
 Unitree RL MJLab
-  -> G1 assets/config/deployment reference
-  -> optional legacy checkpoint compatibility
-  -> Unitree adapter implemented through common contracts
+  -> historical G1 assets/config/deployment evidence
+  -> Git history and upstream commit for audit/recovery
+  -> future G1 support only through a new MJLab 1.6 adapter
 ```
 
 ## 5. 优先级修订
@@ -65,13 +65,13 @@ Unitree RL MJLab
 下一阶段按以下顺序推进：
 
 1. 冻结技术决策，固定 MJLab 1.6 upstream revision 和依赖；
-2. 让 MJLab 1.6 成为默认开发环境，保留 1.2 作为 legacy 环境；
+2. 将 MJLab 移到根目录并建立 1.6 默认环境，在 R0.6 删除 1.2 legacy 环境；
 3. 建立 RoboLab 对 MJLab 的修改记录、回归测试和统一运动工具链入口；
 4. 接入一个非 Unitree 的自研或简化参考机器人；
 5. 完成真实 task 的 train/play/evaluate/export 和 Policy Artifact；
 6. 将已有 Skill、Job、API 和 WebUI 接到新工具链；
 7. 实现部署 Runtime、sim-to-sim、watchdog 和 stop/safe；
-8. 将 G1 作为普通商业机器人适配器重新接入并做兼容回归；
+8. R0.6 后如仍需要 G1，再将其作为普通商业机器人适配器重新实现；
 9. 用至少两个不同来源机器人验证抽象。
 
 GPU 训练资源不再阻塞第 1–4、6 和 Runtime 骨架工作。真实策略质量验收仍必须等待可用 GPU，不能用 zero-policy 替代。

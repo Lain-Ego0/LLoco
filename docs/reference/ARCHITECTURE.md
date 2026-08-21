@@ -57,7 +57,7 @@ Skill 和 Artifact 是跨层对象：Skill 描述可安装能力和权限，Arti
 | Skill System | MotionSkill、PlatformSkill、AgentSkill 的安装、权限和调用 | 当前完成度最高 |
 | Robot Adaptation | MJCF/Profile、执行器、传感器、控制周期、Driver 和标定 | G1 simulation-only 样板已存在；通用接入待实现 |
 | Edge Runtime | ONNX 推理、FSM、watchdog、遥测和 stop/safe | 仅有接口边界 |
-| Unitree Legacy Reference | G1 旧任务、模型、部署和 sim-to-sim 参考 | 已导入，非主线基座 |
+| Unitree Legacy Reference | 历史 G1 旧任务、模型、部署和 sim-to-sim 来源 | R0.6 从 active tree 删除，Git 历史保留 |
 
 ## 4. 仓库所有权
 
@@ -72,11 +72,8 @@ RoboLab/
 ├── packages/
 │   ├── schemas/                     # 公共版本化 schema
 │   ├── core/                        # Registry、compatibility、artifact、action
-│   ├── mjlab_adapter/               # 当前 Unitree legacy 兼容入口
 │   └── mjlab_tasks/                 # 目标：RoboLab MJLab task/robot 扩展
-├── vendor/
-│   ├── mjlab/                       # MJLab 1.6 下游定制基座
-│   └── unitree_rl_mjlab/            # 固定的 Unitree legacy/reference 来源
+├── mjlab/                           # MJLab 1.6 下游定制基座（一级目录）
 ├── robots/                          # Robot Profile 与模型 binding
 ├── skills/                          # builtin/installed/dev Skill 工作区
 ├── runtime/                         # 厂商和仿真器无关的部署数据面
@@ -87,8 +84,9 @@ RoboLab/
 └── var/                             # 本地运行数据，gitignore
 ```
 
-当前继续使用 `vendor/mjlab/` 可以避免立即拆仓。它必须增加 upstream revision 和 RoboLab 修改记录；当同步和发布边界
-稳定后，再评估是否拆成独立 `RoboLab-MJLab` 仓库。
+`mjlab/` 是仓库一级目录，但仍与 RoboLab Platform 保持独立的 pyproject、源码、测试、上游记录和修改账本边界。
+当同步和发布边界稳定后，再评估是否拆成独立 `RoboLab-MJLab` 仓库。Unitree 旧栈退役和迁移细节见
+[`UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md`](../project/UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md)。
 
 ## 5. Customized MJLab 工具链
 
@@ -153,13 +151,13 @@ DRAFT -> COMPATIBLE -> OFFLINE_VALIDATED -> SIM_VALIDATED
 任一阶段发生遥测超时、姿态越界、命令超时、Driver 断连或人工急停，都由 Runtime 直接进入 `SAFE`。厂商 SDK 类型不得
 泄漏到通用 policy runner、FSM 或 DeploymentPlan。
 
-## 9. Unitree 兼容边界
+## 9. Unitree 退役边界
 
-- `vendor/unitree_rl_mjlab/` 不再承载新平台功能；
-- `packages/mjlab_adapter/` 只维护必要的历史 G1 discovery/play 兼容；
-- G1 应通过和自研机器人相同的 Robot Profile、Task、Artifact 和 Runtime 契约重新接入；
-- 旧 checkpoint 无法在 MJLab 1.6 加载时应返回可解释的不兼容结果，不阻塞新策略训练；
-- Unitree sim-to-sim 是一个部署 target，不是整个平台的默认数据面。
+- R0.6 删除 `vendor/unitree_rl_mjlab/`、`packages/mjlab_adapter/`、G1 Profile 和 Unitree Integration；
+- CLI/API 同步删除 `vendor_root`、旧 discovery/play 和 vendor health check；
+- 当前发布物不再提供 Unitree legacy checkpoint 或 sim-to-sim 兼容承诺；
+- 未来重新支持 G1 时，必须通过和自研机器人相同的 Robot Profile、Task、Artifact 和 Runtime 契约接入；
+- 历史来源、许可证事实和 commit 继续保留在 Git 与历史文档中。
 
 ## 10. 架构约束
 

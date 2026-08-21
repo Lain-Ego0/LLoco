@@ -129,7 +129,7 @@ bindings:
 - 将 Robot Profile 绑定到 Customized MJLab 1.6 的稳定 RoboLab `TaskDefinition`；
 - 只覆盖机器人特有参数，复用通用 observation/reward/termination；
 - 注册稳定 task ID，并导出 observation/action schema hash；
-- Unitree legacy task factory 只能作为迁移或回归绑定，不能成为自研机器人的默认入口。
+- Unitree legacy task factory 在 R0.6 删除，不再作为 active binding；历史映射只用于解释旧记录。
 
 ### D. Runtime Driver
 

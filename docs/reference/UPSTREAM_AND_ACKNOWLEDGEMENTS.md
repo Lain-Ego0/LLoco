@@ -2,10 +2,10 @@
 
 ## 1. 直接代码来源
 
-`vendor/mjlab/` 是 RoboLab 的 MJLab 1.6 深度定制基座。它必须记录固定的 upstream repository、commit、导入日期、
+`mjlab/` 是 RoboLab 的 MJLab 1.6 深度定制基座。它必须记录固定的 upstream repository、commit、导入日期、
 RoboLab 修改和回归证据。MJLab 源码及其派生修改继续遵守上游许可证；RoboLab 不会把下游修改重新标记为根项目 MIT。
 
-`vendor/unitree_rl_mjlab/` 精选导入自 Unitree Robotics 的 [unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，是本项目首批 Unitree 训练、回放、机器人资产与部署迁移参考，已纳入 RoboLab Git。该上游使用 Apache License 2.0。来源基线已经通过完整 blob 哈希比对固定为 [`1425b15f`](https://github.com/unitreerobotics/unitree_rl_mjlab/commit/1425b15f73bd4095f0df53709d7c389c3eb9e790)。导入采用精选 vendor，未携带上游宣传媒体、冗余预编译 runtime 和归属 Skill 的产物；include/exclude 规则见 `vendor/unitree_rl_mjlab/VENDOR_MANIFEST.yaml`。
+历史上 `vendor/unitree_rl_mjlab/` 精选导入自 Unitree Robotics 的 [unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，曾作为本项目首批 Unitree 训练、回放、机器人资产与部署迁移参考。其来源基线为 [`1425b15f`](https://github.com/unitreerobotics/unitree_rl_mjlab/commit/1425b15f73bd4095f0df53709d7c389c3eb9e790)，但该目录将在 R0.6 从 active tree 删除。导入规则和历史文件仍可在 Git 历史中审计。
 
 以后同步上游时应使用单独 commit，记录 upstream range、冲突和 RoboLab 修改，避免无法区分原创、修改与上游更新。
 
@@ -13,7 +13,7 @@ RoboLab 修改和回归证据。MJLab 源码及其派生修改继续遵守上游
 
 ### 直接基础与机器人生态
 
-- [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)：RoboLab 内 `vendor/unitree_rl_mjlab/` 的来源、历史 G1 样板和 Unitree legacy 兼容基础；不作为长期公共平台 API。
+- [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)：历史 G1 样板和 Unitree legacy 兼容基础；R0.6 后只作为历史来源和未来重新接入时的参考。
 - [mujocolab/mjlab](https://github.com/mujocolab/mjlab)：上游训练环境与高层 API 基础。
 - [unitreerobotics/unitree_sdk2](https://github.com/unitreerobotics/unitree_sdk2)：Unitree 实机通信与控制接口。
 - [unitreerobotics/unitree_mujoco](https://github.com/unitreerobotics/unitree_mujoco)：现有 sim-to-sim 流程的重要组成。
@@ -40,7 +40,7 @@ README 的“致谢”用于表达技术来源；`THIRD_PARTY_NOTICES.md`、各�
 
 发布前至少完成：
 
-- 保留 `vendor/unitree_rl_mjlab/LICENCE`；
+- 如果发布物仍包含 Unitree 来源文件，保留其 `LICENCE`；R0.6 删除 active vendor 后，NOTICE 只列实际仍分发的内容；
 - 对修改过的 Apache-2.0 来源文件添加显著修改说明或用可追踪变更记录满足要求；
 - 保留上游已有 copyright、patent、trademark 和 attribution notice；
 - 如果上游/依赖包含 NOTICE，将其可读副本带入发布物；

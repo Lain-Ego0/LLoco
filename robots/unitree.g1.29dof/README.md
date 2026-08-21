@@ -1,6 +1,8 @@
 # Unitree G1 29DoF RobotProfile
 
-This is RoboLab's first historical simulation-only RobotProfile. It references the curated
+Status: deprecated and scheduled for deletion in R0.6.
+
+This was RoboLab's first historical simulation-only RobotProfile. It references the curated
 Unitree legacy model rather than copying XML, meshes, or runtime dependencies. It is one commercial-robot
 example, not the definition of the general RoboLab robot contract.
 
@@ -16,3 +18,6 @@ example, not the definition of the general RoboLab robot contract.
 `physicalDeployment` is deliberately disabled. This package establishes L0
 model identity and contract validation only; it does not assert hardware safety
 or deployment readiness.
+
+The profile and its vendor symlinks will not be copied into the Customized MJLab 1.6 path. Any future G1 support must be
+implemented as a new adapter through the common RoboLab contracts.

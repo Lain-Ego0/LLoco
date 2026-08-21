@@ -20,21 +20,22 @@ python -m pip install "fastapi>=0.110" "uvicorn[standard]>=0.27" "httpx>=0.27"
 
 ## 2. 默认 MJLab 1.6 主线环境
 
-R0 完成后，默认环境必须安装仓库内固定 revision 的 `vendor/mjlab/` 及其依赖：
+R0.4 完成后，默认环境必须安装仓库内固定 revision 的 `mjlab/` 及其依赖：
 
 ```bash
-python -m pip install -e vendor/mjlab
+python -m pip install -e mjlab
 ```
 
-MJLab 1.6 的确切 Torch、MuJoCo-Warp、Warp、RSL-RL 和 Python 版本以 `vendor/mjlab/pyproject.toml`、环境锁文件和
-`vendor/mjlab/UPSTREAM.md` 为准。不要仅凭 README 中的版本号自行升级或降级；每次依赖变更必须有 smoke 和回归记录。
+MJLab 1.6 的确切 Torch、MuJoCo-Warp、Warp、RSL-RL 和 Python 版本以 `mjlab/pyproject.toml`、环境锁文件和
+`mjlab/UPSTREAM.md` 为准。R0.4 迁移完成前，旧路径只作为过渡位置，不得继续新增依赖；每次依赖变更必须有 smoke 和回归记录。
 
 默认环境必须能够运行 Customized MJLab 的 import、registry、最小模型加载、CPU smoke test 和平台 Job。默认安装不应
 把 `vendor/unitree_rl_mjlab` 作为所有后端的隐式依赖。
 
-## 3. Unitree legacy 环境
+## 3. Unitree legacy 环境（仅 R0.6 删除前的历史复现）
 
-只有需要复现旧 G1 play、旧 checkpoint 或 Unitree sim-to-sim 时，才安装 legacy 依赖：
+R0.6 执行前，只有需要复查已有历史证据时才使用以下命令。R0.6 后该目录和 package 将被删除，本节只保留历史说明，
+不得作为当前安装路线：
 
 ```bash
 python -m pip install -e "packages/mjlab_adapter[mjlab-runtime]" -e vendor/unitree_rl_mjlab

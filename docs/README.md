@@ -10,6 +10,7 @@
 
 - [主线对齐审查](project/MAINLINE_ALIGNMENT_REVIEW.md)
 - [MJLab 1.6 深度定制技术主线](project/MJLAB_1_6_TECHNICAL_DIRECTION.md)
+- [Unitree 整栈退役与 MJLab 根目录迁移](project/UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md)
 - [下一阶段详细执行计划](project/DEVELOPMENT_PLAN.md)
 - [实施路线图](project/ROADMAP.md)
 - [Phase 0–1 MVP 历史验收标准](project/MVP_ACCEPTANCE.md)

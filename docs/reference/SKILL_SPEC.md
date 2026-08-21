@@ -223,8 +223,8 @@ MotionSkill 的兼容不能只写 `robots: [g1]`。必须同时校验 profile/ve
 
 `task` 使用 RoboLab Customized MJLab 1.6 稳定的 `TaskDefinition` ID，不使用 vendor registry ID 或脚本路径。
 例如 `motion.velocity.flat@1` 表示 RoboLab 任务语义，Robot Profile 决定该任务如何实例化到具体自研或成品机器人。
-Unitree legacy 可以在私有 binding 中把该 ID 映射到旧的 `Unitree-G1-Flat`，但该映射不进入 Skill 公共契约，也不要求
-MJLab 1.6 与旧 Unitree 路径逐帧等价。
+历史 Unitree adapter 曾把类似 ID 映射到 `Unitree-G1-Flat`，但该 adapter 在 R0.6 删除。新的 MotionSkill 只能绑定
+Customized MJLab 1.6 的公开 task ID，不得继续使用旧 Unitree registry ID。
 
 ## 9. AgentSkill 扩展字段
 

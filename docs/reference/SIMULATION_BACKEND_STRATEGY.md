@@ -21,14 +21,14 @@ RoboLab 定制 MJLab 工具链
 自研机器人 + 成品机器人
 ```
 
-Unitree RL MJLab 保留为 G1 参考和兼容路径，但不再是默认平台后端。MJLab 1.6 定制主线不等待 Unitree G1
-checkpoint，也不以旧 Unitree 行为逐帧等价作为开发前提。
+Unitree RL MJLab 只在 R0.6 前作为待退役参考存在，随后从 active tree 删除。MJLab 1.6 定制主线不等待 Unitree G1
+checkpoint，也不以旧 Unitree 行为逐帧等价作为开发前提。历史代码可从 Git 和固定上游 commit 恢复，无需保留兼容后端。
 
 ## 2. 代码所有权和边界
 
 ### 2.1 Customized MJLab 1.6
 
-`vendor/mjlab/` 是当前 MJLab 1.6 下游定制基座。它可以包含 RoboLab 为运动控制工具链做的核心修改，至少覆盖：
+`mjlab/` 是 MJLab 1.6 下游定制基座。它可以包含 RoboLab 为运动控制工具链做的核心修改，至少覆盖：
 
 - Robot Registry 和 robot/config 绑定；
 - Task、MDP、observation、action、reward 和 termination 扩展点；
@@ -42,15 +42,15 @@ MJLab 定制代码不应包含 WebUI、Skill catalog、Artifact Store、API 数�
 
 ### 2.2 Unitree reference/compat
 
-`vendor/unitree_rl_mjlab/` 是固定 revision 的精选技术来源，允许用于：
+R0.6 删除前，`vendor/unitree_rl_mjlab/` 只能用于：
 
 - G1 任务、模型、参数和旧 checkpoint 诊断；
 - Unitree sim-to-sim 参考；
 - Unitree Driver/Robot Profile 的迁移资料。
 
 它不应扩散到公共 API、Skill manifest、通用 task ID、平台目录或 Runtime 协议。现有
-`packages/mjlab_adapter/` 是兼容过渡入口，后续可以整理为 `backends/unitree_compat/`，但这不是
-RoboLab 主线的核心实现。
+`packages/mjlab_adapter/` 与 Unitree vendor 同批删除，不改名为 `backends/unitree_compat/`，也不保留一个继续调用旧
+Unitree 脚本的伪通用后端。
 
 ## 3. 稳定平台契约
 
@@ -93,7 +93,7 @@ Unitree 兼容路径可以实现同一协议，但只能把 vendor task、脚本
 ### Stage R0：基座固定和路线切换
 
 - 固定 MJLab 1.6 upstream commit；
-- 建立 `vendor/mjlab/UPSTREAM.md`、`ROBOLAB_CHANGES.md` 和补丁分类；
+- 建立 `mjlab/UPSTREAM.md`、`mjlab/ROBOLAB_CHANGES.md` 和补丁分类；
 - 让 MJLab 1.6 成为默认开发环境；
 - 保留 Unitree 1.2 路径作为 legacy 环境，不再增加其平台功能。
 

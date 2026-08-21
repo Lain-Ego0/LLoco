@@ -20,8 +20,8 @@ RoboLab 是一个基于深度定制 MJLab 1.6 工具链、面向商业成品机�
 RoboLab 的长期架构。Unitree RL MJLab 建立在较旧的 MJLab 版本和 Unitree 特定工程布局之上，适合作为历史参考、
 G1 适配来源和兼容路径，不适合作为面向自研机器人的平台核心。
 
-因此，RoboLab 的正式技术基座调整为 MJLab 1.6。Unitree 相关代码保留为一个具体的机器人适配和 legacy 参考，
-不再决定公共 task ID、Skill manifest、平台目录、训练入口或 Runtime 协议。
+因此，RoboLab 的正式技术基座调整为 MJLab 1.6。Unitree 相关代码在过渡期只作为退役参考，不再决定公共 task ID、
+Skill manifest、平台目录、训练入口或 Runtime 协议；R0.6 完成后不再存在于 active working tree。
 
 ## 3. 术语的严格含义
 
@@ -69,8 +69,10 @@ MJLab 核心包。MJLab 是运动控制仿真和训练工具链基座，RoboLab 
 
 ## 4. 基座和代码所有权
 
-RoboLab 使用固定上游 revision 的 MJLab 1.6 作为下游定制基座。当前 `vendor/mjlab/` 是该基座的源码位置，后续可
-在边界稳定后拆分为独立的 `RoboLab-MJLab` 仓库，但拆仓不是当前阶段的前置条件。
+RoboLab 使用固定上游 revision 的 MJLab 1.6 作为下游定制基座。该基座位于仓库一级目录 `mjlab/`，而不是
+`vendor/` 命名空间。`mjlab/` 保持自己的 `pyproject.toml`、源码、测试、upstream record 和 RoboLab change ledger；
+它与 RoboLab Platform 同仓库但拥有独立的代码和发布边界。后续可在边界稳定后拆分为独立的 `RoboLab-MJLab` 仓库，
+但拆仓不是当前阶段的前置条件。
 
 维护要求：
 
@@ -83,14 +85,14 @@ RoboLab 使用固定上游 revision 的 MJLab 1.6 作为下游定制基座。当
 
 ## 5. Unitree 的最终定位
 
-`vendor/unitree_rl_mjlab/` 的定位为：
+`vendor/unitree_rl_mjlab/` 的历史定位曾经是：
 
 - G1 资产、参数和任务的历史来源；
 - 早期 G1 兼容路径和 checkpoint 诊断工具；
 - Unitree sim-to-sim 参考实现；
 - Unitree Driver/Robot Profile 的技术资料。
 
-它不再是：
+该目录将在 Unitree retirement 批次中从 active tree 删除。删除后，历史 Git 记录和上游 commit 仍可审计和恢复，但它不再是：
 
 - RoboLab 的默认仿真训练基座；
 - 公共 API 或 Skill 的命名来源；
@@ -124,3 +126,6 @@ Unitree 路径只参加兼容性和迁移回归测试。
 - “自研机器人属于后期可选扩展”。
 
 历史文档可以保留这些表述，但必须注明它们属于已废止的 Unitree-first 方案。
+
+Unitree 整栈退役和 MJLab 根目录迁移的具体删除清单见
+[`UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md`](UNITREE_RETIREMENT_AND_MJLAB_RELOCATION.md)。

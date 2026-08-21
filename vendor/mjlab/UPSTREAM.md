@@ -5,7 +5,8 @@
 - Upstream commit: `0fb8a681136be94ffc636a3dd423cabb97d91f10`
 - Package version: `1.6.0`
 - License: Apache License 2.0; see `LICENSE`
-- RoboLab source location: `vendor/mjlab/`
+- Target RoboLab source location: `mjlab/`
+- Transitional location before R0.4: `vendor/mjlab/`
 - Verified at: 2026-08-21
 
 ## Verification
