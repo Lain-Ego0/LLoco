@@ -11,7 +11,7 @@ RoboLab 是一个基于深度定制 MJLab 1.6 工具链、面向商业成品机�
 ## 当前状态
 
 当前仓库已经完成 Phase 0–1 的平台控制面骨架，包括 schema、Skill、CLI、Worker、API、WebUI 和 Artifact Store。
-历史 Unitree/MJLab 1.2 路径能够进行 task discovery 和受控 play，但它已被重新定义为 legacy/reference。
+历史 Unitree/MJLab 1.2 路径曾能够进行 task discovery 和受控 play，但相关 active 栈已退役；它只作为 legacy/reference 保留在历史记录中。
 
 新的开发主线正在切换到仓库中的 MJLab 1.6 源码，并将建立 RoboLab 定制的 Robot/Task Registry、
 train/play/evaluate/export、非 Unitree 机器人接入和部署 Runtime。当前尚不能宣称以下能力已完成：

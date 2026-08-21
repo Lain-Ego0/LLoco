@@ -36,11 +36,11 @@ Robot MJCF / Robot Profile
 ## 2. 当前事实
 
 - ✅ B1–B6 平台骨架已实现：schema、Skill、CLI、Worker、API、WebUI 和 Artifact Store；
-- ✅ 2026-08-21 文档主线修订后重新运行 CPU contract suite：`113 passed, 1 warning`；该结果不自动代表后续 MJLab 1.6 源码修改仍通过；
-- ✅ 当前 `vendor/mjlab/` 已包含 MJLab 1.6.0 源码；R0.4 将整体迁移到根目录 `mjlab/`；
-- 🔶 Unitree 旧栈尚在 active tree，R0.6 退役批次将删除其源码、adapter、G1 Profile、Integration 和专用测试；
-- ✅ G1 zero-policy 已启动旧 MJLab/Viser 路径；它只证明兼容入口可启动，不是运动能力验收；
-- ⬜ MJLab 1.6 upstream commit、RoboLab 修改记录和默认环境尚未正式固定；
+- ✅ R0 开始前 CPU contract baseline：`113 passed, 1 warning`；R0.6 退役后重新运行结果为 `105 passed, 1 warning`；
+- ✅ 当前 `mjlab/` 已包含 MJLab 1.6.0 源码；R0.4 路径迁移已完成；
+- ✅ Unitree 旧栈已从 active tree 退役；历史来源、许可证事实和 Git 历史仍保留；
+- ✅ 历史 G1 zero-policy 曾启动旧 MJLab/Viser 路径；该证据随 Unitree 栈退役，仅作为历史记录，不是当前能力验收；
+- ✅ MJLab 1.6 upstream commit、RoboLab 修改记录和默认环境已正式固定；
 - ⬜ RoboLab 定制的 Robot/Task/Train/Play/Evaluate/Export 工具链尚未实现；
 - ⬜ 非 Unitree 自研参考机器人尚未选定；
 - ⬜ Runtime、ValidationRun、DeploymentSession 和通用 sim-to-sim 尚未实现；
@@ -94,11 +94,11 @@ Robot MJCF / Robot Profile
 | R0.1 | 同步项目决策和活动文档 | 技术方向、架构、路线图、环境、适配和 Skill 文档 | 活动文档已统一为 MJLab 1.6 主线；旧 B7/MVP 明确标记历史 | ✅ 完成（2026-08-21） |
 | R0.2 | 固定 MJLab 1.6 上游来源 | `mjlab/UPSTREAM.md`（迁移前为 `vendor/mjlab/UPSTREAM.md`） | 已确认 `v1.6.0`/`0fb8a681...`，并与 fresh checkout 递归比较无差异 | ✅ 完成（2026-08-21） |
 | R0.3 | 建立 RoboLab 修改账本 | `mjlab/ROBOLAB_CHANGES.md`（迁移前为 `vendor/mjlab/ROBOLAB_CHANGES.md`） | 已建立强制字段；当前基线尚无 RoboLab 行为修改 | ✅ 完成（2026-08-21） |
-| R0.4 | 迁移 MJLab 到根目录 | `vendor/mjlab/` -> `mjlab/` 的纯路径迁移提交 | 内容不变、历史可追踪、所有路径引用更新、无 nested `.git` | ⬜ 未开始 |
-| R0.5 | 建立默认 MJLab 1.6 环境 | 新 environment lock/setup 文档 | 默认安装 `mjlab/`；版本与 `mjlab/pyproject.toml` 一致 | ⬜ 未开始 |
-| R0.6 | 退役 Unitree 整栈 | 删除 vendor、adapter、G1 Profile、Integration、默认参数和专用测试 | 无破损 symlink；active code/docs/install 不依赖 Unitree | ⬜ 未开始 |
-| R0.7 | MJLab 1.6 smoke test | CPU/import/list-envs/model/viewer 测试与记录 | import、registry、最小模型加载成功；GPU 项单独标记 | ⬜ 未开始 |
-| R0.8 | 建立修改与同步规则 | contributor/upstream sync 说明 | 上游同步有基线、冲突记录、回归和回滚步骤 | ⬜ 未开始 |
+| R0.4 | 迁移 MJLab 到根目录 | `vendor/mjlab/` -> `mjlab/` 的纯路径迁移 | 内容和一级目录结构保持、历史可追踪、路径引用更新、无 nested `.git`；验收命令通过 | ✅ 完成（2026-08-21） |
+| R0.5 | 建立默认 MJLab 1.6 环境 | `robolab-mjlab16` 环境、`mjlab/uv.lock`、环境安装说明 | 默认安装 `mjlab/`；Python/Torch/Warp/MuJoCo-Warp/RSL-RL 版本按锁文件固定 | ✅ 完成（2026-08-21） |
+| R0.6 | 退役 Unitree 整栈 | 删除 vendor、adapter、G1 Profile、Integration、默认参数和专用测试 | 无破损 symlink；active code/docs/install 不依赖 Unitree；contract suite 通过 | ✅ 完成（2026-08-21） |
+| R0.7 | MJLab 1.6 smoke test | CPU import/list-envs/最小模型加载证据；GPU 检查单独记录 | import、registry、最小模型加载成功；GPU 未执行时明确等待外部资源 | ✅ 完成（2026-08-21） |
+| R0.8 | 建立修改与同步规则 | `mjlab/UPSTREAM.md`、`mjlab/ROBOLAB_CHANGES.md` | 上游同步有基线、冲突记录、回归和回滚步骤；行为修改使用强制登记字段 | ✅ 完成（2026-08-21） |
 
 R0 退出条件：任何开发者都能确定 RoboLab 使用哪个 MJLab commit、哪些代码由 RoboLab 修改、如何安装默认环境、如何运行
 最小测试，并且 active tree 中已经不存在 Unitree legacy 依赖。

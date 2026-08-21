@@ -18,16 +18,25 @@ def _git_package(source, destination):
     subprocess.run(["git", "-C", str(destination), "commit", "-qm", "fixture"], check=True)
 
 
-def test_install_records_revision_and_content_hash(tmp_path, platform_skill):
+def _platform_fixture(root, document):
     import yaml
 
-    source_manifest = tmp_path / "fixture" / "skill.yaml"
-    source_manifest.parent.mkdir()
-    source_manifest.write_text(yaml.safe_dump(platform_skill), encoding="utf-8")
-    (source_manifest.parent / "LICENSE").write_text("MIT", encoding="utf-8")
-    (source_manifest.parent / "README.md").write_text("fixture", encoding="utf-8")
+    root.mkdir()
+    (root / "skill.yaml").write_text(yaml.safe_dump(document), encoding="utf-8")
+    (root / "LICENSE").write_text("MIT", encoding="utf-8")
+    (root / "README.md").write_text("fixture", encoding="utf-8")
+    (root / "schemas").mkdir()
+    (root / "schemas/inspect.input.json").write_text("{}", encoding="utf-8")
+    (root / "schemas/inspect.output.json").write_text("{}", encoding="utf-8")
+    (root / "tests").mkdir()
+    (root / "tests/smoke.yaml").write_text("smoke: true", encoding="utf-8")
+
+
+def test_install_records_revision_and_content_hash(tmp_path, platform_skill):
+    package = tmp_path / "fixture"
+    _platform_fixture(package, platform_skill)
     source = tmp_path / "source"
-    _git_package(source_manifest.parent, source)
+    _git_package(package, source)
     result = install_skill(source, tmp_path / "installed")
     assert len(result.revision) == 40
     assert result.destination.is_dir()
@@ -36,13 +45,8 @@ def test_install_records_revision_and_content_hash(tmp_path, platform_skill):
 
 
 def test_same_identity_with_different_content_is_rejected(tmp_path, platform_skill):
-    import yaml
-
     package = tmp_path / "fixture"
-    package.mkdir()
-    (package / "skill.yaml").write_text(yaml.safe_dump(platform_skill), encoding="utf-8")
-    (package / "LICENSE").write_text("MIT", encoding="utf-8")
-    (package / "README.md").write_text("fixture", encoding="utf-8")
+    _platform_fixture(package, platform_skill)
     first = tmp_path / "first"
     second = tmp_path / "second"
     _git_package(package, first)
@@ -57,13 +61,8 @@ def test_same_identity_with_different_content_is_rejected(tmp_path, platform_ski
 
 
 def test_uninstall_preserves_referenced_content(tmp_path, platform_skill):
-    import yaml
-
     package = tmp_path / "fixture"
-    package.mkdir()
-    (package / "skill.yaml").write_text(yaml.safe_dump(platform_skill), encoding="utf-8")
-    (package / "LICENSE").write_text("MIT", encoding="utf-8")
-    (package / "README.md").write_text("fixture", encoding="utf-8")
+    _platform_fixture(package, platform_skill)
     source = tmp_path / "source"
     _git_package(package, source)
     installed = tmp_path / "installed"

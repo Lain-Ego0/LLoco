@@ -13,7 +13,7 @@
 
 ## 边界
 
-- 本目录不依赖任何厂商 SDK 类型；厂商专用逻辑通过 driver 插件和 [`integrations/`](../integrations/) 接入；
+- 本目录不依赖任何厂商 SDK 类型；厂商专用逻辑通过 driver 插件和 [`integrations/README.md`](../integrations/README.md) 接入；
 - Unitree legacy deploy 在 R0.6 从 active tree 删除；Runtime 设计只依据通用部署契约，必要历史实现从 Git 查看；
 - Edge Runtime 必须独立进程运行，实机控制循环不依赖 WebUI/WebSocket 在线。
 
