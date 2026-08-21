@@ -4,6 +4,9 @@
 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为准。此记录区分已经完成的 CPU 闭环和依赖
 本地 MJLab/Viser 环境的手动验证，禁止用前者替代后者。
 
+执行顺序严格对应 `DEVELOPMENT_PLAN.md`：**B7.1 → B7.2 → B7.3**。
+本文只记录证据，不重新定义批次、依赖或完成状态。
+
 ## 环境基线
 
 - 工作目录：`/home/lxy/RoboLab`
@@ -12,7 +15,207 @@
   `robolab-api`、`robolab-worker`、`robolab-cli` 均以 editable 方式安装。
 - 启动命令：`robolab serve`；服务仅输出 loopback URL。
 
-## 已完成的演练
+## 详细执行步骤
+
+以下步骤用于重跑或补齐 B7 验收。每一步都应保存终端输出、Job 路径和产物哈希；
+不要用 CPU contract tests 代替 MJLab/Viser 手动验证。
+
+### 1. 固定环境
+
+```bash
+cd /home/lxy/RoboLab
+conda activate robolab
+
+python -m pip install -e packages/schemas -e packages/core -e packages/mjlab_adapter \
+  -e services/api -e services/worker -e apps/cli
+python -m pip install -e "packages/mjlab_adapter[mjlab-runtime]" \
+  -e vendor/unitree_rl_mjlab
+
+python -c 'from importlib.metadata import version; print("mjlab", version("mjlab"))'
+python -c 'import mujoco; print("mujoco", mujoco.__version__)'
+python -c 'import torch; print("torch", torch.__version__)'
+python -c 'import viser; print("viser", viser.__version__)'
+python -c 'import warp; print("warp", warp.__version__)'
+python -c 'import scipy; print("scipy", scipy.__version__)'
+python -c 'import torch; print("cuda", torch.cuda.is_available())'
+python -c 'import torch; print("gpu", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "none")'
+git rev-parse HEAD
+```
+
+记录 Python、GPU、CUDA、MJLab、MuJoCo、Viser、Warp、Torch、SciPy 版本；
+`warp-lang` 应固定为 `1.12.0`。
+
+### 2. B7.1：三条 CPU 样板路径
+
+```bash
+cd /home/lxy/RoboLab
+export B7_ROOT="$PWD/var/b7-acceptance-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$B7_ROOT"/{workspace,runs,skills,logs}
+export CATALOG=/home/lxy/RoboLab-Skill
+export PROFILE="$PWD/robots/unitree.g1.29dof/profile.yaml"
+export G1="$CATALOG/skills/motion/g1_velocity"
+export INSPECTOR="$CATALOG/skills/platform/mjcf_inspector"
+export ONBOARDING="$CATALOG/skills/agent/robot_onboarding"
+```
+
+先运行 CPU contract suite：
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q tests/contract \
+  |& tee "$B7_ROOT/logs/contract-tests.txt"
+```
+
+#### 3.1 G1 MotionSkill
+
+```bash
+robolab check "$G1/skill.yaml" --package-dir "$G1" \
+  |& tee "$B7_ROOT/logs/g1-check.txt"
+robolab check --skill "$G1/skill.yaml" --profile "$PROFILE" \
+  |& tee "$B7_ROOT/logs/g1-compatibility.txt"
+robolab skill install "$G1" --installed-root "$B7_ROOT/skills/installed" --json \
+  | tee "$B7_ROOT/logs/g1-install.json"
+robolab mjlab tasks --keyword G1 --json \
+  | tee "$B7_ROOT/logs/g1-tasks.json"
+```
+
+必须确认 schema、许可证、artifact SHA-256、`unitree.g1.29dof` 兼容性和
+`Unitree-G1-Flat` task 均通过，并记录安装内容 hash。
+
+#### 3.2 MJCF Inspector
+
+```bash
+robolab check "$INSPECTOR/skill.yaml" --package-dir "$INSPECTOR" \
+  |& tee "$B7_ROOT/logs/inspector-check.txt"
+robolab skill install "$INSPECTOR" --installed-root "$B7_ROOT/skills/installed" --json \
+  | tee "$B7_ROOT/logs/inspector-install.json"
+cat "$INSPECTOR/schemas/inspect.input.json"
+```
+
+将待检验的 MJCF/XML 放入 `$B7_ROOT/workspace/`，按输入 schema 填写参数后运行：
+
+```bash
+robolab skill run "$INSPECTOR/skill.yaml" --runs-root "$B7_ROOT/runs" \
+  --params '{"mjcfPath":"/absolute/path/to/model.xml"}' --wait \
+  |& tee "$B7_ROOT/logs/inspector-run.txt"
+```
+
+检查 run 目录必须包含 `events.jsonl`、`result.json`、
+`artifacts/report.json`、`artifacts/report.md` 和
+`artifacts/robot_profile.draft.yaml`，并保存哈希：
+
+```bash
+find "$B7_ROOT/runs" -type f -print0 | sort -z | xargs -0 sha256sum \
+  | tee "$B7_ROOT/logs/inspector-artifact-sha256.txt"
+```
+
+#### 3.3 Robot Onboarding AgentSkill
+
+```bash
+robolab check "$ONBOARDING/skill.yaml" --package-dir "$ONBOARDING" \
+  |& tee "$B7_ROOT/logs/onboarding-check.txt"
+robolab skill install "$ONBOARDING" --installed-root "$B7_ROOT/skills/installed" --json \
+  | tee "$B7_ROOT/logs/onboarding-install.json"
+robolab agent export "$ONBOARDING" --target codex \
+  --target-root "$B7_ROOT/agents/skills" --json \
+  | tee "$B7_ROOT/logs/onboarding-export.json"
+find "$B7_ROOT/agents/skills/robot-onboarding" -maxdepth 2 -type f \
+  | sort | tee "$B7_ROOT/logs/onboarding-exported-files.txt"
+```
+
+确认导出目录包含 `SKILL.md`、`skill.yaml` 和 `references/`。
+
+### 3. B7.2：发布 catalog 并运行 CPU CI
+
+在同级 `../RoboLab-Skill` 仓库确认三个样板 Skill 已提交：
+
+```bash
+cd /home/lxy/RoboLab-Skill
+git status --short
+git log -1 --oneline
+git tag --list
+```
+
+确认以下目录存在并已推送到远程：
+
+```text
+skills/motion/g1_velocity/
+skills/platform/mjcf_inspector/
+skills/agent/robot_onboarding/
+catalog.yaml
+```
+
+如尚未发布，提交并推送 catalog；MotionSkill 的 `g1-velocity-v0.1.0` tag
+必须指向包含 `policy.onnx` 和 `deploy.yaml` 的提交：
+
+```bash
+git add catalog.yaml skills
+git commit -m "feat: publish MVP sample skills"
+git push origin main
+git tag -a g1-velocity-v0.1.0 -m "G1 velocity 0.1.0"
+git push origin g1-velocity-v0.1.0
+```
+
+在 RoboLab 提交或推送后，等待 `.github/workflows/cpu-contract.yml` 成功。
+记录 GitHub Actions URL、RoboLab commit、RoboLab-Skill commit 和测试结果。
+
+### 4. B7.3：MJLab / Viser 手动验证
+
+先验证 task 发现：
+
+```bash
+robolab mjlab tasks --keyword G1 \
+  | tee "$B7_ROOT/logs/mjlab-g1-tasks.txt"
+```
+
+运行最小 zero-policy play。首次运行可能编译 CUDA kernel，必须等待进程完成或稳定
+启动 viewer，不能用短超时判定失败：
+
+```bash
+robolab mjlab play Unitree-G1-Flat --agent zero --viewer viser \
+  --num-envs 1 --runs-root "$B7_ROOT/runs" --wait \
+  |& tee "$B7_ROOT/logs/g1-zero-play.txt"
+```
+
+确认 Viser URL、viewer session、G1 模型和 Job 状态；保存截图或 session 记录。
+
+若策略/checkpoint 已准备好，再执行实际 trained velocity 路径：
+
+```bash
+robolab mjlab play Unitree-G1-Flat --agent trained --viewer viser \
+  --num-envs 1 --video --runs-root "$B7_ROOT/runs" --wait \
+  |& tee "$B7_ROOT/logs/g1-trained-play.txt"
+```
+
+`trained` 路径未成功时，不得用 zero-policy 代替 G1 Velocity MotionSkill 通过；
+应将其记录为 B7 阻塞项。
+
+保存所有 run 证据：
+
+```bash
+find "$B7_ROOT/runs" -type f | sort | tee "$B7_ROOT/logs/all-run-files.txt"
+find "$B7_ROOT/runs" -type f -print0 | sort -z | xargs -0 sha256sum \
+  | tee "$B7_ROOT/logs/all-run-sha256.txt"
+find "$B7_ROOT/runs" -name result.json -exec sh -c \
+  'echo "--- $1"; cat "$1"' _ {} \; | tee "$B7_ROOT/logs/all-results.txt"
+```
+
+还需从 WebUI 或等价 CLI 验证运行中 Job 的日志刷新、停止、最终状态和 artifact
+归档；记录 `config snapshot`、stdout/stderr、`events.jsonl`、`result.json`、
+可选视频及 SHA-256。
+
+## 最终判定与回填
+
+B7 只有在以下三项全部完成后才能关闭：
+
+- B7.1：三类样板路径均完成，且 G1 使用真实 trained velocity play；
+- B7.2：远程 GitHub Actions 在两个远程仓库上通过 contract suite；
+- B7.3：Viser 手动验证、Job 日志/取消/状态、artifact hash 和环境版本齐全。
+
+完成后，在本记录补充每条命令、执行时间、退出码、Job/run 路径、结果摘要、artifact
+hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
+`docs/project/DEVELOPMENT_PLAN.md` 中 B7.1、B7.2、B7.3 更新为 `✅ 日期`。
+
+## 历史状态快照（截至 2026-08-20）
 
 | 路径 | 结果 | 证据 |
 |---|---|---|
@@ -26,7 +229,7 @@
 本地启动烟测：已通过 `/home/lxy/miniconda3/envs/robolab/bin/robolab serve`，自动
 分配端口并监听 `http://127.0.0.1:33045`（测试超时后正常关闭）。
 
-## CI 发布前置条件
+## 历史 CI 阻塞说明（截至 2026-08-20）
 
 `.github/workflows/cpu-contract.yml` 会同时 checkout RoboLab 与官方
 `RoboLab-Skill` catalog 并运行全部 contract tests。当前工作站的后者含有尚未提交
@@ -34,7 +237,7 @@
 仓库前，GitHub CI 无法复现本地的三个样板 Skill 路径。因此 B7.2 保持“进行中”，
 尽管本地 CPU suite 已通过。
 
-## MJLab/Viser 本地验证
+## 历史 MJLab/Viser 环境快照（截至 2026-08-20）
 
 `robolab` 环境现已包含 MJLab 运行依赖，检测到：
 
@@ -57,5 +260,5 @@
    artifact hash；
 4. 记录最终 GPU/CPU、MuJoCo、MJLab、Viser、Warp 的具体版本与结果。
 
-完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 B7.1/B7.2 状态更新为
+完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 B7.1/B7.2/B7.3 状态更新为
 `✅`；在此之前 MVP 仅处于 CPU 闭环就绪状态。
