@@ -1,6 +1,8 @@
 # RoboLab 总体架构
 
-状态：设计基线 v0.3；Q1-Q26 已完成，仓库管理与 MVP 范围已冻结。精选 vendor 已导入（2026-08-20），B1–B6 已完成：schema、Job/Worker、MJLab adapter、三个样板 Skill、CLI、loopback API、SQLite/Artifact store、`robolab serve` 与最小 WebUI 可用；MVP 验收演练按 `ROADMAP.md` 进行。
+状态：设计基线 v0.3。Q1-Q26、仓库管理与 MVP 范围已冻结；B1–B6 已完成，B7
+MVP 验收演练进行中。本文描述架构边界；当前批次、完成状态与剩余工作以
+[`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为唯一权威。
 
 ## 1. 设计目标
 
@@ -57,23 +59,23 @@ Platform API 和 WebUI 属于控制面：创建任务、修改配置、授权部
 
 ## 3. 目录结构与当前进度
 
-精选 vendor 导入已完成，`vendor/unitree_rl_mjlab/` 已纳入 Git。B1（契约冻结）已落地：`packages/schemas`、`packages/core`、`apps/cli` 与 `tests/contract` 是首批真实平台代码；其余目录仍是已冻结的目标结构，尚未创建对应平台代码：
+精选 vendor 导入已完成，`vendor/unitree_rl_mjlab/` 已纳入 Git。B1–B6 已落地；下列目录树说明当前代码边界，未实现项仅指 Phase 2+ 的 Edge、通用 runtime、SDK 与硬件 driver：
 
 ```text
 RoboLab/
 ├── apps/
-│   ├── cli/                  # robolab 命令行（已实现：check；serve 在 B5 接入）
-│   └── web/                  # Web 前端（未实现）
+│   ├── cli/                  # robolab 命令行（check、skill、agent、serve、mjlab）
+│   └── web/                  # 最小 React WebUI（B6 已实现）
 ├── services/
-│   ├── api/                  # 平台 API 与领域服务（未实现）
+│   ├── api/                  # loopback FastAPI、SQLite 与 artifact store（B5 已实现）
 │   ├── worker/               # 本地异步任务执行器（已实现：robolab-job-v1 子进程/进程组）
 │   └── edge/                 # 非实时管理面；启动/监控 C++ runtime（未实现）
 ├── packages/
-│   ├── core/                 # 领域模型、registry、兼容性和状态机（B1/B3 已实现：语义检查/兼容性/lint/Job/action registry）
+│   ├── core/                 # 领域模型、registry、兼容性和状态机（B1–B4 已实现）
 │   ├── schemas/              # manifest/profile/JointSet JSON Schema（已实现：v1alpha1）
 │   ├── mjlab_adapter/        # 将平台 Job 映射到现有 scripts（B3 已实现：task 发现/play 命令构造）
 │   └── sdk/                  # Skill/Robot 扩展开发工具（未实现）
-├── skills/                   # 已存在；仅有工作区约定，Skill Manager 未实现
+├── skills/                   # Skill 工作区；扫描、固定安装、卸载保护与 prepare 已实现（B2）
 │   ├── builtin/              # 随平台发布的 Skill
 │   ├── installed/            # catalog 安装的固定版本
 │   └── dev/                  # 本地 Skill 开发链接
@@ -82,12 +84,12 @@ RoboLab/
 ├── runtime/
 │   ├── core/                 # 共享 C++ FSM、推理、安全与遥测（仅有入口说明）
 │   └── drivers/              # unitree_sdk2 等硬件驱动插件（未实现）
-├── robots/                   # RoboLab Robot Profile；不放具体 Skill（仅有入口说明）
+├── robots/                   # RoboLab Robot Profile；首个 G1 29DoF simulation-only Profile 已实现
 ├── vendor/
 │   └── unitree_rl_mjlab/     # 已导入：精选上游技术来源，不含宣传媒体/冗余二进制
 ├── docs/                     # 已存在
 ├── tests/
-│   ├── contract/             # 已存在：B1 schema/关节映射/兼容性/lint/CLI（91 项）
+│   ├── contract/             # schema、兼容性、安装、Job、API、样板 Skill 的 CPU contract tests
 │   ├── integration/
 │   └── hardware/
 ├── var/                      # 运行数据，gitignore

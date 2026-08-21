@@ -2,7 +2,7 @@
 
 状态：v0.1（2026-08-20 建立）。本文是执行层主线：批次顺序、依赖、状态与追溯。
 
-分工：[ROADMAP](ROADMAP.md) 管“阶段与退出条件”，[MVP_ACCEPTANCE](MVP_ACCEPTANCE.md) 管“怎么算验收”，本文管“现在该干什么、按什么顺序、做到哪了”。三者冲突时以决策记录 [DECISIONS_AND_QA](DECISIONS_AND_QA.md) 为准，修改决策必须回到决策文档更新。
+分工：[ROADMAP](ROADMAP.md) 管“阶段与退出条件”，[MVP_ACCEPTANCE](MVP_ACCEPTANCE.md) 管“怎么算验收”，本文管“现在该干什么、按什么顺序、做到哪了”，并且是**唯一的进度权威**。发生设计取舍时查阅历史决策记录 [DECISIONS_AND_QA](DECISIONS_AND_QA.md)；新决策须先记录在该文件，再同步更新本文和受影响的规范。
 
 ## 当前位置
 
@@ -110,13 +110,13 @@ B1 同时解锁 ─────────────────> B5 平台 A
 |---|---|---|---|
 | B7.1 | 按 MVP_ACCEPTANCE §8 在干净机器完整演练三条路径 | — | §8 | 🔶 2026-08-20 |
 | B7.2 | CPU CI：schema、安装、Job 协议、MJCF Inspector contract test | D-030、Q26 | §6 | 🔶 2026-08-20（本地通过；待 catalog 发布后远程 CI） |
-| B7.3 | 本地环境测试记录：MJLab play / Viser 手动验证清单 | D-030 | §3 | ✅ 2026-08-20（task 发现通过；play 失败已记录） |
+| B7.3 | 本地环境测试记录：MJLab play / Viser 手动验证清单 | D-030 | §3 | 🔶 2026-08-20（task 发现通过；play/Viser 手动验收待完成，详见 `B7_ACCEPTANCE_RECORD.md`） |
 
 依赖：B4、B6。
 
 ## 维护规则
 
 1. 每完成一个任务就地更新状态（⬜/🔶/✅ + 日期），本文是“当前进度”的唯一权威来源；
-2. 新增或重排批次必须说明依据的决策 ID；与既有决策冲突时先更新 DECISIONS_AND_QA；
+2. 新增或重排批次必须说明依据的决策 ID；与既有决策冲突时先在 DECISIONS_AND_QA 追加决策，再更新本文；
 3. 超出 MVP 范围的内容（MVP_ACCEPTANCE §7）不进入本文批次，只在 ROADMAP Phase 2+ 跟踪；
 4. 批次内部可并行，跨批次严格按依赖顺序；不允许为赶进度绕过 B1 契约直接写功能代码。

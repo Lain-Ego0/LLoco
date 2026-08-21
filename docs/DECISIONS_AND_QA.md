@@ -126,7 +126,8 @@ MVP 验收标准单独维护在 `MVP_ACCEPTANCE.md`。
 
 ## 第四轮结果：仓库管理与开工顺序
 
-架构 QA 已完成，以下选择形成实施基线。
+架构 QA 已完成，以下选择形成实施基线。本文是历史决策记录；当前批次和完成状态以
+`docs/DEVELOPMENT_PLAN.md` 为准。
 
 ### Q21. Unitree 上游来源的 Git 管理方式
 
@@ -158,4 +159,5 @@ MVP 验收标准单独维护在 `MVP_ACCEPTANCE.md`。
 
 ## 架构 QA 完成状态
 
-Q1-Q26 已全部完成并固化。下一阶段不再继续扩大设计范围，按 `MVP_ACCEPTANCE.md` 和 `ROADMAP.md` 进入实现。
+Q1-Q26 已全部完成并固化。下一阶段不再继续扩大设计范围；实现进度与剩余工作按
+`DEVELOPMENT_PLAN.md` 跟踪，验收标准见 `MVP_ACCEPTANCE.md`。

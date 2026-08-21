@@ -1,6 +1,8 @@
 # Unitree RL MJLab 精选 Vendor 方案
 
-状态：已确认并已实施。精选 vendor 于 2026-08-20 导入 `vendor/unitree_rl_mjlab/` 并纳入 Git；保留技术价值和来源追踪，不把 RoboLab 建成 Unitree 上游仓库的完整镜像。
+状态：已确认并已实施（历史基线记录）。精选 vendor 于 2026-08-20 导入
+`vendor/unitree_rl_mjlab/` 并纳入 Git；保留技术价值和来源追踪，不把 RoboLab
+建成 Unitree 上游仓库的完整镜像。当前开发进度以 `DEVELOPMENT_PLAN.md` 为准。
 
 ## 1. 当前事实
 
@@ -50,7 +52,9 @@ robots/                       # 与 Skill 解耦的 Robot Profile（仅有入口
 docs/                         # RoboLab 自己的正式文档
 ```
 
-上述目录边界中，`vendor/` 与 `docs/` 已存在；`integrations/`、`packages/`、`runtime/`、`robots/` 目前只有入口说明，平台代码按 `ROADMAP.md` 逐步实现，迁移时同步 adapter/import/cwd。
+上述目录边界中，`vendor/`、`packages/`、`robots/` 与 `docs/` 已存在；
+`packages/mjlab_adapter/` 已实现首版 task 发现与受控 play 调用，`integrations/`
+和 `runtime/` 仍主要是后续迁移边界，具体进度按 `DEVELOPMENT_PLAN.md` 跟踪。
 
 ## 4. 首次导入保留清单
 

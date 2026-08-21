@@ -1,10 +1,24 @@
 # RoboLab
 
+## 启动方式
+
+在已有 `robolab` Conda 环境中启动本地 Web 平台：
+
+```bash
+cd /home/lxy/RoboLab
+conda activate robolab
+python -m pip install -e packages/schemas -e packages/core -e packages/mjlab_adapter \
+  -e services/api -e services/worker -e apps/cli
+robolab serve
+```
+
+启动后，终端会打印实际访问地址（默认监听 `127.0.0.1`，端口自动选择），在浏览器打开该地址即可。首次创建环境或需要运行 MJLab/Viser 时，先按 [`docs/ENVIRONMENT_SETUP.md`](docs/ENVIRONMENT_SETUP.md) 安装对应依赖；仅修改 WebUI 后，在 `apps/web/` 执行 `npm install && npm run build`，再重新启动服务。
+
 One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with Deployment Adaptation and Skill Integration.
 
 RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台，将机器人接入、强化学习训练、仿真验证、策略导出、Skill 安装和实机部署组织成一条可追踪、可复现、可回滚的工作流。
 
-> 当前仓库处于平台实现早期。`vendor/unitree_rl_mjlab/` 已完成精选 vendor 导入并纳入 Git，包含训练、回放、sim-to-sim 和 Unitree legacy 部署源码，可通过其 `scripts/` 直接使用；B1 契约冻结已完成：`packages/schemas`（`RobotProfile`/`JointSet`/`SkillPackage` v1alpha1）、`packages/core`（关节映射机器校验、兼容性判定、lint）与 `apps/cli`（`robolab check`）可用，`robolab` conda 环境已建立。WebUI、平台 API、Skill Manager 和通用 runtime 尚未实现。下文“仓库入口”明确区分已存在的目录与仅为接口边界的目标目录。
+> 当前仓库已完成 B1–B6，正在进行 B7 MVP 验收。`vendor/unitree_rl_mjlab/` 已完成精选导入；schema、Skill 安装链路、Job/Worker、MJLab adapter、三个样板 Skill、loopback API、SQLite/artifact store、`robolab serve` 与最小 WebUI 均已可用。当前批次和剩余工作以 [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md) 为准。
 
 ## 核心边界
 
@@ -45,8 +59,8 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 | `vendor/unitree_rl_mjlab/` | 精选导入的 Unitree 训练/仿真/legacy 部署技术来源 | 已导入并纳入 Git；训练、回放、sim-to-sim 可按上游方式运行 |
 | `packages/schemas/` | `RobotProfile`/`JointSet`/`SkillPackage` v1alpha1 JSON Schema | B1 已实现（2026-08-20） |
 | `packages/core/` | 关节映射机器校验、Skill×Profile 兼容性判定、Skill lint | B1 已实现（2026-08-20） |
-| `apps/cli/` | `robolab` 命令行，当前提供 `robolab check`（schema + 兼容性 + lint） | B1 已实现（2026-08-20）；`serve` 等子命令随后续批次接入 |
-| `tests/contract/` | B1 契约测试（schema/关节映射/兼容性/lint/CLI，91 项） | 已可用；CPU 可跑 |
+| `apps/cli/` | `robolab` 命令行：check、skill、agent、serve、mjlab | B1–B5 已实现 |
+| `tests/contract/` | schema、兼容性、安装、Job、API、MJLab adapter 与样板 Skill 测试 | B7 CPU suite 已通过（最新记录 112 passed） |
 | `skills/` | 本机 Skill 工作区（builtin/installed/dev） | B2 已实现扫描、固定安装、注册、不可变卸载保护与 prepare 审查 |
 | `docs/` | RoboLab 正式文档 | 可用 |
 | `THIRD_PARTY_NOTICES.md` | 第三方声明 | 可用，随依赖演进持续更新 |
@@ -55,7 +69,7 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 
 | 入口 | 职责 | 实现状态 |
 |---|---|---|
-| [`packages/mjlab_adapter/`](packages/mjlab_adapter/) | 把平台 Job 映射到 vendor 中的 train/play/export 脚本 | 接口边界，未实现 |
+| [`packages/mjlab_adapter/`](packages/mjlab_adapter/) | 把平台 Job 映射到 vendor 中的 train/play/export 脚本 | B3 已实现 task 发现与受控 play 调用；训练启动仍是后续里程碑 |
 | [`integrations/unitree/`](integrations/unitree/) | Unitree Driver/Profile，首个厂商适配器 | 接口边界，未实现；Unitree 专用逻辑暂仍在 vendor `deploy/` |
 | [`runtime/`](runtime/) | 与厂商无关的 C++ FSM、推理、安全与遥测 | 接口边界，未实现；共享逻辑暂仍在 vendor `deploy/` |
 | [`robots/`](robots/) | 与 Skill 解耦的 Robot Profile | 已实现首个 Unitree G1 29DoF simulation-only Profile；模型资产引用 vendor，不复制 |
@@ -82,7 +96,7 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 - [MVP 验收标准](docs/MVP_ACCEPTANCE.md)
 - [上游来源、许可证与致谢](docs/UPSTREAM_AND_ACKNOWLEDGEMENTS.md)
 - [MJLab 来源树管理方案](docs/MJLAB_MAINTENANCE.md)
-- [待确认决策与多轮 QA](docs/DECISIONS_AND_QA.md)
+- [历史决策与多轮 QA](docs/DECISIONS_AND_QA.md)
 
 ## 安全原则
 

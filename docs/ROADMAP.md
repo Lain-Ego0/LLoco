@@ -1,15 +1,17 @@
 # RoboLab 实施路线图
 
+> 进度状态以 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为唯一权威；本文件只维护阶段目标与退出条件。
+
 ## Phase 0：来源与契约基线
 
 - ✅ 以已验证的 upstream commit `1425b15f` 建立可追踪导入历史（`vendor/unitree_rl_mjlab/UPSTREAM.md`）；
 - ✅ 以独立 curated vendor commit 导入 `vendor/unitree_rl_mjlab/`，使用 manifest 排除宣传文档、预编译 runtime 和 Skill 产物；后续 commit 已将 deploy/simulate 改为发现外部 ONNX Runtime/MuJoCo；
 - ✅ 选择仓库内 Unitree G1 29DoF 公开 MJCF 作为首个 simulation-only 样板（2026-08-20，B2.1；见 `robots/unitree.g1.29dof/`）；
 - ✅ 冻结 `RobotProfile v1alpha1` 和统一 `SkillPackage v1alpha1` 最小 schema（2026-08-20，B1.1/B1.2；另含 `JointSet v1alpha1`，见 `packages/schemas/`）；
-- ⬜ 为现有 velocity 产物生成 MotionSkill，并创建一个可执行 PlatformSkill（B4.1/B4.2）；
+- ✅ 已生成 G1 Velocity MotionSkill，并创建 MJCF Inspector PlatformSkill（B4.1/B4.2，2026-08-20）；
 - ✅ 建立基础 lint、schema、license 和 artifact hash 检查（2026-08-20，B1.6；`robolab check` 可执行）。
 
-退出条件：任何人能解释一份 Skill 为什么与某 Robot Profile 兼容或不兼容——B1.4/B1.5 已提供机器判定与逐条原因；Phase 0 整体完成标准以 [DEVELOPMENT_PLAN](DEVELOPMENT_PLAN.md) B1 退出小节为准（B1 + B2.1 + B4.1 + B4.2）。
+退出条件：任何人能解释一份 Skill 为什么与某 Robot Profile 兼容或不兼容——B1.4/B1.5 已提供机器判定与逐条原因；Phase 0 已按 [DEVELOPMENT_PLAN](DEVELOPMENT_PLAN.md) B1 退出小节完成（B1 + B2.1 + B4.1 + B4.2）。
 
 ## Phase 1：本地平台闭环
 
