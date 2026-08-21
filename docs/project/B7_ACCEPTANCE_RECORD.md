@@ -182,9 +182,14 @@ robolab mjlab play Unitree-G1-Flat --agent zero --viewer viser \
 
 ```bash
 robolab mjlab play Unitree-G1-Flat --agent trained --viewer viser \
-  --num-envs 1 --video --runs-root "$B7_ROOT/runs" --wait \
+  --num-envs 1 --checkpoint-file /absolute/path/to/model.pt --video \
+  --runs-root "$B7_ROOT/runs" --wait \
   |& tee "$B7_ROOT/logs/g1-trained-play.txt"
 ```
+
+若 checkpoint 不在本地，可将 `--checkpoint-file /absolute/path/to/model.pt` 替换为
+`--wandb-run-path <WandB-run-path>`。`--video` 是 RoboLab CLI 的布尔开关，adapter 会向
+vendor 传递其所需的 `--video True`。
 
 `trained` 路径未成功时，不得用 zero-policy 代替 G1 Velocity MotionSkill 通过；
 应将其记录为 B7 阻塞项。
@@ -224,7 +229,7 @@ hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
 | Robot Onboarding AgentSkill | 通过 | 安装、manifest 校验与 `.agents/skills/robot-onboarding/` Codex export 测试 |
 | API/WebUI | 通过 | Jobs、logs、cancel、Artifact lineage、静态 WebUI 资源 API 测试 |
 
-最新 CPU 测试：`112 passed`（2026-08-20）。
+最新 CPU 测试：`113 passed, 1 warning`（2026-08-21）。
 
 本地启动烟测：已通过 `/home/lxy/miniconda3/envs/robolab/bin/robolab serve`，自动
 分配端口并监听 `http://127.0.0.1:33045`（测试超时后正常关闭）。
@@ -274,25 +279,25 @@ hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
   `113 passed, 1 warning`。G1 MotionSkill 的 schema、artifact SHA-256、
   `unitree.g1.29dof` 兼容性、安装和 G1 task 发现均通过；MJCF Inspector 与 Robot
   Onboarding 的 manifest 校验、安装以及 Codex export 均通过。
-- MJCF Inspector：按文档/schema 的 `mjcfPath` 参数运行失败（`KeyError: 'mjcf_path'`，
-  run `3d62c404-818a-4b18-84cf-374154406a10`）。以实现实际读取的 `mjcf_path` 重试成功，
+- MJCF Inspector：首次按当时文档中的错误参数 `mjcfPath` 运行失败（`KeyError: 'mjcf_path'`，
+  run `3d62c404-818a-4b18-84cf-374154406a10`）。以 schema/实现实际读取的 `mjcf_path` 重试成功，
   run `c7405c22-a638-4ffd-9915-44b1591eaaeb` 产生 `report.json`、`report.md`、
   `robot_profile.draft.yaml`；三个 artifact SHA-256 分别为
   `70c00d2c2f5db35ab347c129bd36c095e895017e8b64160e03b700c14c51715b`、
   `1d6764c0979e31dd5626faff4dd7c20de8a49efc151fe93ac4198f3294c74b5d`、
-  `bab54621bd80e31294f7ebfcbf6b406417b42a01ead4d2e7dd5a1131b7e446c6`。这是 catalog
-  输入 schema/验收命令与 worker 参数名不一致的问题，仍需修复后才可将该路径视为完全通过。
+  `bab54621bd80e31294f7ebfcbf6b406417b42a01ead4d2e7dd5a1131b7e446c6`。验收命令已修正为
+  `mjcf_path`。
 - B7.3 zero-policy：`Unitree-G1-Flat` 在 1 个环境中完成 CUDA 编译并启动 Viser，日志显示
   `http://localhost:8080`。该 viewer 是持续运行的交互进程；为使自动化复测可返回，180 秒
   后由保护超时终止（run `0decd9e0-1a36-4db1-a0d3-9f0e095665e6`），因此没有最终 result。
-- B7.3 trained：实际 trained play 失败，run
+- B7.3 trained：修复前首次实际 trained play 失败，run
   `e33baf4d-c773-41e5-a29e-4b25ab1688a5` 退出码 1，原因是 vendor
-  `PlayConfig` 缺少 `wandb_run_path` 属性。带 `--video` 的原命令还会失败（run
+  当时的 `PlayConfig` 缺少 `wandb_run_path` 属性。带 `--video` 的原命令还会失败（run
   `0f95bf54-9d65-46b5-a8df-2c05c20d34c1`，退出码 2），因为 adapter 将布尔 flag 转为
-  `--video`，但当前 vendor 要求该参数显式带值。
+  `--video`，但当时 adapter 未传递显式布尔值；这些问题已在下方“问题修复复测”中修复。
 
 本轮因此维持 B7.1/B7.2/B7.3 为 `🔶`：CPU 闭环和 Viser 启动证据已更新，但远程 CI、
-schema 参数不一致修复、trained velocity play，以及人工 viewer/Job 取消与归档验收均未完成。
+真实 trained velocity play，以及人工 viewer/Job 取消与归档验收均未完成。
 
 ## 问题修复复测（2026-08-21）
 

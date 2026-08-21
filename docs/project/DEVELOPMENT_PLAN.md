@@ -108,9 +108,9 @@ B1 同时解锁 ─────────────────> B5 平台 A
 
 | # | 任务 | 依据 | 验收映射 |
 |---|---|---|---|
-| B7.1 | 按 MVP_ACCEPTANCE §8 在干净机器完整演练三条路径 | — | §8 | 🔶 2026-08-20 |
-| B7.2 | CPU CI：schema、安装、Job 协议、MJCF Inspector contract test | D-030、Q26 | §6 | 🔶 2026-08-20（本地通过；待 catalog 发布后远程 CI） |
-| B7.3 | 本地环境测试记录：MJLab play / Viser 手动验证清单 | D-030 | §3 | 🔶 2026-08-20（task 发现通过；play/Viser 手动验收待完成，详见 `B7_ACCEPTANCE_RECORD.md`） |
+| B7.1 | 按 MVP_ACCEPTANCE §8 在干净机器完整演练三条路径 | — | §8 | 🔶 2026-08-21（CPU 三条样板路径通过；Inspector 参数文档已修正；真实 trained play 仍需 checkpoint/WandB run） |
+| B7.2 | CPU CI：schema、安装、Job 协议、MJCF Inspector contract test | D-030、Q26 | §6 | 🔶 2026-08-21（本地 `113 passed, 1 warning`；待 catalog 发布后远程 CI） |
+| B7.3 | 本地环境测试记录：MJLab play / Viser 手动验证清单 | D-030 | §3 | 🔶 2026-08-21（Viser 已启动；`--video` 与 PlayConfig 缺陷已修复；trained play 仍需真实 checkpoint/WandB run，详见 `B7_ACCEPTANCE_RECORD.md`） |
 
 依赖：B4、B6。
 
