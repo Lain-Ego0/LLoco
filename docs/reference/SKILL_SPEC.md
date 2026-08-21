@@ -28,7 +28,8 @@ MVP 支持三类 Skill：
 RoboLab-Skill/
 ├── catalog.yaml
 ├── skills/
-│   ├── motion/g1_velocity/
+│   ├── motion/reference_biped_velocity/
+│   ├── motion/g1_velocity/          # 可选商业机器人样板
 │   ├── platform/mjcf_inspector/
 │   └── agent/robot_onboarding/
 └── tools/                    # catalog 校验和打包工具
@@ -87,12 +88,12 @@ metadata:
   source:
     repository: https://github.com/Lain-Ego0/RoboLab-Skill
     revision: 0123456789abcdef0123456789abcdef01234567
-  # 可选：内容上游出处（复用 vendor/第三方产物时必填），revision 为完整 commit SHA
+  # 可选：内容上游出处（复用第三方产物时必填），revision 为完整 commit SHA
   provenance:
-    repository: https://github.com/unitreerobotics/unitree_rl_mjlab
-    revision: 1425b15f73bd4095f0df53709d7c389c3eb9e790
+    repository: https://example.org/robot-assets/reference-biped
+    revision: 0123456789abcdef0123456789abcdef01234567
     paths:
-      - deploy/robots/g1/config/policy/velocity/v0/...
+      - model/robot.xml
 
 spec:
   compatibility:
@@ -167,7 +168,8 @@ Skill 不复制 RoboLab/MJLab 本体、Conda 环境、ONNX Runtime、MuJoCo、�
 - 自身源码、schema、文档和测试；
 - 少量演示资源。
 
-当前仓库样例中，G1 velocity ONNX 约 `0.84 MiB`，mimic ONNX 外部数据约 `0.94 MiB`，dance motion NPZ 约 `11.24 MiB`，暂时都可以直接使用普通 Git。因此 MVP 不引入 Git LFS/GitHub Release 下载器。
+当前历史样例中的 G1 velocity ONNX 约 `0.84 MiB`，其他小型 ONNX 和动作数据也可直接使用普通 Git。因此首版不引入
+Git LFS/GitHub Release 下载器；该文件大小事实不表示 G1 是主线 Robot Profile。
 
 后续只有 Skill 独有的二进制频繁更新、单文件明显变大或 catalog clone 体积成为问题时，才按包选择 Git LFS/Release，并在 manifest 固定 URL、size、SHA-256 和许可证。训练 checkpoint、完整数据集和公共机器人资产默认不进入运行时 Skill 包。
 
@@ -180,14 +182,14 @@ spec:
     protocol: robolab-motion-v1   # 与可执行 Skill 的 robolab-job-v1 区分
   compatibility:
     robots:
-      - profile: unitree.g1.29dof
+      - profile: community.reference_biped
         version: ">=1.0.0 <2.0.0"
     controlMode: joint_position
     controlHz: 50
-    jointSet: g1.29dof.canonical.v1
+    jointSet: reference_biped.canonical.v1
     # 观测/动作 schema 使用稳定 id（B2 任务绑定导出后可机器比对），也接受 sha256:<hex>
-    observationSchema: unitree.g1.velocity.v0.observation.v1
-    actionSchema: unitree.g1.29dof.joint-position.v1
+    observationSchema: motion.velocity.flat.reference_biped.observation.v1
+    actionSchema: reference_biped.joint-position.v1
   artifacts:
     - name: policy
       path: artifacts/policy.onnx
@@ -214,11 +216,15 @@ spec:
     realRobotRequiresExplicitConfirmation: true
 ```
 
+上面的 `community.reference_biped` 是主线设计示例，不是当前已安装 Profile。具体 ID 必须在 R2.1 选择参考机器人并固定
+模型来源后确定；执行 Agent 不得仅根据该占位 ID 创建虚假的已完成 Artifact 或兼容性记录。
+
 MotionSkill 的兼容不能只写 `robots: [g1]`。必须同时校验 profile/version、joint set、观测/动作 schema、控制模式、频率、状态估计和安全限制。`robolab check --skill S --profile P` 输出逐条可解释原因（B1.4）。
 
-`task` 使用 RoboLab 稳定 `TaskDefinition` ID，不使用 vendor registry ID 或脚本路径。
-迁移期由 `unitree_compat` 在私有 binding 中将它映射到 `Unitree-G1-Flat`；等价性通过后可由
-`mjlab_native` 实现同一个公开 task ID，MotionSkill 无需修改。
+`task` 使用 RoboLab Customized MJLab 1.6 稳定的 `TaskDefinition` ID，不使用 vendor registry ID 或脚本路径。
+例如 `motion.velocity.flat@1` 表示 RoboLab 任务语义，Robot Profile 决定该任务如何实例化到具体自研或成品机器人。
+Unitree legacy 可以在私有 binding 中把该 ID 映射到旧的 `Unitree-G1-Flat`，但该映射不进入 Skill 公共契约，也不要求
+MJLab 1.6 与旧 Unitree 路径逐帧等价。
 
 ## 9. AgentSkill 扩展字段
 

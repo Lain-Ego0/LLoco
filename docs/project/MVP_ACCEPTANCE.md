@@ -1,5 +1,8 @@
 # RoboLab MVP 验收标准
 
+> 历史说明：本文定义 Phase 0–1 的 Unitree G1 样板验收，保留用于追踪已有实现，不再是当前 MJLab 1.6 主线的完成标准。
+> 当前批次、非 Unitree 机器人要求和一站式运动控制闭环以 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为准。
+
 状态：v0.1；三类 Skill 样板和本地运行方式已确认。
 
 ## 1. MVP 目标

@@ -1,8 +1,30 @@
 # RoboLab
 
-## 启动方式
+> **A One-Stop Motion Control Platform Built on a Heavily Customized MJLab Toolchain, with Robot Deployment Adaptation and Skill Integration.**
 
-在已有 `robolab` Conda 环境中启动本地 Web 平台：
+RoboLab 是一个基于深度定制 MJLab 1.6 工具链、面向商业成品机器人、实验室自研机器人、爱好者机器人和比赛机器人的
+一站式运动控制开发与部署平台。
+
+平台计划把 Robot Profile、运动任务、强化学习训练、回放、评测、策略导出、Skill、sim-to-sim 和安全部署组织成一条
+可追踪、可复现、可回滚的工作流。Unitree G1 是早期样板和后续商业机器人适配对象，不是 RoboLab 的技术基座或产品身份。
+
+## 当前状态
+
+当前仓库已经完成 Phase 0–1 的平台控制面骨架，包括 schema、Skill、CLI、Worker、API、WebUI 和 Artifact Store。
+历史 Unitree/MJLab 1.2 路径能够进行 task discovery 和受控 play，但它已被重新定义为 legacy/reference。
+
+新的开发主线正在切换到仓库中的 MJLab 1.6 源码，并将建立 RoboLab 定制的 Robot/Task Registry、
+train/play/evaluate/export、非 Unitree 机器人接入和部署 Runtime。当前尚不能宣称以下能力已完成：
+
+- MJLab 1.6 深度定制工具链；
+- 自研机器人完整纵向样板；
+- 真实策略的训练、验证和 sim-to-sim 闭环；
+- DeploymentSession、watchdog 和 Runtime `stop/safe`；
+- 受控实机部署。
+
+当前状态和工作顺序以 [`docs/project/DEVELOPMENT_PLAN.md`](docs/project/DEVELOPMENT_PLAN.md) 为唯一权威。
+
+## 启动现有本地平台
 
 ```bash
 cd /home/lxy/RoboLab
@@ -12,100 +34,75 @@ python -m pip install -e packages/schemas -e packages/core -e packages/mjlab_ada
 robolab serve
 ```
 
-启动后，终端会打印实际访问地址（默认监听 `127.0.0.1`，端口自动选择），在浏览器打开该地址即可。首次创建环境或需要运行 MJLab/Viser 时，先按 [`docs/reference/ENVIRONMENT_SETUP.md`](docs/reference/ENVIRONMENT_SETUP.md) 安装对应依赖；仅修改 WebUI 后，在 `apps/web/` 执行 `npm install && npm run build`，再重新启动服务。
-
-One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with Deployment Adaptation and Skill Integration.
-
-RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台，将机器人接入、强化学习训练、仿真验证、策略导出、Skill 安装和实机部署组织成一条可追踪、可复现、可回滚的工作流。
-
-> 当前仓库已完成 Phase 0–1 的 B1–B6 实现，B7 作为下一阶段 N0 关闭门禁继续验收。
-> CPU contract suite 已通过；真实 G1 trained MotionSkill 仍等待当前外部 GPU 训练结束后训练或取得
-> checkpoint。当前不启动 RoboLab/G1 GPU 任务。下一阶段集中完成 trained play、ValidationRun、
-> sim-to-sim、DeploymentSession 与 Runtime `stop/safe` 纵向闭环。当前状态以
-> [`docs/project/DEVELOPMENT_PLAN.md`](docs/project/DEVELOPMENT_PLAN.md) 为准。
+服务默认监听 `127.0.0.1`，端口自动选择。首次创建环境或运行 MJLab/Viser 前，先阅读
+[`docs/reference/ENVIRONMENT_SETUP.md`](docs/reference/ENVIRONMENT_SETUP.md)。现有 `packages/mjlab_adapter` 命令属于
+Unitree legacy 路径，不代表新的 MJLab 1.6 默认环境已经完成。
 
 ## 核心边界
 
-- **Simulation Backend**：当前由 `packages/mjlab_adapter/` 对接 Unitree 兼容路径并建立 G1 黄金基线；
-  后续通过统一 Backend Registry 同时支持 `unitree_compat` 与 RoboLab 自有 `mjlab_native`。
-- **Robot Profile**：描述“这台机器人是什么、关节如何映射、怎样通信、怎样保证安全”。
-- **Skill Package**：统一承载运动能力、可执行平台功能和 Agent 工作流，包含入口、依赖、权限、文档、兼容性和验证规则。
-- **Platform Core**：负责注册表、任务编排、产物管理、兼容性检查、审计和部署门禁。
-- **WebUI**：提供机器人接入、Skill 管理、训练监控、仿真验证和部署会话界面；不承担硬实时关节控制。
-- **Edge Runtime**：靠近机器人运行控制循环、SDK/DDS 通信、看门狗和急停逻辑，仅接受经过校验的高层命令。
-
-建议的数据流：
+- **Customized MJLab 1.6 Toolchain**：RoboLab 的正式运动仿真和训练基座，负责机器人、任务、MDP、训练、回放、评测、导出和指标。
+- **Robot Profile**：描述机器人模型、关节、执行器、传感器、控制周期、任务和部署绑定；不要求机器人来自某个厂商。
+- **Skill Package**：统一承载运动能力、平台功能和 Agent 工作流，包含入口、依赖、权限、兼容性和验证规则。
+- **Platform Core**：负责 registry、Job、Artifact、兼容性、lineage、审计和部署门禁。
+- **WebUI**：管理机器人接入、Skill、训练、验证和部署会话；不承担硬实时关节控制。
+- **Edge Runtime**：靠近机器人运行策略、Driver、FSM、watchdog、遥测和 stop/safe，不依赖浏览器持续在线。
+- **Unitree Legacy Reference**：只提供 G1 资产、旧任务、sim-to-sim 和部署迁移参考。
 
 ```text
-RoboLab-Skill ──安装/校验──> Skill Registry ──绑定──> Robot Profile
-                                             │
-WebUI ──API──> Platform Core ──任务──> Backend Registry / Job Worker
-                                             │
-                                      Simulation Gate
-                                             │
-                                      Edge Runtime ──> Robot
+Robot MJCF/Profile ──> Customized MJLab 1.6 ──> PolicyArtifact
+       │                         │                     │
+       └── Robot Registry        └── Train/Evaluate    ├── MotionSkill
+                                                       └── Validation
+WebUI/CLI/Agent ──> Platform Core ──> DeploymentPlan ──> Edge Runtime ──> Robot
 ```
-
-## 仓库关系
-
-| 仓库 | 职责 | 版本策略 |
-|---|---|---|
-| `RoboLab` | 平台、WebUI、适配层、定制 MJLab、部署运行时 | 平台版本 |
-| `RoboLab-Skill` | 可独立下载的 Skill catalog 与能力包 | 每个 Skill 独立语义版本 |
-
-`RoboLab-Skill` 作为全部开源的 catalog monorepo：一个仓库可以包含多个 MotionSkill、PlatformSkill 和 AgentSkill，但每个 Skill 必须有独立 manifest、版本、许可证、入口、权限和兼容性声明。平台安装时固定 Git commit/tag，不直接跟随浮动的 `main`。
 
 ## 仓库入口与所有权
 
-当前已存在并可用：
-
-| 路径 | 内容 | 状态 |
+| 路径 | 职责 | 当前状态 |
 |---|---|---|
-| `vendor/unitree_rl_mjlab/` | 精选导入的 Unitree 训练/仿真/legacy 部署技术来源 | 已导入并纳入 Git；训练、回放、sim-to-sim 可按上游方式运行 |
-| `packages/schemas/` | `RobotProfile`/`JointSet`/`SkillPackage` v1alpha1 JSON Schema | B1 已实现（2026-08-20） |
-| `packages/core/` | 关节映射机器校验、Skill×Profile 兼容性判定、Skill lint | B1 已实现（2026-08-20） |
-| `apps/cli/` | `robolab` 命令行：check、skill、agent、serve、mjlab | B1–B5 已实现 |
-| `tests/contract/` | schema、兼容性、安装、Job、API、MJLab adapter 与样板 Skill 测试 | B7 CPU suite 已通过（最新记录 112 passed） |
-| `skills/` | 本机 Skill 工作区（builtin/installed/dev） | B2 已实现扫描、固定安装、注册、不可变卸载保护与 prepare 审查 |
-| `docs/` | RoboLab 正式文档 | 可用 |
-| `THIRD_PARTY_NOTICES.md` | 第三方声明 | 可用，随依赖演进持续更新 |
-
-以下四个入口目前**只是所有权与接口边界**，目录中只有说明文档，没有平台代码：
-
-| 入口 | 职责 | 实现状态 |
-|---|---|---|
-| [`packages/mjlab_adapter/`](packages/mjlab_adapter/) | 当前 Unitree/MJLab 兼容适配的过渡入口 | B3 已实现 task 发现与受控 play；N1 后封装为 `unitree_compat`，公共 API 改用 backend/task ID |
-| [`integrations/unitree/`](integrations/unitree/) | Unitree Driver/Profile，首个厂商适配器 | 接口边界，未实现；Unitree 专用逻辑暂仍在 vendor `deploy/` |
-| [`runtime/`](runtime/) | 与厂商无关的 C++ FSM、推理、安全与遥测 | 接口边界，未实现；共享逻辑暂仍在 vendor `deploy/` |
-| [`robots/`](robots/) | 与 Skill 解耦的 Robot Profile | 已实现首个 Unitree G1 29DoF simulation-only Profile；模型资产引用 vendor，不复制 |
+| `vendor/mjlab/` | MJLab 1.6 下游定制基座 | 上游源码已存在；R0 固定 revision 和修改记录后开始定制 |
+| `vendor/unitree_rl_mjlab/` | Unitree G1 legacy/reference 来源 | 已固定上游 revision；不再承载新平台主线功能 |
+| `packages/schemas/` | Robot、Skill、Artifact、Validation 和 Deployment schema | 已有 v1alpha1 基础，后续按 R0–R6 演进 |
+| `packages/core/` | Registry、兼容性、Skill lint、Job/Artifact 基础 | B1–B6 骨架已实现 |
+| `packages/mjlab_adapter/` | 旧 Unitree/MJLab 1.2 discovery/play 入口 | legacy 兼容代码，非 MJLab 1.6 主线 |
+| `packages/mjlab_tasks/` | 目标：RoboLab task、MDP 和 robot binding 扩展 | 尚未建立 |
+| `robots/` | Robot Profile 与模型 binding | 当前只有 G1 样板；R2 必须加入非 Unitree 参考机器人 |
+| `runtime/` | 通用部署数据面、FSM、推理、安全和遥测 | 仅有接口说明 |
+| `integrations/` | 具体厂商或硬件 Driver adapter | Unitree 入口仅有说明 |
+| `skills/` | builtin/installed/dev Skill 工作区 | 安装、注册和调用骨架已实现 |
 
 ## 目标工作流
 
-1. 创建或导入 Robot Profile，完成模型、关节、驱动与安全参数校验。
-2. 从本地目录或 Git 仓库安装 Skill，验证 manifest、许可证、入口、权限、依赖、产物哈希和机器人兼容性。
-3. 在 WebUI 创建训练、回放、导出或评测任务，并保存完整配置与产物来源。
-4. 通过离线检查、MJLab 回放和 sim-to-sim 门禁。
-5. 一键执行已通过门禁的仿真 Deployment Plan；未来实机适配完成后，由本地 Edge Runtime 完成连接、安全确认与失败回退。
-6. 保存部署会话、遥测摘要、策略版本和操作者审计记录，以便复现与回滚。
-
-迁移期间，`unitree_compat` 提供 G1 黄金基线；双后端等价性通过后，RoboLab 自有
-`mjlab_native` 成为默认。Skill 和公共 API 依赖稳定 task/backend ID，不依赖 vendor 脚本路径。
+1. 导入或创建机器人 MJCF 和 Robot Profile，完成模型、关节、执行器、传感器和控制参数检查；
+2. 在 Customized MJLab 1.6 中绑定任务，生成 observation/action schema；
+3. 通过 WebUI、CLI 或 Skill 创建 train/play/evaluate/export Job；
+4. 固定 checkpoint、ONNX、resolved config、schema、hash 和代码 revision 为 PolicyArtifact；
+5. 运行离线检查、MJLab 回放、指标评测和 sim-to-sim；
+6. 创建经过门禁的 DeploymentPlan，由 Edge Runtime 启动 simulation 或未来的 physical session；
+7. 保存 Runtime 状态、遥测摘要、故障、stop/safe 和完整 lineage。
 
 ## 文档
 
 - [文档索引](docs/README.md)
+- [MJLab 1.6 技术主线](docs/project/MJLAB_1_6_TECHNICAL_DIRECTION.md)
 - [主线对齐审查](docs/project/MAINLINE_ALIGNMENT_REVIEW.md)
-- [下一阶段详细执行计划（当前进度）](docs/project/DEVELOPMENT_PLAN.md)
+- [当前开发计划](docs/project/DEVELOPMENT_PLAN.md)
 - [总体架构](docs/reference/ARCHITECTURE.md)
-- [仿真、训练与 Play 后端演进策略](docs/reference/SIMULATION_BACKEND_STRATEGY.md)
+- [MJLab 1.6 深度定制策略](docs/reference/SIMULATION_BACKEND_STRATEGY.md)
+- [机器人适配规范](docs/reference/ROBOT_ADAPTATION.md)
 - [Skill 包规范](docs/reference/SKILL_SPEC.md)
 
 ## 安全原则
 
-浏览器不能直接输出关节指令，Web 服务崩溃也不能让机器人保持最后一次危险命令。实机运行时必须具备本地急停、dead-man/watchdog、命令超时、限幅、状态机门禁和安全回退。未经仿真验证的 Skill 默认禁止实机激活。
+浏览器不能直接输出关节指令，Web 服务崩溃也不能让机器人保持最后一次危险命令。实机运行时必须具备本地急停、
+dead-man/watchdog、命令超时、限幅、状态机门禁和安全回退。未经仿真验证的 Skill 默认禁止实机激活；缺少 Driver、
+Calibration 或 SafetyProfile 时 physical target 必须保持不可用。
 
-## 上游声明
+## 上游与许可证
 
-`vendor/unitree_rl_mjlab/` 精选导入自 [unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，基线固定为 `1425b15f`，只保留平台实际依赖的技术来源；上游宣传文档、GIF、预编译 runtime 和 Skill 产物未进入 vendor，include/exclude 规则见 `vendor/unitree_rl_mjlab/VENDOR_MANIFEST.yaml`。保留内容继续遵守 Apache-2.0；RoboLab 根目录 MIT 不替代第三方许可证。RoboLab 不是 Unitree Robotics 的官方产品。
+`vendor/mjlab/` 来源于开源 MJLab，将按固定 upstream revision 维护 RoboLab 下游修改。`vendor/unitree_rl_mjlab/` 精选导入自
+[unitreerobotics/unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)，固定基线为 `1425b15f`。
+RoboLab 根目录 MIT 不替代 MJLab、Unitree vendor、模型、mesh、动作和其他第三方内容的许可证。
 
-详见 [第三方声明](THIRD_PARTY_NOTICES.md) 和 [上游记录](vendor/unitree_rl_mjlab/UPSTREAM.md)。
+RoboLab 不是 Unitree Robotics、MJLab、MuJoCo 或其他上游项目的官方产品。详见
+[第三方声明](THIRD_PARTY_NOTICES.md) 和 [上游与致谢](docs/reference/UPSTREAM_AND_ACKNOWLEDGEMENTS.md)。

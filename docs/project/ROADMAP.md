@@ -1,72 +1,69 @@
 # RoboLab 实施路线图
 
-> 进度状态以 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为唯一权威；本文件只维护阶段目标与退出条件。
+> 当前状态、依赖、验收和工作项以 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为唯一权威。
+> 本路线图只描述阶段目标，不替代逐项验收。
 
-## Phase 0：来源与契约基线
+## 总路线
 
-- ✅ 以已验证的 upstream commit `1425b15f` 建立可追踪导入历史（`vendor/unitree_rl_mjlab/UPSTREAM.md`）；
-- ✅ 以独立 curated vendor commit 导入 `vendor/unitree_rl_mjlab/`，使用 manifest 排除宣传文档、预编译 runtime 和 Skill 产物；后续 commit 已将 deploy/simulate 改为发现外部 ONNX Runtime/MuJoCo；
-- ✅ 选择仓库内 Unitree G1 29DoF 公开 MJCF 作为首个 simulation-only 样板（2026-08-20，B2.1；见 `robots/unitree.g1.29dof/`）；
-- ✅ 冻结 `RobotProfile v1alpha1` 和统一 `SkillPackage v1alpha1` 最小 schema（2026-08-20，B1.1/B1.2；另含 `JointSet v1alpha1`，见 `packages/schemas/`）；
-- ✅ 已生成 G1 Velocity MotionSkill，并创建 MJCF Inspector PlatformSkill（B4.1/B4.2，2026-08-20）；
-- ✅ 建立基础 lint、schema、license 和 artifact hash 检查（2026-08-20，B1.6；`robolab check` 可执行）。
+```text
+MJLab 1.6 基座固定
+  -> RoboLab 定制运动工具链
+  -> 非 Unitree 自研机器人接入
+  -> 训练/回放/评测/导出
+  -> Skill/Artifact/Validation
+  -> Runtime/sim-to-sim/stop-safe
+  -> 自研机器人 + 成品机器人验证
+```
 
-退出条件：任何人能解释一份 Skill 为什么与某 Robot Profile 兼容或不兼容——B1.4/B1.5
-已提供机器判定与逐条原因；Phase 0 已按
-[Phase 0–1 计划归档](../history/PHASE_0_1_DEVELOPMENT_PLAN.md) 的 B1 退出小节完成
-（B1 + B2.1 + B4.1 + B4.2）。
+Unitree RL MJLab 是 legacy/reference 路线，不是总路线的根节点。
 
-## Phase 1：本地平台闭环
+## 历史完成部分
 
-状态：实现批次 B1–B6 已完成；真实 G1 trained MotionSkill 与最终 lineage 验收转入 N0，
-在 N0 关闭前不宣告 Phase 1 完整退出。
+- ✅ 建立 `vendor/unitree_rl_mjlab/` 的来源追踪、许可证和精选导入记录；
+- ✅ 冻结 `RobotProfile`、`JointSet` 和 `SkillPackage` 最小 schema；
+- ✅ 实现基础 lint、兼容性检查、Skill 安装、Job、API、Worker 和 WebUI 骨架；
+- ✅ 建立 G1 29DoF simulation-only Profile 和旧 MJLab/Unitree 兼容入口。
 
-- FastAPI API、SQLite、artifact store 和本地 Worker；
-- 发现现有 MJLab registry tasks；
-- Job 日志、取消、状态和配置 snapshot；
-- Skill catalog 安装、版本固定、权限审查、Conda prepare、contract test 与卸载；
-- `robolab-job-v1` 子进程协议和统一 action registry；
-- AgentSkill 校验和 Codex `.agents/skills/` export 原型；
-- 最小 React WebUI：Robots、Skills、Jobs、Artifacts；
-- MJLab play 与验证报告。
+这些成果继续有效，但不能等同于 MJLab 1.6 深度定制已经完成。
 
-退出条件：MotionSkill 和 PlatformSkill 都能从 catalog 安装后直接调用，且不导入 API 进程并保留完整 lineage。
+## 当前主线阶段
 
-## Phase 2：仿真部署与 Edge
+### R0：MJLab 1.6 基座固定
 
-执行映射：当前详细计划 N1–N5。N0 未通过前不进入实现。
+固定 upstream commit、默认依赖环境、许可证、修改账本、smoke test 和同步规则。
 
-- 建立 `SimulationBackend` 契约和 backend registry；
-- 将现有 Unitree 路径封装为 `unitree_compat`，不再扩散 vendor CLI/path；
-- 在 `packages/mjlab_tasks` 建立 RoboLab-native G1 velocity task/train/play skeleton；
-- 通过双后端等价性报告后，才将 `mjlab_native` 设为默认；
-- 抽取共享 C++ runtime；
-- 完成首个 simulation target，并定义但不强制实现实机 Driver/Profile；
-- 接入 unitree_mujoco sim-to-sim；
-- Edge heartbeat、watchdog、session token、start/stop/safe；
-- WebUI Validate 与 Deploy 页面；
-- 自动 compatibility 与 safety gates。
+### R1：定制 MJLab 工具链
 
-退出条件：实现一键仿真部署；physical target 缺少 Driver/Calibration/Safety 时明确阻止激活。
+实现 Robot/Task Registry、统一 train/play/evaluate/export、schema、Artifact metadata 和回归测试。
 
-## Phase 3：训练与机器人向导
+### R2：自研机器人接入
 
-- 训练配置 schema、资源选择、指标和 checkpoint；
-- Robot onboarding wizard 与自动模型诊断；
-- 导入第二个公开 MJCF，验证 simulation-only 抽象；
-- 定义 MotorBus、SensorAdapter、CalibrationProvider 和 StateEstimator 接口；
-- Skill 回滚和兼容矩阵回归测试。
+引入非 Unitree 参考机器人，完成 MJCF/Profile 诊断、执行器/传感器映射、reset、observation 和 Viewer。
 
-退出条件：第二个机器人不复制整套 runtime 即可完成 L0-L3 适配。
+### R3：真实运动策略
 
-## Phase 4：受控实机与生态
+完成首个 velocity/tracking task 的训练或可信 checkpoint 回放、独立指标评测和策略导出。
 
-- 为实际自制机器人实现驱动、传感器、标定、安全控制和本地确认；
-- Skill 签名、可信发布者和权限声明；
-- 可选 Docker、远端 Worker 和多人模式；
-- CompositeSkill 与稳定扩展 SDK；
-- 发布贡献、兼容认证和安全披露流程。
+### R4：Skill 与平台闭环
 
-## 首个迭代建议
+让 MotionSkill、API、CLI、Worker 和 WebUI 调用 Customized MJLab 1.6，并保存完整 Artifact lineage。
 
-首个两周迭代建议实现三条最小样例：“G1 velocity MotionSkill -> MJLab play”、“MJCF Inspector PlatformSkill -> 诊断报告”，以及统一安装/调用页面。第二轮 QA 已确认 AgentSkill（Robot Onboarding）同时进入首版。
+### R5：部署适配与 Runtime
+
+实现 ONNX runner、FSM、heartbeat、watchdog、simulation driver、DeploymentSession 和 stop/safe。
+
+### R6：多机器人验证
+
+使用至少一个自研机器人和一个成品机器人完成共享契约验证；G1 在此作为普通成品机器人适配器。
+
+## 明确不再采用的旧门禁
+
+- 不再要求先完成 G1 黄金 checkpoint 才能开发 MJLab 1.6；
+- 不再把 `unitree_compat` 和 `mjlab_native` 作为长期对等产品后端；
+- 不再要求 MJLab 1.6 与旧 MJLab 1.2 逐帧等价；
+- 不再把自研机器人排到第二机器人或后期生态阶段；
+- 不再把“修改 MJLab”视为架构违规。
+
+## 后续阶段
+
+R6 完成后，再评估真实硬件 Driver、Calibration、Safety、Skill 签名、第二类训练后端、远程 Worker、Docker 和多人模式。

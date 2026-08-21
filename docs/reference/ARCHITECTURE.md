@@ -1,173 +1,148 @@
 # RoboLab 总体架构
 
-状态：设计基线 v0.4。Q1-Q26、仓库管理与 MVP 范围已冻结；B1–B6 已完成，B7 已转为
-下一阶段 N0 关闭门禁，等待真实 G1 checkpoint。本文描述架构边界；当前批次、完成状态与剩余工作以
+状态：设计基线 v0.5，2026-08-21 生效。本文描述长期架构边界；当前批次和实施状态以
 [`DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为唯一权威。
 
-## 1. 设计目标
+## 1. 产品与技术目标
 
-RoboLab 的目标不是重新实现物理引擎或强化学习算法，而是在开源 MJLab 之上拥有稳定的任务、
-训练、回放、验证和部署边界。具体后端迁移见
-[`SIMULATION_BACKEND_STRATEGY.md`](SIMULATION_BACKEND_STRATEGY.md)：
+RoboLab 是基于深度定制 MJLab 1.6 工具链的一站式运动控制开发与部署平台，服务商业成品机器人、实验室自研机器人、
+爱好者机器人和比赛机器人。完整技术决策见
+[`MJLAB_1_6_TECHNICAL_DIRECTION.md`](../project/MJLAB_1_6_TECHNICAL_DIRECTION.md)。
 
-- 同一套界面覆盖机器人接入、训练、仿真、Skill 管理和部署。
-- 训练产物从产生到实机运行全程可追踪、可校验、可回滚。
-- 新增机器人主要编写 Robot Profile 和 Driver，而不是复制整套任务与部署程序。
-- 新增能力主要交付 Skill Package，而不是修改平台核心代码。
-- WebUI 与硬实时控制隔离，网络或浏览器故障不能破坏底层安全状态机。
+项目不是重新实现物理引擎或强化学习算法，而是在 MJLab、MuJoCo、MuJoCo-Warp、Warp 和 RSL-RL 之上建立并维护：
 
-首个版本只面向个人本机使用，不建设服务器、多用户、云端训练、在线商店或 Docker 运行环境。可执行 Skill 是正式能力，但必须通过 Worker 独立进程运行，不能无隔离导入 API 进程。
+- RoboLab 定制的机器人、任务、训练、回放、评测和导出工具链；
+- Robot Profile、Skill、Policy Artifact 和 DeploymentPlan 的统一契约；
+- 面向不同机构、执行器、传感器和通信方式的机器人适配流程；
+- 与 WebUI 隔离的部署 Runtime、安全状态机和 Driver；
+- 从机器人接入到策略部署的可追踪、可复现、可回滚工作流。
+
+首版是个人本机工程工作台，不建设服务器、多用户、云端训练、在线商店或 Docker 运行环境。
 
 ## 2. 分层架构
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│ WebUI: Workspace / Robots / Skills / Jobs / Deploy / Audit   │
+│ WebUI / CLI / Agent                                          │
+│ Robots · Skills · Train · Jobs · Validate · Deploy · Audit   │
 └──────────────────────────────┬───────────────────────────────┘
                                │ REST + WebSocket
 ┌──────────────────────────────▼───────────────────────────────┐
-│ Platform API                                                  │
-│ Registry · Workflow · Compatibility · Artifact · Safety Gate │
-└──────────────┬───────────────────────────────┬───────────────┘
-               │ jobs                          │ deploy session
-┌──────────────▼──────────────┐  ┌─────────────▼───────────────┐
-│ Worker / Backend Registry   │  │ Edge Runtime                │
-│ train · play · eval · export│  │ FSM · inference · watchdog  │
-└──────────────┬──────────────┘  │ SDK/DDS driver · e-stop     │
-               │ artifacts       └─────────────┬───────────────┘
-┌──────────────▼──────────────┐                │
-│ Artifact Store + Metadata   │                ▼
-│ config · logs · ONNX · hash │              Robot
-└─────────────────────────────┘
+│ RoboLab Platform Control Plane                               │
+│ Registry · Workflow · Artifact · Compatibility · Safety Gate │
+└──────────────┬────────────────────────────────┬──────────────┘
+               │ motion jobs                    │ deployment plan/session
+┌──────────────▼─────────────────────────┐  ┌───▼────────────────────────┐
+│ RoboLab Customized MJLab 1.6 Toolchain │  │ Edge Runtime               │
+│ Robot · Task · MDP · Train · Play      │  │ Policy · FSM · Watchdog    │
+│ Evaluate · Export · Metrics · Viewer   │  │ Telemetry · Stop · Safe    │
+└──────────────┬─────────────────────────┘  └───┬────────────────────────┘
+               │                                │ driver interface
+┌──────────────▼────────────────────────────────▼───────────────┐
+│ Robot Adaptation                                             │
+│ Robot Profile · MJCF · Actuator · Sensor · Calibration       │
+│ Custom Robot Driver · Unitree Driver · Other Drivers          │
+└───────────────────────────────────────────────────────────────┘
 ```
 
-### 2.1 Control Plane 与 Data Plane
+Skill 和 Artifact 是跨层对象：Skill 描述可安装能力和权限，Artifact 固定策略、配置、schema、hash 和来源。它们不直接
+替代 MJLab task 或 Runtime driver。
 
-Platform API 和 WebUI 属于控制面：创建任务、修改配置、授权部署和查看状态。Edge Runtime 属于数据面：读取传感器、执行推理、发送电机命令并处理超时。二者必须是独立进程；实机控制循环不能依赖 WebSocket 是否在线。
+## 3. 核心组件
 
-### 2.2 核心领域对象
-
-| 对象 | 作用 | 稳定标识示例 |
+| 组件 | 职责 | 当前状态 |
 |---|---|---|
-| `RobotProfile` | 模型、关节语义、仿真参数、驱动与安全边界 | `unitree.g1.29dof@1.0.0` |
-| `TaskDefinition` | MJLab 环境、算法和导出规则 | `motion.velocity.flat@1` |
-| `SimulationBackend` | 把稳定任务/配置映射为受控 JobCommand | `unitree_compat@1` |
-| `SkillPackage` | 可安装能力及兼容性契约 | `dance.subject2@1.2.0` |
-| `Artifact` | 模型、动作、配置、日志或报告 | content SHA-256 |
-| `Job` | train/play/export/evaluate 等异步任务 | UUID |
-| `ValidationRun` | 某 Skill + Robot 的验证结果 | UUID |
-| `DeploymentSession` | 一次 sim 或 real 部署及审计 | UUID |
+| Customized MJLab 1.6 | 机器人、任务、MDP、训练、回放、评测、导出和仿真指标 | 上游源码已存在；RoboLab 定制尚未开始 |
+| Platform Core | Schema、兼容性、Action、Job、Artifact 和部署门禁 | B1–B6 骨架已实现 |
+| Skill System | MotionSkill、PlatformSkill、AgentSkill 的安装、权限和调用 | 当前完成度最高 |
+| Robot Adaptation | MJCF/Profile、执行器、传感器、控制周期、Driver 和标定 | G1 simulation-only 样板已存在；通用接入待实现 |
+| Edge Runtime | ONNX 推理、FSM、watchdog、遥测和 stop/safe | 仅有接口边界 |
+| Unitree Legacy Reference | G1 旧任务、模型、部署和 sim-to-sim 参考 | 已导入，非主线基座 |
 
-所有运行记录都要固定代码 revision、Robot Profile 版本、Skill 版本、配置快照、随机种子、依赖环境和产物哈希。
-
-## 3. 目录结构与当前进度
-
-精选 vendor 导入已完成，`vendor/unitree_rl_mjlab/` 已纳入 Git。B1–B6 已落地；下列目录树同时区分
-当前实现和目标边界。`packages/simulation`、`packages/mjlab_tasks` 与 `backends/` 属于 N1+ 目标结构：
+## 4. 仓库所有权
 
 ```text
 RoboLab/
 ├── apps/
-│   ├── cli/                  # robolab 命令行（check、skill、agent、serve、mjlab）
-│   └── web/                  # 最小 React WebUI（B6 已实现）
+│   ├── cli/                         # 本地 CLI
+│   └── web/                         # React WebUI
 ├── services/
-│   ├── api/                  # loopback FastAPI、SQLite 与 artifact store（B5 已实现）
-│   ├── worker/               # 本地异步任务执行器（已实现：robolab-job-v1 子进程/进程组）
-│   └── edge/                 # 非实时管理面；启动/监控 C++ runtime（未实现）
+│   ├── api/                         # FastAPI 控制面
+│   └── worker/                      # 隔离 Job 执行
 ├── packages/
-│   ├── core/                 # 领域模型、registry、兼容性和状态机（B1–B4 已实现）
-│   ├── schemas/              # manifest/profile/JointSet JSON Schema（已实现：v1alpha1）
-│   ├── mjlab_adapter/        # 过渡实现：当前 vendor task 发现/play 命令构造
-│   ├── simulation/           # 目标：后端无关契约、registry、稳定 task/backend ID
-│   ├── mjlab_tasks/          # 目标：RoboLab 自有 MJLab task、MDP、train/play/export
-│   └── sdk/                  # Skill/Robot 扩展开发工具（未实现）
-├── backends/
-│   ├── unitree_compat/       # 目标：封装 vendor 的兼容/回归后端
-│   └── mjlab_native/         # 目标：RoboLab 自有 MJLab 执行后端
-├── skills/                   # Skill 工作区；扫描、固定安装、卸载保护与 prepare 已实现（B2）
-│   ├── builtin/              # 随平台发布的 Skill
-│   ├── installed/            # catalog 安装的固定版本
-│   └── dev/                  # 本地 Skill 开发链接
-├── integrations/
-│   └── unitree/              # Unitree Driver/Profile，首个厂商适配器（仅有入口说明）
-├── runtime/
-│   ├── core/                 # 共享 C++ FSM、推理、安全与遥测（仅有入口说明）
-│   └── drivers/              # unitree_sdk2 等硬件驱动插件（未实现）
-├── robots/                   # RoboLab Robot Profile；首个 G1 29DoF simulation-only Profile 已实现
+│   ├── schemas/                     # 公共版本化 schema
+│   ├── core/                        # Registry、compatibility、artifact、action
+│   ├── mjlab_adapter/               # 当前 Unitree legacy 兼容入口
+│   └── mjlab_tasks/                 # 目标：RoboLab MJLab task/robot 扩展
 ├── vendor/
-│   └── unitree_rl_mjlab/     # 已导入：精选上游技术来源，不含宣传媒体/冗余二进制
-├── docs/                     # 已存在
-├── tests/
-│   ├── contract/             # schema、兼容性、安装、Job、API、样板 Skill 的 CPU contract tests
-│   ├── integration/
-│   └── hardware/
-├── var/                      # 运行数据，gitignore
-│   ├── artifacts/
-│   ├── skill-cache/
-│   ├── skill-envs/
-│   └── runs/
-└── THIRD_PARTY_NOTICES.md    # 已存在
+│   ├── mjlab/                       # MJLab 1.6 下游定制基座
+│   └── unitree_rl_mjlab/            # 固定的 Unitree legacy/reference 来源
+├── robots/                          # Robot Profile 与模型 binding
+├── skills/                          # builtin/installed/dev Skill 工作区
+├── runtime/                         # 厂商和仿真器无关的部署数据面
+├── integrations/
+│   └── unitree/                     # 一个具体厂商 Driver/SDK adapter
+├── tests/                           # contract/integration/hardware 测试
+├── docs/
+└── var/                             # 本地运行数据，gitignore
 ```
 
-不要在没有行为基线时同时进行所有内部重构。当前先用 `mjlab_adapter` 以受控子进程调用 vendor
-入口完成 G1 黄金基线；随后建立 `SimulationBackend` 防腐层，再实现和验证 `mjlab_native`。
-不得让 vendor CLI 或路径继续扩散到新的公共 API。
+当前继续使用 `vendor/mjlab/` 可以避免立即拆仓。它必须增加 upstream revision 和 RoboLab 修改记录；当同步和发布边界
+稳定后，再评估是否拆成独立 `RoboLab-MJLab` 仓库。
 
-上游 `doc/`、演示 GIF、预编译 runtime 和策略产物未进入 active vendor。精选后的 `vendor/unitree_rl_mjlab/deploy/` 只保留必要 Unitree 部署源码和迁移参考；RoboLab 通用 runtime 放根目录 `runtime/`，平台文档放根目录 `docs/`。
+## 5. Customized MJLab 工具链
 
-## 4. 扩展边界
+RoboLab 对 MJLab 1.6 的定制边界包括：
 
-### 4.1 Simulation Backend 与 MJLab Adapter
+1. **Robot layer**：从 Robot Profile/MJCF 构造 robot config，校验 joint、actuator、sensor 和 frame；
+2. **Task layer**：稳定 task ID、配置 schema、MDP term、能力要求和 robot binding；
+3. **Execution layer**：统一 train/play/evaluate/export 命令和结构化 Job 输出；
+4. **Artifact layer**：checkpoint/ONNX 与 observation、action、control、训练来源和 hash 绑定；
+5. **Validation layer**：版本化指标、场景、阈值、视频和迁移报告；
+6. **Deployment binding**：把仿真策略输入输出映射为 Runtime 可校验的部署配置。
 
-平台公共层负责：
+工具链可以修改 MJLab 核心源码，也可以使用 `packages/mjlab_tasks/` 等 RoboLab 扩展包。判断修改位置的原则是：
 
-- 定义 `TaskDefinition`、`TrainingRecipe`、`PlayConfig`、`EvaluationConfig` 和 `JobCommand`；
-- 通过 `backendId` 解析后端，不在 API/Skill 中接受 vendor 路径；
-- 启动隔离的 train/play/evaluate/export 进程，采集 stdout、指标和退出码。
-- 将 checkpoint、ONNX、deploy.yaml、视频和日志登记为 Artifact。
-- 不把训练进程直接嵌入 API 进程，避免 GPU 上下文和崩溃相互影响。
+- 通用于 MJLab 运动控制任务、且需要与其 registry/config 生命周期集成的能力，可以进入定制 MJLab；
+- 只属于 RoboLab 平台控制面的能力留在 `packages/core`、API 或 Worker；
+- 只属于具体机器人通信的能力留在 `integrations/` 和 Runtime driver；
+- 只属于某个可安装能力的内容留在 Skill。
 
-后端分工：
+## 6. Robot Adaptation
 
-- `unitree_compat`：封装当前 vendor registry 和 scripts，建立 G1 黄金基线并支持旧 checkpoint；
-- `mjlab_native`：使用 RoboLab 自有 task/train/play/export，等价性通过后成为默认；
-- 现有 `packages/mjlab_adapter/` 是过渡实现，不能成为新的通用 API 命名来源。
+机器人适配不假设机器人来自某个厂商，按 simulation-first 拆分为：
 
-### 4.2 Skill Manager
+1. `RobotDescription`：MJCF、mesh、joint、frame 和 sensor 语义；
+2. `SimulationConfig`：actuator、碰撞、初始姿态、控制周期和随机化边界；
+3. `TaskBinding`：机器人如何实例化到 velocity、tracking 等通用任务；
+4. `RuntimeBinding`：observation/action、关节顺序、缩放、单位和频率；
+5. `MotorBus/RuntimeDriver`：状态读取、命令写入和连接健康度；
+6. `CalibrationProvider`：零位、方向、外参和报告；
+7. `SafetyProfile`：限位、增益、超时和安全回退。
 
-Skill Manager 只消费明确的 manifest，但正式支持三种运行形态：
+只有前三项即可形成 simulation-only Profile。自研机器人是主线能力，不能要求使用 Unitree motor ID、DDS topic 或工程目录。
 
-1. `MotionSkill`：策略、动作和训练/部署参数；
-2. `PlatformSkill`：Python、CLI 或 C++ 平台功能；
-3. `AgentSkill`：Agent 操作说明、工作流和平台工具白名单。
+## 7. Skill、Job 与 Artifact
 
-可执行 Skill 由 Worker 以独立进程启动，使用统一 Job 输入/事件/结果协议。安装阶段不自动执行仓库里的 `setup.sh`；Conda 环境准备、权限确认和首次 contract test 是显式步骤。WebUI、CLI 与 Agent 共享同一个 action registry。
+Skill 支持三种形态：
 
-AgentSkill 以根目录 `SKILL.md` 为公共核心，通过 adapter 导出给 Codex、Claude、DeepSeek 等外部开发 Agent。首版不强制内置对话模型；平台内 Agent 后续也必须复用同一个 action registry。
+- `MotionSkill`：任务、策略、动作和训练/部署参数；
+- `PlatformSkill`：Python、CLI 或 C++ 平台功能；
+- `AgentSkill`：Agent 操作说明、工作流和工具白名单。
 
-### 4.3 Robot Adapter
+可执行 Skill 和 MJLab Job 都由 Worker 独立进程运行，不导入 API 进程。每个 motion Job 必须保存：
 
-机器人适配按 simulation-first 拆为稳定接口：
+- toolchain ID、MJLab upstream revision 和 RoboLab revision；
+- Robot Profile、TaskDefinition 和最终配置 snapshot；
+- argv、cwd、允许的环境变量和输出目录；
+- checkpoint、ONNX、日志、指标、视频和 hash；
+- observation/action/deployment schema。
 
-1. `RobotDescription`：MJCF、mesh、frames、关节和传感器语义。
-2. `SimulationConfig`：执行器、碰撞、初始姿态、控制周期和域随机化边界。
-3. `MotorBus/RuntimeDriver`：状态读取、命令写入、SDK/DDS/自制总线映射与连接健康度。
-4. `SensorAdapter/StateEstimator`：统一时间戳传感器与机器人状态。
-5. `CalibrationProvider`：零位、方向、外参和可追踪标定报告。
-6. `SafetyProfile/Controller`：限位、增益上限、超时、降级状态和实机检查清单。
+## 8. 部署 Runtime 与安全边界
 
-只有前两项也可以形成 simulation-only Profile。训练任务和 Skill 只能依赖稳定 capability，不能直接依赖某个厂商电机 ID。
+WebUI 不承担硬实时关节控制。Edge Runtime 必须能在 WebUI/API 断开时独立进入安全状态。
 
-## 5. Job 与部署状态机
-
-通用 Job：
-
-```text
-CREATED -> VALIDATING -> QUEUED -> RUNNING -> SUCCEEDED
-                     \-> REJECTED        \-> FAILED/CANCELLED
-```
-
-实机部署必须使用更严格的状态机：
+通用部署状态机：
 
 ```text
 DRAFT -> COMPATIBLE -> OFFLINE_VALIDATED -> SIM_VALIDATED
@@ -175,32 +150,24 @@ DRAFT -> COMPATIBLE -> OFFLINE_VALIDATED -> SIM_VALIDATED
       -> STOPPING -> SAFE
 ```
 
-任一阶段检测到遥测超时、姿态越界、命令超时、驱动断连或人工急停，都由 Edge Runtime 直接进入 `SAFE`，不等待 WebUI 响应。
+任一阶段发生遥测超时、姿态越界、命令超时、Driver 断连或人工急停，都由 Runtime 直接进入 `SAFE`。厂商 SDK 类型不得
+泄漏到通用 policy runner、FSM 或 DeploymentPlan。
 
-## 6. 存储与通信建议
+## 9. Unitree 兼容边界
 
-- 平台只监听本机 loopback；MVP 不提供远程服务器入口和多人认证。
-- MVP 元数据使用 SQLite；产物使用本地 content-addressed 目录。
-- API 使用 REST；任务日志与低频遥测使用 WebSocket/SSE。
-- 高频完整遥测写入本地记录文件，UI 只接收降采样数据。
-- Worker 初期使用本地进程队列；不要为单机 MVP 过早引入 Kubernetes。
-- Edge 与 API 的协议应有版本号、心跳和幂等 session token。
-- 机器人网卡、设备地址和本机配置不能写入可发布 Skill manifest。
+- `vendor/unitree_rl_mjlab/` 不再承载新平台功能；
+- `packages/mjlab_adapter/` 只维护必要的历史 G1 discovery/play 兼容；
+- G1 应通过和自研机器人相同的 Robot Profile、Task、Artifact 和 Runtime 契约重新接入；
+- 旧 checkpoint 无法在 MJLab 1.6 加载时应返回可解释的不兼容结果，不阻塞新策略训练；
+- Unitree sim-to-sim 是一个部署 target，不是整个平台的默认数据面。
 
-## 7. 技术栈基线
+## 10. 架构约束
 
-- Backend：Python + FastAPI + Pydantic；与 MJLab/Python 生态一致。
-- Frontend：React + TypeScript；组件库可在视觉原型后确定。
-- Worker：本地 subprocess + 轻量队列，同时承载 MJLab Job 和可执行 Skill。
-- Environment：Conda；平台主环境 + 可选的按 Skill 隔离环境，暂不使用 Docker。
-- Metadata：本地 SQLite；当前不为 PostgreSQL/多用户增加额外复杂度。
-- Edge Runtime：保留 C++、ONNX Runtime、unitree_sdk2/CycloneDDS，并把现有重复机器人目录抽成共享 runtime + driver/profile。
-
-## 8. 架构约束
-
-- UI 展示的兼容不等于可部署；只有验证记录能解锁实机门禁。
-- Skill 版本、Robot Profile 版本和 Artifact 哈希一旦用于部署就不可原地覆盖。
-- 所有关节映射必须按名称和显式索引校验，禁止仅靠数组长度推断。
-- 平台后端不能以 root 运行训练或第三方 Skill 代码。
-- 可执行 Skill 只能访问 manifest 已声明并由用户确认的文件、网络、子进程和机器人能力。
-- `main`、未固定的 URL 和没有哈希的模型不能成为可复现部署输入。
+- 新增机器人不得复制整套 task、runner 或 Runtime；
+- 公共 API 不接受 vendor root、vendor script path 或厂商 task ID；
+- 任务、Profile、Skill 和 Artifact 版本一旦用于验证或部署，不可原地覆盖；
+- 所有关节映射按名称和显式索引校验，禁止仅靠数组长度推断；
+- 未经仿真验证的 Artifact 默认不能激活 physical target；
+- 缺少 Driver、Calibration 或 SafetyProfile 时必须 fail closed；
+- GPU 资源只能阻塞对应训练/评测验收，不得阻塞 CPU 可完成的契约、工具链和 Runtime 工作；
+- MJLab 上游同步必须有依赖锁定、回归报告和回滚 revision。

@@ -2,7 +2,9 @@
 
 ## 1. 适配目标
 
-新增机器人不应再复制一整套 `deploy/robots/<robot>` 和任务代码。首版允许仅凭公开 XML/MJCF 建立 simulation-only Robot Profile；硬件成熟后再补 Driver、传感器、标定和安全实现，而不改变 Skill 或训练接口。
+新增机器人不应复制一整套厂商目录、任务代码或 Runtime。RoboLab 的主线首先服务自研、爱好者、比赛和实验室机器人，
+同时支持商业成品机器人。首版允许仅凭公开 XML/MJCF 建立 simulation-only Robot Profile；硬件成熟后再补 Driver、传感器、
+标定和安全实现，而不改变 Skill 或训练接口。
 
 ```text
 Skill canonical joints
@@ -19,23 +21,26 @@ Simulation Adapter / Runtime Driver
 
 ## 2. Robot Profile 最小内容
 
+以下 `community.reference_biped` 仅是用于说明自研机器人字段的占位示例，不表示仓库已经包含该模型或 Profile。R2.1 必须
+在资产来源和许可证确认后选择真实参考机器人。
+
 ```yaml
 apiVersion: robolab.dev/v1alpha1
 kind: RobotProfile
 
 metadata:
-  id: unitree.g1.29dof
+  id: community.reference_biped
   version: 1.0.0
-  vendor: Unitree
-  model: G1
-  variant: 29dof
+  vendor: SelfBuilt
+  model: reference_biped
+  variant: prototype_a
 
 description:
-  mjcf: model/g1.xml
-  rootBody: pelvis
-  feet: [left_ankle_roll_link, right_ankle_roll_link]
-  imuFrame: imu_in_pelvis
-  jointSet: g1.29dof.canonical.v1
+  mjcf: model/robot.xml
+  rootBody: base_link
+  feet: [left_foot, right_foot]
+  imuFrame: base_imu
+  jointSet: reference_biped.canonical.v1
 
 control:
   mode: joint_position
@@ -121,10 +126,10 @@ bindings:
 
 ### C. Training Binding
 
-- 将 Robot Profile 绑定到稳定的 RoboLab `TaskDefinition`，由 backend 选择具体实现；
-- 迁移期可以绑定 `unitree_compat` 的现有 velocity/tracking task factory；
+- 将 Robot Profile 绑定到 Customized MJLab 1.6 的稳定 RoboLab `TaskDefinition`；
 - 只覆盖机器人特有参数，复用通用 observation/reward/termination；
-- 注册稳定 task id，并导出 observation/action schema hash。
+- 注册稳定 task ID，并导出 observation/action schema hash；
+- Unitree legacy task factory 只能作为迁移或回归绑定，不能成为自研机器人的默认入口。
 
 ### D. Runtime Driver
 
@@ -206,12 +211,14 @@ resolve Skill/Profile -> compatibility -> prepare target -> validate
 
 ## 10. 对现有代码的渐进重构
 
-`vendor/unitree_rl_mjlab/deploy/robots/*` 作为受支持的 legacy 后端保留，再分三步消除复制：
+重构顺序应围绕 Customized MJLab 1.6 和自研机器人，而不是围绕 Unitree 旧目录：
 
-1. 先用 `unitree_compat` 完成 G1 黄金基线并固定 checkpoint/配置/指标；
-2. 提取共享的 FSM、ONNX runner、observation/action 构造和参数加载；
-3. 将各机器人 `Types.h`、mode check、DDS topic 和关节映射变成 Driver/Profile；
-4. 建立 RoboLab-native MJLab task/train/play/export，使用双后端等价性报告验证后切换默认；
-5. 用 Skill manifest 动态配置 runner，FSM 只管理通用生命周期和安全转换。
+1. 固定 MJLab 1.6 upstream revision、默认环境和 RoboLab 修改账本；
+2. 建立定制 MJLab 的 Robot/Task Registry、train/play/evaluate/export 入口；
+3. 选择一个非 Unitree 自研或简化参考机器人，完成 MJCF/Profile、执行器、传感器和 simulation-first 接入；
+4. 提取通用 FSM、ONNX runner、observation/action 构造、参数加载和 DeploymentSession；
+5. 将各具体机器人的 DDS、SDK、motor ID、mode check 和关节映射放入 `integrations/<vendor>/` 或专用 Driver/Profile；
+6. 将 G1 作为普通成品机器人适配器接入相同的 Task、Artifact、Skill 和 Runtime 契约；
+7. 用独立运动指标和部署安全证据验收，不以旧 Unitree checkpoint 的逐帧等价作为默认切换门禁。
 
-首个纵向样板建议只选一台机器人完成全链路，再推广到其他型号；不要同时重构所有机器人。
+首个纵向样板仍应一次只选一台机器人，但该样板不能永久只使用 G1；R2 必须加入非 Unitree 机器人验证。

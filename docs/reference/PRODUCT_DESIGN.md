@@ -2,7 +2,8 @@
 
 ## 1. 产品定位
 
-RoboLab 是工程工作台，不只是训练脚本的按钮封装。WebUI 的价值在于统一对象、状态、验证证据和安全门禁，同时仍允许高级用户查看并复制等价 CLI 命令。
+RoboLab 是面向成品与自研机器人的运动控制工程工作台，不只是训练脚本的按钮封装。WebUI 的价值在于统一机器人、任务、
+策略、Skill、状态、验证证据和安全门禁，同时仍允许高级用户查看并复制等价 CLI 命令。
 
 首版仅服务当前工作站上的个人用户，默认绑定 `127.0.0.1`。不设计账号、团队空间、远程服务器和多租户权限；仍保留本地运行记录，便于复现与排错。
 
@@ -18,7 +19,7 @@ RoboLab 是工程工作台，不只是训练脚本的按钮封装。WebUI 的价
 
 - Robot Profile 和 Robot Instance 列表；
 - 模型预览、关节映射、控制参数、Driver 状态；
-- 适配向导、成熟度等级和兼容 Skill 矩阵。
+- 适配向导、成熟度等级和兼容 Skill 矩阵；默认接入流程必须支持 MJCF-only、自研和比赛机器人，不要求先选择厂商。
 
 ### Skills
 
@@ -40,7 +41,7 @@ RoboLab 是工程工作台，不只是训练脚本的按钮封装。WebUI 的价
 
 ### Train
 
-- 选择 Robot Profile + TaskDefinition + TrainingRecipe；
+- 选择 Robot Profile + Customized MJLab 1.6 TaskDefinition + TrainingRecipe；
 - schema 驱动表单与 raw config 双视图；
 - 资源选择、seed、resume、视频和实验标签；
 - 提交前显示最终命令、配置 diff 和预计输出目录。
@@ -72,20 +73,24 @@ RoboLab 是工程工作台，不只是训练脚本的按钮封装。WebUI 的价
 - catalog、artifact storage、worker、Edge 和 secrets；
 - 第三方许可证与版本信息。
 
-## 3. MVP 功能边界
+## 3. 当前主线产品边界
 
-P0 必须形成一个完整纵向闭环：
+当前 R0–R6 必须形成一个完整纵向闭环：
 
-1. 发现现有 MJLab tasks；
-2. 从仓库已有公开 MJCF 创建一个 simulation-only Robot Profile；
-3. 从 `RoboLab-Skill` 安装一个 MotionSkill 和一个可执行 PlatformSkill；
-4. 准备/复用 Conda 环境，审查权限并通过 contract test；
-5. 从 UI 启动 Skill action、MJLab play 和验证，读取结构化事件与日志；
-6. 保存 Artifact、配置快照与验证记录；
-7. 启动 unitree_mujoco sim-to-sim，并提供“一键仿真部署”；
-8. 所有步骤可从本地记录复现。
+1. 发现或创建 Customized MJLab 1.6 tasks；
+2. 从公开或自研 MJCF 创建一个非 Unitree simulation-only Robot Profile；
+3. 在 Customized MJLab 1.6 中完成任务训练或可信策略回放、评测和导出；
+4. 从 `RoboLab-Skill` 安装一个 MotionSkill 和一个可执行 PlatformSkill；
+5. 准备/复用 Conda 环境，审查权限并通过 contract test；
+6. 从 UI 启动 Skill action、train/play/evaluate/export 和验证，读取结构化事件与日志；
+7. 保存 Artifact、配置快照与验证记录；
+8. 启动该 Robot Profile 对应的 simulator/sim-to-sim target，并提供“一键仿真部署”；
+9. Runtime 在 stop、heartbeat loss 和 Driver 断开时进入 SAFE；
+10. 所有步骤可从本地记录复现。
 
-P1 再加入训练任务、指标可视化、AgentSkill adapter、Skill 更新/回滚、Robot onboarding wizard，以及标定、电机总线、传感器和实机部署接口。实际硬件适配完成前，physical target 保持不可激活。平台内置 Agent 页面可以在 action API 稳定后接入。P2 再考虑组合 Skill、签名与更强隔离；Docker 和远程使用属于后续可选项。
+实际硬件适配完成前，physical target 保持不可激活。R6 之后再考虑平台内置 Agent 页面、CompositeSkill、签名、
+更强隔离、Docker、远程 Worker 和多人模式。详细批次只以
+[`../project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为准。
 
 ## 4. 关键 UX 原则
 

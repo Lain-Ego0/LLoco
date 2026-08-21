@@ -1,6 +1,7 @@
-# Unitree Integration（接口边界，未实现）
+# Unitree Integration（具体厂商适配接口，未实现）
 
-状态：本目录目前只声明所有权与接口边界，没有平台代码。Unitree 是 RoboLab 的首个厂商适配器，不是通用 API 的命名来源。
+状态：本目录目前只声明所有权与接口边界，没有平台代码。Unitree 是 RoboLab 的一个商业机器人适配器，
+不是通用 API、MJLab 工具链或产品命名的来源。
 
 ## 职责
 
@@ -15,6 +16,6 @@
 - Unitree 训练/仿真/legacy 部署的**上游源码**在 [`vendor/unitree_rl_mjlab/`](../../vendor/unitree_rl_mjlab/)，本目录不放上游代码副本；
 - 与厂商无关的 FSM、推理、安全和遥测放 [`runtime/`](../../runtime/)；
 - 机器人型号描述（simulation-only Profile）放 [`robots/`](../../robots/)；
-- 迁移路径：vendor `deploy/robots/*` 中的 Unitree 专用部分逐步迁入本目录，共享部分迁入 `runtime/`，见 [ROBOT_ADAPTATION §10](../../docs/reference/ROBOT_ADAPTATION.md)。
+- 迁移路径：Unitree 专用 DDS、SDK、motor ID、mode check 和关节映射逐步迁入本目录；共享 FSM、推理、安全和遥测进入 `runtime/`，见 [ROBOT_ADAPTATION §10](../../docs/reference/ROBOT_ADAPTATION.md)。
 
 设计细节见 [ARCHITECTURE §4.3](../../docs/reference/ARCHITECTURE.md) 与 [MJLAB_MAINTENANCE §6](../../docs/history/MJLAB_MAINTENANCE.md)。

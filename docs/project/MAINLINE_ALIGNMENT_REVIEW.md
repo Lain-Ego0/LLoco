@@ -1,111 +1,106 @@
 # RoboLab 主线对齐审查
 
-状态：2026-08-21 冻结，作为下一阶段范围与优先级依据。
+状态：2026-08-21 修订。本文件评估当前实现与项目原始愿景的差距，并约束后续优先级。
 
-## 1. 结论
+## 1. 原始愿景
 
-项目在架构和产品定义上没有偏离
-“One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with
-Deployment Adaptation and Skill Integration”主线，但实现重心出现了阶段性的
-**平台化偏移**。
+> One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with Deployment Adaptation and Skill Integration.
 
-当前已经形成可靠的本地控制面 MVP，但还不能称为完整的一站式运动控制平台；
-`Heavily Customized MJLab` 与 `Deployment Adaptation` 尚未形成与 Skill/控制面同等成熟的
-实现证据。
+正式解释见 [`MJLAB_1_6_TECHNICAL_DIRECTION.md`](MJLAB_1_6_TECHNICAL_DIRECTION.md)：RoboLab 以 MJLab 1.6
+为深度定制基座，服务成品与自研机器人，统一运动任务开发、训练、验证、Skill 和部署适配。
+
+“面向不同机器人”是项目目标，不是把“厂商中立”作为新的产品主叙事。爱好者、实验室和比赛参赛者的自研机器人与
+商业成品机器人具有同等优先级。
+
+## 2. 当前客观状态
 
 | 主线维度 | 当前状态 | 判断 |
 |---|---|---|
-| One-Stop Platform | Schema、CLI、API、Worker、WebUI、Artifact 已打通 | 🟡 骨架成立，纵向闭环不完整 |
-| Heavily Customized MJLab | curated vendor、task discovery、play 参数适配 | 🟠 仍是薄适配，尚未达到深度定制 |
-| Deployment Adaptation | Profile 与兼容性门禁已有，Runtime、Edge、Driver 未实现 | 🔴 当前最大缺口 |
-| Skill Integration | Motion/Platform/Agent Skill、安装、权限、Action、Codex export 已实现 | 🟢 当前完成度最高 |
-| Motion Control | zero-policy 可启动 Viser，真实 trained policy 尚未通过 | 🟠 尚未形成可信样板 |
+| One-Stop Platform | Schema、CLI、API、Worker、WebUI、Artifact 骨架已打通 | 🟡 控制面骨架成立，纵向闭环未完成 |
+| Heavily Customized MJLab | MJLab 1.6 源码已在仓库，但当前平台仍主要调用 Unitree/MJLab 1.2 脚本 | 🔴 尚未开始正式 1.6 定制主线 |
+| Robot Adaptation | G1 simulation-only Profile 已存在，通用自研机器人接入工具链未实现 | 🔴 与原始目标有明显差距 |
+| Deployment Adaptation | Runtime、Driver、ValidationRun、DeploymentSession 未实现 | 🔴 当前核心缺口 |
+| Skill Integration | Motion/Platform/Agent Skill、安装、权限、Action 和导出已实现 | 🟢 当前完成度最高 |
+| Motion Control Evidence | zero-policy 可启动 Viewer，真实策略纵向闭环尚未完成 | 🟠 尚无完整可信样板 |
 
-## 2. 没有战略跑偏的依据
+CPU contract suite 和已有 B1–B6 实现仍然有效，但不能替代 MJLab 1.6 定制、真实运动策略和部署 Runtime 的证据。
 
-- Platform Core、Robot Profile、Skill、MJLab Adapter 与 Edge Runtime 的职责边界仍围绕运动控制；
-- B1–B6 遵循“契约 -> Worker/Skill -> API/WebUI”的依赖顺序，没有扩展到云平台、多租户或通用低代码；
-- Skill Integration 已有真实代码和测试，包括版本固定、权限、兼容性、Job 隔离与 AgentSkill 导出；
-- 2026-08-21 CPU contract suite 实测 `113 passed, 1 warning`，基础契约层稳定。
+## 3. 已确认的方向偏移
 
-## 3. 三个实现失衡
+项目早期为了快速建立 G1 样板，选择 `unitree_rl_mjlab` 作为直接实现入口。该选择提供了模型、任务、部署和 sim-to-sim
+参考，但随后形成了以下不合理依赖：
 
-### 3.1 控制面成熟度高于运动闭环
+- 默认环境仍固定 MJLab 1.2；
+- task discovery 和 play 依赖 vendor 脚本；
+- G1 checkpoint 被设置成全部后续工作的前置门禁；
+- `unitree_compat` 与 `mjlab_native` 被设计为长期对等后端；
+- 双后端等价被错误地提升为新主线发布前提；
+- 自研机器人被排到第二机器人或后期阶段。
 
-当前 WebUI 可以管理 Robot、Skill、Job 和 Artifact，但 Train、Validate、Deploy 尚未成为真实工作流。
-系统尚不能完成：
+这些安排偏离了“深度定制 MJLab、服务自研和成品机器人”的原始愿景。偏移来自早期实现选型，不代表项目愿景需要修改。
 
-```text
-Skill/policy -> MJLab play -> validation -> sim-to-sim
-             -> DeploymentPlan -> Runtime session -> stop/safe
-```
-
-### 3.2 MJLab 仍是薄适配
-
-当前 adapter 主要负责发现 task、构造 vendor `play.py` 命令并交给 Worker；训练配置抽象、
-统一指标、导出、验证和部署尚未进入同一平台契约。因此当前实现更接近
-“Platform Integration Based on Curated MJLab/Unitree Sources”。
-
-`Heavily Customized` 的达成标准不是大规模修改 vendor，而是平台能够稳定控制并扩展：
-
-- 统一 task/train/play/export/evaluate 入口；
-- schema 化训练与运行配置；
-- 结构化指标、验证证据和 artifact lineage；
-- Robot Profile 驱动的任务与 runtime 适配；
-- 独立 Runtime、sim-to-sim 和 Deployment Gate。
-
-### 3.3 Deployment Adaptation 是最大缺口
-
-- `runtime/` 仍只有接口说明；
-- `integrations/unitree/` 仍只有接口说明；
-- G1 Profile 当前为 simulation-only/L0；
-- sim-to-sim、heartbeat、watchdog、DeploymentSession 和 `stop/safe` 尚未实现；
-- 真实 G1 trained play 仍等待可用 checkpoint/WandB run。
-
-## 4. 优先级决定
-
-下一阶段立即停止增加横向平台页面和生态能力，转向真实 MotionSkill 的纵向部署闭环：
-
-1. 关闭 B7，使用真实 G1 policy 完成 trained play 与 lineage；
-2. 冻结 ValidationRun、DeploymentPlan、DeploymentSession 和 Runtime 协议；
-3. 实现最小 ONNX runner、FSM、heartbeat、watchdog 与 safe fallback；
-4. 接入 unitree_mujoco sim-to-sim；
-5. 完成 Validate/Deploy 控制面和 WebUI；
-6. 通过故障注入和可复现验收后，再扩展训练平台、第二机器人和内置 Agent。
-
-仿真后端采用独立的迁移路线：
+## 4. 修正后的主线
 
 ```text
-Unitree backend 黄金基线
-  -> SimulationBackend 防腐层
-  -> RoboLab-native MJLab task/train/play
-  -> 双后端等价性报告
-  -> native 成为默认，Unitree 保留兼容
+MJLab 1.6 upstream revision
+  -> RoboLab customized MJLab toolchain
+  -> custom/non-Unitree robot onboarding
+  -> task/train/play/evaluate/export
+  -> Skill + Policy Artifact + Validation
+  -> deployment adaptation + safe Runtime
+  -> custom robot and commercial robot proof
 ```
 
-这不是立即重写 MJLab。RoboLab 继续使用开源 MJLab、MuJoCo-Warp、RSL-RL、Warp 和 Viser，
-但逐步收回 Task Registry、训练/回放协议、Robot-to-task binding、schema、Policy metadata、
-Validation 和 Deployment 的所有权。完整方案见
-[`../reference/SIMULATION_BACKEND_STRATEGY.md`](../reference/SIMULATION_BACKEND_STRATEGY.md)。
+Unitree 路线调整为：
 
-许可证保持独立决策：RoboLab 根项目继续 MIT，Unitree vendor 和 MJLab/MuJoCo 等组件保留
-各自的 Apache-2.0 或其他原许可证。
+```text
+Unitree RL MJLab
+  -> G1 assets/config/deployment reference
+  -> optional legacy checkpoint compatibility
+  -> Unitree adapter implemented through common contracts
+```
 
-## 5. 防偏移验收原则
+## 5. 优先级修订
 
-后续工作必须至少满足一项，否则不进入当前阶段：
+下一阶段按以下顺序推进：
 
-- 缩短从 MotionSkill 到 validated/deployed session 的路径；
-- 提高 MJLab 训练、回放、导出或验证的可复现性；
-- 提高 Robot Profile/Driver/Runtime 的复用程度；
-- 增强部署门禁、watchdog、stop/safe 或故障可解释性；
-- 完善 Skill/Profile/Artifact/Validation/Deployment 的 lineage。
+1. 冻结技术决策，固定 MJLab 1.6 upstream revision 和依赖；
+2. 让 MJLab 1.6 成为默认开发环境，保留 1.2 作为 legacy 环境；
+3. 建立 RoboLab 对 MJLab 的修改记录、回归测试和统一运动工具链入口；
+4. 接入一个非 Unitree 的自研或简化参考机器人；
+5. 完成真实 task 的 train/play/evaluate/export 和 Policy Artifact；
+6. 将已有 Skill、Job、API 和 WebUI 接到新工具链；
+7. 实现部署 Runtime、sim-to-sim、watchdog 和 stop/safe；
+8. 将 G1 作为普通商业机器人适配器重新接入并做兼容回归；
+9. 用至少两个不同来源机器人验证抽象。
 
-“新增页面”“新增 schema”或“新增 adapter”本身不构成完成；必须有真实 G1 policy 的运行证据，
-或直接服务于上述闭环的机器验收。
+GPU 训练资源不再阻塞第 1–4、6 和 Runtime 骨架工作。真实策略质量验收仍必须等待可用 GPU，不能用 zero-policy 替代。
 
-## 6. 当前资源决定
+## 6. 防偏移验收原则
 
-当前 GPU 正在运行其他 IsaacLab 训练。RoboLab 不抢占该训练，也不并行启动 G1 GPU 任务。
-待现有训练结束后，先训练或取得可复现的 G1 velocity policy，再执行下一阶段 N0；
+后续工作必须直接满足至少一项：
+
+- 增强 RoboLab 对 MJLab 1.6 任务、机器人、训练、回放、评测或导出的控制能力；
+- 降低自研机器人从 MJCF/Profile 到可训练环境的接入成本；
+- 缩短 Skill/Policy 到验证和部署会话的路径；
+- 提高 Runtime、watchdog、stop/safe 或故障解释能力；
+- 完善 Profile、Task、Artifact、Validation 和 Deployment 的 lineage；
+- 提高 MJLab upstream sync 的可维护性和可回滚性。
+
+仅新增页面、schema、adapter 或文档不构成阶段完成。每阶段必须有机器测试、可运行样板或可复查证据。
+
+## 7. 对外描述规则
+
+项目愿景可以使用“一站式”和“深度定制 MJLab”，但当前状态必须同时说明：
+
+- 平台控制面和 Skill 骨架已经实现；
+- MJLab 1.6 定制、自研机器人纵向样板和安全部署仍在开发；
+- Unitree G1 是历史首个样板和后续适配对象，不是 RoboLab 的产品身份；
+- physical target 在 Driver、Calibration 和 Safety 验收前保持不可激活。
+
+## 8. 当前资源决定
+
+当前 GPU 正在运行其他 IsaacLab 训练，RoboLab 不抢占、不终止该任务。该限制只影响需要 GPU 的训练与评测；
+MJLab 1.6 环境、源码维护、CPU smoke test、Robot Profile、MJCF 诊断、平台契约和 Runtime 骨架可以继续推进。
+
 详细工作项以 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为准。

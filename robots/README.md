@@ -1,8 +1,8 @@
 # Robot Profiles
 
-状态：`unitree.g1.29dof@1.0.0` 是首个正式 simulation-only Profile；当前黄金基线的模型与任务
-binding 引用 `vendor/unitree_rl_mjlab/`，不复制 vendor 资产。该路径属于 `unitree_compat`；
-长期 Profile 只暴露稳定 task/model binding，不向 Skill 或公共 API 暴露 vendor 路径。
+状态：`unitree.g1.29dof@1.0.0` 是历史首个 simulation-only Profile。它当前引用 Unitree legacy 资产，
+但不再定义 RoboLab 的通用 Profile 或任务契约。R2 必须加入一个非 Unitree 自研或简化参考机器人；长期 Profile
+通过 Customized MJLab 1.6 的稳定 task/model binding 工作，不向 Skill 或公共 API 暴露 vendor 路径。
 
 ## 职责
 
@@ -15,7 +15,7 @@ binding 引用 `vendor/unitree_rl_mjlab/`，不复制 vendor 资产。该路径�
 ## 边界
 
 - 本目录只放 RoboLab 自有 Profile，不放具体 Skill（策略/动作产物属于 MotionSkill），也不放厂商 Driver 代码（属于 [`integrations/`](../integrations/)）；
-- 机器人 MJCF/mesh 等上游资产保留在 vendor 命名空间，Profile 通过引用与哈希固定，不复制；
+- 机器人 MJCF/mesh 等外部资产可以保留在来源命名空间，Profile 通过来源、revision 和哈希固定，不复制不明许可证的内容；
 - Profile schema（`RobotProfile v1alpha1`）已在 B1 冻结；使用 `robolab check robots/unitree.g1.29dof/profile.yaml` 验证 manifest。
 
 字段规范见 [ROBOT_ADAPTATION](../docs/reference/ROBOT_ADAPTATION.md)。

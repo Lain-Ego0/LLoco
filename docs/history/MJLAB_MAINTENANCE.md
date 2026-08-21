@@ -1,6 +1,7 @@
 # Unitree RL MJLab 精选 Vendor 方案
 
-状态：已确认并已实施（历史基线记录）。精选 vendor 于 2026-08-20 导入
+状态：已确认并已实施（历史基线记录）。本文只记录 Unitree vendor 导入事实；其中关于“Unitree-first、双后端等价后切换
+默认”的后续路线已于 2026-08-21 被 MJLab 1.6 深度定制主线取代。精选 vendor 于 2026-08-20 导入
 `vendor/unitree_rl_mjlab/` 并纳入 Git；保留技术价值和来源追踪，不把 RoboLab
 建成 Unitree 上游仓库的完整镜像。当前开发进度以
 [`../project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为准。
@@ -106,10 +107,10 @@ docs/                         # RoboLab 自己的正式文档
 
 因此保留部署技术不等于把 RoboLab 定位为 Unitree 平台。Unitree 是首个适配器，不是通用 API 的命名来源。
 
-后续仿真、训练和 Play 的迁移以
-[`../reference/SIMULATION_BACKEND_STRATEGY.md`](../reference/SIMULATION_BACKEND_STRATEGY.md) 为准：
-vendor 路径先作为 `unitree_compat` 黄金基线，经过防腐层和双后端等价性验证后，由
-`mjlab_native` 承担默认平台入口。
+后续仿真、训练和 Play 的当前路线以
+[`../reference/SIMULATION_BACKEND_STRATEGY.md`](../reference/SIMULATION_BACKEND_STRATEGY.md) 和
+[`../project/MJLAB_1_6_TECHNICAL_DIRECTION.md`](../project/MJLAB_1_6_TECHNICAL_DIRECTION.md) 为准：
+MJLab 1.6 是 RoboLab 的正式深度定制基座；Unitree 路径仅作为 legacy/reference 和具体适配器保留。
 
 ## 7. 品牌与文档边界
 

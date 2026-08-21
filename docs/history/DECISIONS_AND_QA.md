@@ -181,3 +181,20 @@ Q1-Q26 已全部完成并固化。下一阶段不再继续扩大设计范围；�
 仿真后端设计见
 [`docs/reference/SIMULATION_BACKEND_STRATEGY.md`](../reference/SIMULATION_BACKEND_STRATEGY.md)，
 执行批次见 [`docs/project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md)。
+
+## 2026-08-21 技术主线修订
+
+以下决策由新的 MJLab 1.6 技术主线取代，保留本节以上内容作为历史记录，不删除原始决策：
+
+| ID | 决策 | 状态 |
+|---|---|---|
+| D-041 | RoboLab 以固定上游 revision 的 MJLab 1.6 作为正式深度定制基座；`vendor/mjlab/` 不再被定义为只读上游镜像，而是由 RoboLab 管理的下游定制代码位置 | 已确认 |
+| D-042 | RoboLab 可以直接修改 MJLab 核心中与运动控制工具链相关的代码，并通过上游 revision、补丁记录、许可证和回归测试管理维护成本 | 已确认 |
+| D-043 | `vendor/unitree_rl_mjlab/` 降级为 G1 参考、Unitree 适配、legacy checkpoint 兼容和 sim-to-sim 技术来源；它不再是默认仿真基座或公共 API 的命名来源 | 已确认 |
+| D-044 | 不再要求 MJLab 1.6 定制主线等待 G1 黄金基线，也不要求新工具链与旧 Unitree 路径逐帧或逐 reward 等价；Unitree 等价性仅作为兼容回归证据 | 已确认 |
+| D-045 | 自研、爱好者和比赛机器人是正式目标用户与主线验收对象；至少一个非 Unitree 机器人必须在主线阶段完成 simulation-first 接入 | 已确认 |
+| D-046 | `One-Stop Motion Control Platform` 的“一站式”范围包含 Robot Profile、任务/MDP、训练、回放、评测、导出、Skill、Artifact、部署适配和安全 Runtime；不表示云平台或多用户 SaaS | 已确认 |
+
+D-034、D-035、D-038 和 D-040 的 Unitree-first 部分由 D-041–D-046 取代。历史 B7/N0 记录继续有效，但不再阻塞 MJLab 1.6 定制、机器人接入、工具链和 Runtime 的开发。
+
+新的最高级技术说明见 [`docs/project/MJLAB_1_6_TECHNICAL_DIRECTION.md`](../project/MJLAB_1_6_TECHNICAL_DIRECTION.md)。
