@@ -29,7 +29,7 @@ def register_mjlab_task(
   """Register an environment task.
 
   Args:
-    task_id: Unique task identifier (e.g., "Mjlab-Velocity-Rough-Unitree-Go1").
+    task_id: Unique task identifier (for example, "Mjlab-Cartpole-Balance").
     env_cfg: Environment configuration used for training.
     play_env_cfg: Environment configuration in "play" mode.
     rl_cfg: RL runner configuration.

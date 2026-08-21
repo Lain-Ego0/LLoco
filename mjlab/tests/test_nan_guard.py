@@ -177,61 +177,6 @@ def test_nan_guard_saves_model(simple_model):
     assert loaded_model.nq == simple_model.nq
     assert loaded_model.nv == simple_model.nv
 
-
-@pytest.mark.slow
-def test_nan_guard_with_complex_model():
-  """NaN guard should work with complex robot model."""
-  from mjlab.scene import Scene
-  from mjlab.tasks.velocity.config.go1.env_cfgs import unitree_go1_rough_env_cfg
-
-  scene = Scene(unitree_go1_rough_env_cfg().scene, device=get_test_device())
-  model = scene.compile()
-
-  with tempfile.TemporaryDirectory() as tmpdir:
-    cfg = SimulationCfg(
-      nan_guard=NanGuardCfg(enabled=True, buffer_size=3, output_dir=tmpdir)
-    )
-    sim = Simulation(num_envs=2, cfg=cfg, model=model, device=get_test_device())
-
-    # Run a few steps.
-    for _ in range(2):
-      sim.step()
-
-    # Inject NaN and trigger dump.
-    sim.data.qpos[0, 0] = float("nan")
-    sim.step()
-
-    # Verify dump and model files were created.
-    dump_files = [
-      f for f in Path(tmpdir).glob("nan_dump_*.npz") if "latest" not in f.name
-    ]
-    model_files = [
-      f for f in Path(tmpdir).glob("model_*.mjb") if "latest" not in f.name
-    ]
-    assert len(dump_files) == 1
-    assert len(model_files) == 1
-
-    # Load the saved model and verify it matches.
-    dump = np.load(dump_files[0], allow_pickle=True)
-    metadata = dump["_metadata"].item()
-    model_path = Path(tmpdir) / metadata["model_file"]
-
-    loaded_model = mujoco.MjModel.from_binary_path(str(model_path))
-    assert loaded_model.nq == model.nq
-    assert loaded_model.nv == model.nv
-    assert loaded_model.nu == model.nu  # Check actuators too
-
-    # Verify we can create MjData and restore a state.
-    loaded_data = mujoco.MjData(loaded_model)
-    state = dump["states_step_000000"][0]
-    state_spec = metadata.get("state_spec", mujoco.mjtState.mjSTATE_PHYSICS.value)
-    mujoco.mj_setState(loaded_model, loaded_data, state, state_spec)
-    mujoco.mj_forward(loaded_model, loaded_data)
-
-    # Data should be valid (no NaN in derived quantities after forward).
-    assert not np.isnan(loaded_data.qpos).any()
-
-
 def test_nan_guard_only_dumps_once(simple_model):
   """NaN guard should only dump once per training run."""
   with tempfile.TemporaryDirectory() as tmpdir:

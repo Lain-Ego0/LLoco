@@ -442,48 +442,6 @@ def test_expand_model_fields_recreates_cuda_graph(device):
   )
 
 
-# Integration test.
-
-
-@pytest.mark.slow
-def test_g1_foot_friction_shared_across_geoms(device):
-  """G1 velocity env has uniform foot friction across all collision geoms."""
-  import io
-  import warnings
-  from contextlib import redirect_stderr, redirect_stdout
-
-  from mjlab.envs.manager_based_rl_env import ManagerBasedRlEnv
-  from mjlab.tasks.velocity.config.g1.env_cfgs import unitree_g1_flat_env_cfg
-
-  cfg = unitree_g1_flat_env_cfg()
-
-  with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-      env = ManagerBasedRlEnv(cfg, device=device)
-
-  try:
-    robot = env.scene["robot"]
-
-    foot_geom_names = [
-      f"{side}_foot{i}_collision" for side in ("left", "right") for i in range(1, 8)
-    ]
-    foot_geom_ids, _ = robot.find_geoms(foot_geom_names)
-    foot_geom_indices = robot.indexing.geom_ids[foot_geom_ids]
-
-    friction = env.sim.model.geom_friction[:, foot_geom_indices, 0]
-
-    for env_idx in range(env.num_envs):
-      env_friction = friction[env_idx]
-      assert torch.allclose(env_friction, env_friction[0].expand_as(env_friction))
-
-    if env.num_envs > 1:
-      env_frictions = friction[:, 0]
-      assert len(torch.unique(env_frictions)) > 1
-  finally:
-    env.close()
-
-
 # Quaternion DR tests.
 
 
