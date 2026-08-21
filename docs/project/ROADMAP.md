@@ -11,9 +11,15 @@
 - ✅ 已生成 G1 Velocity MotionSkill，并创建 MJCF Inspector PlatformSkill（B4.1/B4.2，2026-08-20）；
 - ✅ 建立基础 lint、schema、license 和 artifact hash 检查（2026-08-20，B1.6；`robolab check` 可执行）。
 
-退出条件：任何人能解释一份 Skill 为什么与某 Robot Profile 兼容或不兼容——B1.4/B1.5 已提供机器判定与逐条原因；Phase 0 已按 [DEVELOPMENT_PLAN](DEVELOPMENT_PLAN.md) B1 退出小节完成（B1 + B2.1 + B4.1 + B4.2）。
+退出条件：任何人能解释一份 Skill 为什么与某 Robot Profile 兼容或不兼容——B1.4/B1.5
+已提供机器判定与逐条原因；Phase 0 已按
+[Phase 0–1 计划归档](../history/PHASE_0_1_DEVELOPMENT_PLAN.md) 的 B1 退出小节完成
+（B1 + B2.1 + B4.1 + B4.2）。
 
 ## Phase 1：本地平台闭环
+
+状态：实现批次 B1–B6 已完成；真实 G1 trained MotionSkill 与最终 lineage 验收转入 N0，
+在 N0 关闭前不宣告 Phase 1 完整退出。
 
 - FastAPI API、SQLite、artifact store 和本地 Worker；
 - 发现现有 MJLab registry tasks；
@@ -27,6 +33,8 @@
 退出条件：MotionSkill 和 PlatformSkill 都能从 catalog 安装后直接调用，且不导入 API 进程并保留完整 lineage。
 
 ## Phase 2：仿真部署与 Edge
+
+执行映射：当前详细计划 N1–N5。N0 未通过前不进入实现。
 
 - 抽取共享 C++ runtime；
 - 完成首个 simulation target，并定义但不强制实现实机 Driver/Profile；

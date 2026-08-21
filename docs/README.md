@@ -4,13 +4,15 @@
 
 ## 项目执行与进度
 
-[`project/`](project/) 存放计划、路线图和验收记录。其中
-[`project/DEVELOPMENT_PLAN.md`](project/DEVELOPMENT_PLAN.md) 是当前批次、完成状态与剩余工作的**唯一权威来源**。
+[`project/`](project/) 存放当前计划、路线图、主线审查和仍在进行的验收记录。其中
+[`project/DEVELOPMENT_PLAN.md`](project/DEVELOPMENT_PLAN.md) 是当前批次、完成状态与剩余工作的
+**唯一权威来源**。
 
-- [开发主线与批次计划](project/DEVELOPMENT_PLAN.md)
+- [主线对齐审查](project/MAINLINE_ALIGNMENT_REVIEW.md)
+- [下一阶段详细执行计划](project/DEVELOPMENT_PLAN.md)
 - [实施路线图](project/ROADMAP.md)
 - [MVP 验收标准](project/MVP_ACCEPTANCE.md)
-- [B7 MVP 验收记录](project/B7_ACCEPTANCE_RECORD.md)
+- [B7/N0 关闭门禁验收记录](project/B7_ACCEPTANCE_RECORD.md)
 
 ## 当前参考说明
 
@@ -31,3 +33,4 @@
 
 - [决策记录与多轮 QA](history/DECISIONS_AND_QA.md)
 - [Unitree RL MJLab 精选 Vendor 方案](history/MJLAB_MAINTENANCE.md)
+- [Phase 0–1（B1–B7）开发计划归档](history/PHASE_0_1_DEVELOPMENT_PLAN.md)

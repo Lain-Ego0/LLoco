@@ -127,7 +127,7 @@ MVP 验收标准单独维护在 `MVP_ACCEPTANCE.md`。
 ## 第四轮结果：仓库管理与开工顺序
 
 架构 QA 已完成，以下选择形成实施基线。本文是历史决策记录；当前批次和完成状态以
-`docs/project/DEVELOPMENT_PLAN.md` 为准。
+[`docs/project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为准。
 
 ### Q21. Unitree 上游来源的 Git 管理方式
 
@@ -160,4 +160,18 @@ MVP 验收标准单独维护在 `MVP_ACCEPTANCE.md`。
 ## 架构 QA 完成状态
 
 Q1-Q26 已全部完成并固化。下一阶段不再继续扩大设计范围；实现进度与剩余工作按
-`DEVELOPMENT_PLAN.md` 跟踪，验收标准见 `MVP_ACCEPTANCE.md`。
+[`docs/project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 跟踪，验收标准见
+[`docs/project/MVP_ACCEPTANCE.md`](../project/MVP_ACCEPTANCE.md)。
+
+## 2026-08-21 主线复核与下一阶段决策
+
+| ID | 决策 | 状态 |
+|---|---|---|
+| D-033 | 当前架构没有战略跑偏，但实现存在阶段性“平台化偏移”；下一阶段停止增加横向平台功能，以真实 G1 MotionSkill 的 play、validation、sim-to-sim、deployment 与 `stop/safe` 纵向闭环为唯一主线 | 已确认 |
+| D-034 | `Heavily Customized MJLab` 不以大规模修改 vendor 为目标，而以统一 task/train/play/export/evaluate 契约、结构化指标、Robot Profile 适配、Artifact lineage 与独立 Runtime/Deployment Gate 作为达成标准 | 已确认 |
+| D-035 | B1–B6 执行计划归档；B7 作为下一阶段 N0 关闭门禁继续执行，N0 未用真实 trained G1 policy 通过前，不进入 N1–N5 实现 | 已确认 |
+| D-036 | 当前 GPU 被其他 IsaacLab 训练占用；RoboLab 不抢占、不终止、不并行启动 G1 GPU 任务。现有训练结束后先训练或取得可复现 G1 checkpoint | 已确认 |
+
+详细判断见
+[`docs/project/MAINLINE_ALIGNMENT_REVIEW.md`](../project/MAINLINE_ALIGNMENT_REVIEW.md)，
+执行批次见 [`docs/project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md)。

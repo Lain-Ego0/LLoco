@@ -2,7 +2,8 @@
 
 状态：已确认并已实施（历史基线记录）。精选 vendor 于 2026-08-20 导入
 `vendor/unitree_rl_mjlab/` 并纳入 Git；保留技术价值和来源追踪，不把 RoboLab
-建成 Unitree 上游仓库的完整镜像。当前开发进度以 `DEVELOPMENT_PLAN.md` 为准。
+建成 Unitree 上游仓库的完整镜像。当前开发进度以
+[`../project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 为准。
 
 ## 1. 当前事实
 
@@ -54,7 +55,8 @@ docs/                         # RoboLab 自己的正式文档
 
 上述目录边界中，`vendor/`、`packages/`、`robots/` 与 `docs/` 已存在；
 `packages/mjlab_adapter/` 已实现首版 task 发现与受控 play 调用，`integrations/`
-和 `runtime/` 仍主要是后续迁移边界，具体进度按 `DEVELOPMENT_PLAN.md` 跟踪。
+和 `runtime/` 仍主要是后续迁移边界，具体进度按
+[`../project/DEVELOPMENT_PLAN.md`](../project/DEVELOPMENT_PLAN.md) 跟踪。
 
 ## 4. 首次导入保留清单
 

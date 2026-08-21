@@ -1,10 +1,11 @@
 # B7 MVP 验收记录
 
-状态：进行中；创建日期 2026-08-20。本文是 B7 的验收证据记录，当前进度以
+状态：进行中；创建日期 2026-08-20。B7 已作为下一阶段 N0 关闭门禁继续执行，当前进度以
 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 为准。此记录区分已经完成的 CPU 闭环和依赖
 本地 MJLab/Viser 环境的手动验证，禁止用前者替代后者。
 
-执行顺序严格对应 `DEVELOPMENT_PLAN.md`：**B7.1 → B7.2 → B7.3**。
+历史执行顺序为 **B7.1 → B7.2 → B7.3**；当前状态统一映射到
+`DEVELOPMENT_PLAN.md` 的 **N0.2–N0.6**。
 本文只记录证据，不重新定义批次、依赖或完成状态。
 
 ## 环境基线
@@ -218,7 +219,7 @@ B7 只有在以下三项全部完成后才能关闭：
 
 完成后，在本记录补充每条命令、执行时间、退出码、Job/run 路径、结果摘要、artifact
 hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
-`docs/project/DEVELOPMENT_PLAN.md` 中 B7.1、B7.2、B7.3 更新为 `✅ 日期`。
+`docs/project/DEVELOPMENT_PLAN.md` 中 N0.2–N0.6 更新为 `✅ 日期`。
 
 ## 历史状态快照（截至 2026-08-20）
 
@@ -265,7 +266,7 @@ hash、GPU/依赖版本、Viser 截图位置和 CI URL；然后将
    artifact hash；
 4. 记录最终 GPU/CPU、MuJoCo、MJLab、Viser、Warp 的具体版本与结果。
 
-完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 B7.1/B7.2/B7.3 状态更新为
+完成所有条目后，将本表与 [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) 的 N0.2–N0.6 状态更新为
 `✅`；在此之前 MVP 仅处于 CPU 闭环就绪状态。
 
 ## 最新复测（2026-08-21）

@@ -18,7 +18,11 @@ One-Stop Motion Control Platform Based on Heavily Customized MJLab Tools with De
 
 RoboLab 计划成为一个面向机器人运动控制的本地优先 Web 平台，将机器人接入、强化学习训练、仿真验证、策略导出、Skill 安装和实机部署组织成一条可追踪、可复现、可回滚的工作流。
 
-> 当前仓库已完成 B1–B6，正在进行 B7 MVP 验收。`vendor/unitree_rl_mjlab/` 已完成精选导入；schema、Skill 安装链路、Job/Worker、MJLab adapter、三个样板 Skill、loopback API、SQLite/artifact store、`robolab serve` 与最小 WebUI 均已可用。当前批次和剩余工作以 [`docs/project/DEVELOPMENT_PLAN.md`](docs/project/DEVELOPMENT_PLAN.md) 为准。
+> 当前仓库已完成 Phase 0–1 的 B1–B6 实现，B7 作为下一阶段 N0 关闭门禁继续验收。
+> CPU contract suite 已通过；真实 G1 trained MotionSkill 仍等待当前外部 GPU 训练结束后训练或取得
+> checkpoint。当前不启动 RoboLab/G1 GPU 任务。下一阶段集中完成 trained play、ValidationRun、
+> sim-to-sim、DeploymentSession 与 Runtime `stop/safe` 纵向闭环。当前状态以
+> [`docs/project/DEVELOPMENT_PLAN.md`](docs/project/DEVELOPMENT_PLAN.md) 为准。
 
 ## 核心边界
 
@@ -86,7 +90,8 @@ WebUI ──API──> Platform Core ──任务──> MJLab / Job Worker
 ## 文档
 
 - [文档索引](docs/README.md)
-- [开发主线与批次计划（当前进度）](docs/project/DEVELOPMENT_PLAN.md)
+- [主线对齐审查](docs/project/MAINLINE_ALIGNMENT_REVIEW.md)
+- [下一阶段详细执行计划（当前进度）](docs/project/DEVELOPMENT_PLAN.md)
 - [总体架构](docs/reference/ARCHITECTURE.md)
 - [Skill 包规范](docs/reference/SKILL_SPEC.md)
 

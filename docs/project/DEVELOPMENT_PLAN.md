@@ -1,122 +1,162 @@
-# RoboLab 开发主线与批次计划
+# RoboLab 下一阶段详细执行计划
 
-状态：v0.1（2026-08-20 建立）。本文是执行层主线：批次顺序、依赖、状态与追溯。
+状态：v0.2，2026-08-21 启用。本文是当前批次、依赖、完成状态与剩余工作的
+**唯一权威来源**。
 
-分工：[ROADMAP](ROADMAP.md) 管“阶段与退出条件”，[MVP_ACCEPTANCE](MVP_ACCEPTANCE.md) 管“怎么算验收”，本文管“现在该干什么、按什么顺序、做到哪了”，并且是**唯一的进度权威**。发生设计取舍时查阅[历史决策记录](../history/DECISIONS_AND_QA.md)；新决策须先记录在该文件，再同步更新本文和受影响的规范。
+历史 B1–B7 计划已归档至
+[`../history/PHASE_0_1_DEVELOPMENT_PLAN.md`](../history/PHASE_0_1_DEVELOPMENT_PLAN.md)。
+本阶段以 [`MAINLINE_ALIGNMENT_REVIEW.md`](MAINLINE_ALIGNMENT_REVIEW.md) 的主线审查为范围约束，
+以 [`B7_ACCEPTANCE_RECORD.md`](B7_ACCEPTANCE_RECORD.md) 记录 N0 的验收证据。
 
-## 当前位置
+## 1. 阶段目标
 
-- ✅ 设计基线冻结（Q1–Q26、D-001–D-032）
-- ✅ 精选 vendor 导入与外部 runtime 发现（`vendor/unitree_rl_mjlab/`）
-- ✅ 文档与所有权边界批次（四个入口 stub：adapter / integration / runtime / robots）
-- ✅ **B1 契约冻结（2026-08-20）**；`robolab` conda 主环境已建立（Phase 0 完成标准见 B1 退出小节）
-- 🔶 **B7 MVP 验收演练进行中（2026-08-20）**；CPU 闭环已通过；catalog 发布与 MJLab/Viser 手动环境待完成
-
-## 批次总览
+下一阶段不再扩展横向平台功能，集中完成一条真实运动控制纵向闭环：
 
 ```text
-B1 契约冻结 ──> B2 Profile 样板与 Skill 安装 ──> B3 Job 协议与 Worker
-      │                 │                            │
-      │                 └────────────┬───────────────┘
-      │                              ▼
-      │                       B4 三个样板 Skill 与 CLI 端到端
-      │                              │
-      ▼                              ▼
-B1 同时解锁 ─────────────────> B5 平台 API 与 robolab serve
-                                     │
-                                     ▼
-                              B6 最小 WebUI ──> B7 MVP 验收演练
+G1 trained MotionSkill
+  -> MJLab play
+  -> ValidationRun
+  -> unitree_mujoco sim-to-sim
+  -> DeploymentPlan
+  -> DeploymentSession
+  -> Runtime stop/safe
 ```
 
-依赖原则：契约（B1）是一切的前置；样板 Skill（B4）同时依赖安装链路（B2）和 Job 运行（B3）；WebUI（B6）只消费已稳定的 API（B5），不提前开工（D-026）。
+阶段退出时，RoboLab 必须能够从同一个 Skill、Robot Profile 和固定 Artifact hash 出发，
+完成真实策略回放、验证、仿真部署、会话监控和安全停止，并保存完整 lineage。
 
-## B1 契约冻结（Phase 0 收尾）
+## 2. 当前状态与资源门禁
 
-目标：冻结 `RobotProfile v1alpha1` 与 `SkillPackage v1alpha1` 最小 schema，并提供可机器执行的兼容性判定，达成 Phase 0 退出条件——“任何人能解释一份 Skill 为什么与某 Robot Profile 兼容或不兼容”。
+- ✅ Phase 0–1 平台骨架：schema、Skill、CLI、Worker、API、WebUI 与 Artifact Store 已实现；
+- ✅ CPU contract suite：2026-08-21 实测 `113 passed, 1 warning`；
+- ✅ G1 zero-policy 已启动 MJLab/Viser，adapter 布尔参数与 PlayConfig 缺陷已修复；
+- ⏸️ 当前 GPU 正在运行其他 IsaacLab 训练，不启动 RoboLab/G1 GPU 任务，不抢占或终止该进程；
+- ⬜ 外部训练完成后，先训练或取得可复现的 G1 velocity checkpoint；
+- ⬜ 在真实 G1 trained play 通过前，N1–N5 只保留计划，不进入实现。
 
-| # | 任务 | 依据 | 验收映射 | 状态 |
+当前等待链：
+
+```text
+现有 GPU 训练结束
+  -> 训练/取得 G1 velocity policy
+  -> 固定 checkpoint + config + revision
+  -> N0 trained MotionSkill 验收
+  -> 开始 N1
+```
+
+## 3. 批次总览
+
+| 批次 | 目标 | 依赖 | 状态 |
+|---|---|---|---|
+| N0 | 关闭 B7：真实 G1 trained MotionSkill 验收 | 当前 GPU 任务结束、G1 checkpoint | ⏸️ 等待外部训练资源 |
+| N1 | 冻结验证与部署领域契约 | N0 | ⬜ 未开始 |
+| N2 | 最小通用 Runtime 与 sim-to-sim target | N1 | ⬜ 未开始 |
+| N3 | Validation/Deployment 控制面与安全门禁 | N2 | ⬜ 未开始 |
+| N4 | Validate/Deploy WebUI 纵向入口 | N3 | ⬜ 未开始 |
+| N5 | 端到端验收、回归与文档收口 | N4 | ⬜ 未开始 |
+
+依赖原则：N0 未通过，不以 zero-policy 代替真实 MotionSkill；N2 未具备独立 Runtime 的
+`stop/safe`，不开放 DeploymentSession；N3 安全门禁未通过，不显示可启动的 Deploy 操作。
+
+## 4. N0：真实 G1 MotionSkill 与 B7 关闭门禁
+
+目标：证明平台承载的是可运行运动能力，而不仅是 task discovery 和 Job 管理。
+
+| # | 工作项 | 交付物 | 验收标准 | 状态 |
 |---|---|---|---|---|
-| B1.1 | `packages/schemas`：RobotProfile v1alpha1 JSON Schema，字段按 ROBOT_ADAPTATION §2 固化 | D-019、Q14 | §6 schema 错误可解释 | ✅ 2026-08-20 |
-| B1.2 | `packages/schemas`：SkillPackage v1alpha1 JSON Schema，覆盖 MotionSkill/PlatformSkill/AgentSkill 三种 kind | D-003、D-012、Q8/Q9 | §3.1、§4、§5 | ✅ 2026-08-20 |
-| B1.3 | 关节映射契约的机器校验：名称唯一、映射双射、索引连续性、数组长度、限位方向 | D-005、ROBOT_ADAPTATION §4 | §3.3 | ✅ 2026-08-20 |
-| B1.4 | `packages/core`：compatibility 判定（capability + Profile 版本），输出可解释原因 | D-005 | Phase 0 退出条件 | ✅ 2026-08-20 |
-| B1.5 | `robolab check` CLI：对 Profile/Skill 运行 schema + 兼容性检查并给出原因 | D-026、Q22 | §6 | ✅ 2026-08-20 |
-| B1.6 | 基础 lint：许可证声明、artifact SHA-256 校验规则 | D-009、D-005 | §3.1 | ✅ 2026-08-20 |
+| N0.1 | 等待当前 IsaacLab 训练自然结束 | 可用 GPU 时间窗 | 不终止、不降速、不抢占当前训练 | ⏸️ |
+| N0.2 | 训练或取得 G1 velocity policy | checkpoint/WandB run、训练配置、代码 revision、seed、环境版本 | 来源可复现，文件可读取，任务与 G1 29DoF Profile 匹配 | ⬜ |
+| N0.3 | 固定 MotionSkill 产物 | policy artifact、deploy params、SHA-256、manifest revision | `robolab check` 与 compatibility 全部通过 | ⬜ |
+| N0.4 | 从平台运行真实 trained play | Job input/events/logs/result、Viser 证据、可选视频 | 使用 `agent=trained` 成功启动并产生有效机器人运动，不能使用 zero-policy 代替 | ⬜ |
+| N0.5 | 验证 Job 生命周期与 lineage | cancel/terminal status、config snapshot、artifact hashes | API/CLI 至少一条路径可复现，取消后无残留进程组 | ⬜ |
+| N0.6 | 完成远程 catalog/CI 与 B7 记录 | 远程 CI 链接、最终验收记录 | B7.1/B7.2/B7.3 全部有证据后关闭 | ⬜ |
 
-实现备注：关节映射固化为独立 `JointSet v1alpha1` 文档（`packages/schemas`），被 RobotProfile `description.jointSet` 引用；ONNX 维度实测属于 B4 contract test。CLI 落位 `apps/cli`（与 `apps/web` 并列的用户入口），B5 的 `robolab serve` 将挂在同一入口下。observation/action schema 的机器比对等 B2 任务绑定导出 schema id 后启用，当前输出“记录待比对”提示。
+N0 退出条件：真实 G1 Velocity MotionSkill 从固定版本 catalog 安装后，可由 RoboLab 创建
+trained play Job，运行、停止并归档完整结果。
 
-退出：ROADMAP Phase 0 的六项中，schema 冻结（B1.1/B1.2）与 lint/校验（B1.6）由本批完成；剩余四项分别由 B2.1（首个 simulation-only 样板）、B4.1（velocity MotionSkill）、B4.2（可执行 PlatformSkill）完成。**Phase 0 完成 = B1 + B2.1 + B4.1 + B4.2（含其依赖）全部完成。**
+## 5. N1：验证与部署领域契约
 
-## B2 Profile 样板与 Skill 安装链路
+目标：在写 Runtime 和页面前，冻结从“已验证策略”到“仿真部署会话”的机器契约。
 
-| # | 任务 | 依据 | 验收映射 |
+| # | 工作项 | 主要内容 | 验收标准 | 状态 |
+|---|---|---|---|---|
+| N1.1 | `ValidationRun` schema | Skill/Profile/Artifact hash、target、gate、metrics、evidence、status | schema 正反例与版本兼容测试通过 | ⬜ |
+| N1.2 | `DeploymentPlan` schema | 固定输入、runtime config、target、required gates、fallback | 配置变化产生新 revision，不允许浮动 Skill 或 Artifact | ⬜ |
+| N1.3 | `DeploymentSession` 状态机 | CREATED/PREPARING/ARMED/ACTIVE/STOPPING/SAFE/FAILED | 非法转换被机器拒绝并给出原因 | ⬜ |
+| N1.4 | Runtime 协议 | prepare/start/status/stop/safe、heartbeat、session token、事件格式 | contract test 覆盖超时、重复 stop 和失联降级 | ⬜ |
+| N1.5 | Safety Gate 判定 | offline、mjlab_play、sim_to_sim、target capability | 每项通过/失败均可解释且关联证据 hash | ⬜ |
+
+N1 退出条件：CLI/测试可以在不启动仿真器的情况下构造计划、执行状态转换并验证所有安全门禁。
+
+## 6. N2：最小 Runtime 与 sim-to-sim
+
+目标：从 Unitree legacy deploy 中抽出最小可验证的数据面，不追求一次性重构全部机器人。
+
+| # | 工作项 | 主要内容 | 验收标准 | 状态 |
+|---|---|---|---|---|
+| N2.1 | Runtime 骨架 | 独立进程、配置加载、结构化事件、退出码 | 不依赖 WebUI 在线，API 崩溃不保持 active 命令 | ⬜ |
+| N2.2 | ONNX policy runner | observation、inference、action、frequency、shape 检查 | 使用 N0 同一 policy artifact，维度和频率异常时 fail closed | ⬜ |
+| N2.3 | 通用 FSM | Passive/FixStand/Damping/RL/Safe 生命周期 | stop、超时、异常均进入 Safe/Damping | ⬜ |
+| N2.4 | Simulation driver | unitree_mujoco transport、RobotState/RobotCommand 转换 | 厂商类型不泄漏到通用 runner/FSM | ⬜ |
+| N2.5 | Heartbeat/watchdog | deadline、状态超时、命令超时、故障事件 | 人工断开控制面后 runtime 自动安全降级 | ⬜ |
+| N2.6 | G1 sim-to-sim 样板 | G1 Profile binding、deploy config、启动脚本 | N0 policy 在独立 simulator/runtime 中完成稳定会话 | ⬜ |
+
+N2 退出条件：命令行能够启动一条 G1 simulation DeploymentPlan，进入 ACTIVE，监控状态，
+并通过显式 stop 或故障注入进入 SAFE。
+
+## 7. N3：Validation/Deployment 控制面
+
+| # | 工作项 | 主要内容 | 验收标准 | 状态 |
+|---|---|---|---|---|
+| N3.1 | Validation 服务与存储 | 创建/查询 ValidationRun，登记指标、日志、视频和证据 | 验证记录固定 Skill/Profile/Artifact hash | ⬜ |
+| N3.2 | Deployment 服务与存储 | 创建 plan/session、prepare/start/stop/safe | 重启 API 后可恢复终态与审计记录 | ⬜ |
+| N3.3 | Edge 管理面 | 启动/监控 Runtime、heartbeat、session token | 旧 token、错误 target、缺失 heartbeat 被拒绝 | ⬜ |
+| N3.4 | 自动门禁 | compatibility + required validations + capability | 未通过 sim-to-sim 的 Artifact 不能启动 simulation deployment | ⬜ |
+| N3.5 | Artifact lineage | checkpoint、ONNX、deploy config、validation、session 关联 | 任一 session 可追溯到代码、配置、Skill 和训练来源 | ⬜ |
+
+N3 退出条件：REST/CLI 可以完成 validate、plan、prepare、start、status、stop/safe 全流程，
+且绕过门禁的请求被明确拒绝。
+
+## 8. N4：Validate/Deploy WebUI
+
+| # | 工作项 | 主要内容 | 验收标准 | 状态 |
+|---|---|---|---|---|
+| N4.1 | Validate 页面 | 选择固定 Skill/Profile/Artifact、显示 gates/evidence | 不使用含糊的“已验证”，逐项显示结果和原因 | ⬜ |
+| N4.2 | Deployment Plan 页面 | 显示 target、policy hash、配置 diff、fallback | 启动前可核对等价 CLI 和全部固定输入 | ⬜ |
+| N4.3 | Session 页面 | FSM 状态、heartbeat、告警、事件时间线、stop/safe | 页面断开不影响 runtime watchdog | ⬜ |
+| N4.4 | 危险操作交互 | simulation/physical 明确分离，physical 保持禁用 | 缺 Driver/Calibration/Safety 时不能激活 physical target | ⬜ |
+
+N4 退出条件：用户无需拼接命令即可完成一次仿真部署，同时任何关键状态和失败原因都可见。
+
+## 9. N5：端到端验收与阶段收口
+
+| # | 工作项 | 验收标准 | 状态 |
 |---|---|---|---|
-| B2.1 | 选定 vendor 中 G1 29DoF 的公开 MJCF 作为首个 simulation-only 样板，并落成 `robots/unitree.g1.29dof/` Profile，通过 B1 校验器自证 L0（本任务的交付物同时是 ROADMAP Phase 0 的“样板选定”） | D-006、D-019、Q14 | §3.2 | ✅ 2026-08-20 |
-| B2.2 | Skill 扫描：发现 `builtin/`、`installed/`、`dev/`，标出来源与可变性 | D-014 | §6 | ✅ 2026-08-20 |
-| B2.3 | 从本地 RoboLab-Skill checkout 安装单个 Skill：解析、固定 revision、校验、复制到 `installed/`、注册 | D-002、D-029、Q25 | §6 | ✅ 2026-08-20 |
-| B2.4 | 不可变安装约束：同一 `id@version` 内容不同被拒绝；卸载保留被历史 Job 引用的哈希 | D-014 | §6 | ✅ 2026-08-20 |
-| B2.5 | 权限审查与 Conda prepare 的显式步骤（不自动执行 `setup.sh`） | D-022、Q17 | §4、§6 | ✅ 2026-08-20 |
+| N5.1 | Happy path | 安装 G1 Skill -> trained play -> validate -> sim-to-sim -> stop/safe 全部通过 | ⬜ |
+| N5.2 | Safety fault injection | API 断开、runtime heartbeat 超时、无效 token、错误 shape 均安全失败 | ⬜ |
+| N5.3 | Reproducibility | 在干净环境依据 snapshot/hash 重放同一流程 | ⬜ |
+| N5.4 | Regression suite | CPU contract tests 与必要 GPU/manual suite 分层记录 | ⬜ |
+| N5.5 | 文档收口 | 架构、运行手册、验收记录、已知限制与回滚步骤同步 | ⬜ |
 
-依赖：B1（schema 与校验器）。Conda 主环境假定已可用。
+阶段退出条件：实现“一键仿真部署”的准确含义，并以真实 G1 policy 给出可复现证据；
+physical target 仍保持不可激活，直到 Phase 4 的 Driver/Calibration/Safety 验收完成。
 
-## B3 Job 协议与 Worker
+## 10. 范围冻结
 
-| # | 任务 | 依据 | 验收映射 |
-|---|---|---|---|
-| B3.1 | `robolab-job-v1` 子进程协议：Job 输入、`events.jsonl`、`result.json`、取消与清理 | D-004、Q22 | §3.5/3.6、§6 | ✅ 2026-08-20 |
-| B3.2 | 本地 Worker：独立进程/进程组运行 Job，不以 root 运行第三方代码 | D-004、架构约束 | §2、§6 | ✅ 2026-08-20 |
-| B3.3 | 统一 action registry 初版：CLI 与后续 WebUI/Agent 共用 | Q7、ARCHITECTURE §4.2 | §6 | ✅ 2026-08-20 |
-| B3.4 | `packages/mjlab_adapter` 最小版：发现 vendor registry task，受控子进程调用 `scripts/play.py`，采集日志与退出码；MVP 只发现/展示训练 task/config/等价 CLI，`train.py` 启动属下一里程碑 | D-024、Q19 | §3.5、ARCHITECTURE §4.1 | ✅ 2026-08-20 |
+本阶段明确不做：
 
-依赖：B1。注意 adapter 只调用 vendor 现有入口，不重构 vendor 内部。
+- 多租户、云端训练、远端 Worker、Docker 平台化；
+- 内置聊天 Agent、Claude/DeepSeek adapter 扩展；
+- 第二机器人、完整 Robot Onboarding Wizard；
+- CompositeSkill、签名市场和通用插件生态；
+- 实机 motor command 激活。
 
-## B4 三个样板 Skill 与 CLI 端到端（RoboLab-Skill 仓库）
+只有 N5 关闭后，才重新评估训练平台、第二机器人和受控实机阶段。
 
-| # | 任务 | 依据 | 验收映射 |
-|---|---|---|---|
-| B4.1 | G1 Velocity MotionSkill：只携带自身 ONNX/deploy 参数，引用 G1 Profile 与 MJLab task，不复制 XML/mesh/runtime | D-017、D-027、Q9/Q23 | §3 全部 | ✅ 2026-08-20 |
-| B4.2 | MJCF Inspector PlatformSkill：报告 schema（`report.json`/`report.md`/`robot_profile.draft.yaml`）与只读权限默认 | D-015、Q12 | §4 全部 | ✅ 2026-08-20 |
-| B4.3 | Robot Onboarding AgentSkill：`SKILL.md` + `skill.yaml` + `references/`，Codex `.agents/skills/` 导出原型 | D-011、D-012、Q8/Q9 | §5 全部 | ✅ 2026-08-20 |
-| B4.4 | CLI 端到端：安装三个样板 → 校验 → 调用 → 查看结果，全程无需手工复制文件 | D-026、Q22 | §8 | ✅ 2026-08-20 |
+## 11. 状态维护规则
 
-依赖：B2（安装链路、G1 Profile）、B3（Job 运行）。
-
-## B5 平台 API 与 `robolab serve`
-
-| # | 任务 | 依据 | 验收映射 |
-|---|---|---|---|
-| B5.1 | FastAPI API（仅 loopback）、SQLite 元数据、content-addressed artifact store | D-001、D-018 | §2 | ✅ 2026-08-20 |
-| B5.2 | Job 日志、取消、状态、配置 snapshot；产物 lineage 记录 | 架构 §2.2 | §3.6/3.8 | ✅ 2026-08-20 |
-| B5.3 | `robolab serve` 统一启动 API、静态 WebUI 占位与 Worker；端口选择与 URL 输出 | D-028、Q10、Q24 | §2 | ✅ 2026-08-20 |
-| B5.4 | 启动健康检查：Python、Conda、MuJoCo、MJLab、GPU、磁盘 | 验收 §2 直接要求 | §2 | ✅ 2026-08-20 |
-
-依赖：B3（Worker/Job 协议）、B4（有可安装的内容可演示）。
-
-## B6 最小 WebUI
-
-| # | 任务 | 依据 | 验收映射 |
-|---|---|---|---|
-| B6.1 | React + TypeScript 骨架，一级导航 Dashboard/Robots/Skills/Jobs/Artifacts/Settings | D-018、D-023、Q18 | §2 | ✅ 2026-08-20 |
-| B6.2 | Skills 页：安装、版本固定、权限展示、actions 调用、运行状态 | D-014、D-022 | §3.4、§6 | ✅ 2026-08-20 |
-| B6.3 | Jobs 页：实时日志、阶段、运行时间、停止按钮 | — | §3.6 | ✅ 2026-08-20 |
-| B6.4 | Robots 页：G1 Profile 展示与兼容性矩阵（Profile × Skill × hash） | ROBOT_ADAPTATION §8 | §3.2 | ✅ 2026-08-20 |
-| B6.5 | 视觉遵守 UI_GUIDELINES：中文默认、克制低饱和、无渐变/发光/玻璃拟态 | D-020、Q15 | §2 | ✅ 2026-08-20 |
-
-依赖：B5。Train/Validate/Deploy/Agent 只作详情入口或禁用，不制造空页面（Q18）。
-
-## B7 MVP 验收演练
-
-| # | 任务 | 依据 | 验收映射 |
-|---|---|---|---|
-| B7.1 | 按 MVP_ACCEPTANCE §8 在干净机器完整演练三条路径 | — | §8 | 🔶 2026-08-21（CPU 三条样板路径通过；Inspector 参数文档已修正；真实 trained play 仍需 checkpoint/WandB run） |
-| B7.2 | CPU CI：schema、安装、Job 协议、MJCF Inspector contract test | D-030、Q26 | §6 | 🔶 2026-08-21（本地 `113 passed, 1 warning`；待 catalog 发布后远程 CI） |
-| B7.3 | 本地环境测试记录：MJLab play / Viser 手动验证清单 | D-030 | §3 | 🔶 2026-08-21（Viser 已启动；`--video` 与 PlayConfig 缺陷已修复；trained play 仍需真实 checkpoint/WandB run，详见 `B7_ACCEPTANCE_RECORD.md`） |
-
-依赖：B4、B6。
-
-## 维护规则
-
-1. 每完成一个任务就地更新状态（⬜/🔶/✅ + 日期），本文是“当前进度”的唯一权威来源；
-2. 新增或重排批次必须说明依据的决策 ID；与既有决策冲突时先在 DECISIONS_AND_QA 追加决策，再更新本文；
-3. 超出 MVP 范围的内容（MVP_ACCEPTANCE §7）不进入本文批次，只在 ROADMAP Phase 2+ 跟踪；
-4. 批次内部可并行，跨批次严格按依赖顺序；不允许为赶进度绕过 B1 契约直接写功能代码。
+1. 状态只使用 `⬜ 未开始`、`🔶 进行中`、`⏸️ 等待依赖`、`✅ 完成`；
+2. 每次状态变化记录日期和证据路径，不以代码存在代替验收通过；
+3. GPU/manual 验收与 CPU contract tests 分开记录；
+4. 新增横向功能前必须说明它服务于上述纵向链路的哪一个节点；
+5. 与主线审查冲突的工作，先更新决策记录和主线审查，再进入本计划。
