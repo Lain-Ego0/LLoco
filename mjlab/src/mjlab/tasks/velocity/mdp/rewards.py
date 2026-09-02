@@ -24,6 +24,81 @@ if TYPE_CHECKING:
 _DEFAULT_ASSET_CFG = SceneEntityCfg("robot")
 
 
+def go2_trot_phase_reward(
+  env: ManagerBasedRlEnv,
+  sensor_name: str = "feet_ground_contact",
+  command_name: str = "twist",
+  cycle_time: float = 0.5,
+  contact_threshold: float = 0.0,
+) -> torch.Tensor:
+  """Reward the diagonal stance pattern used by the source Go2 trot task."""
+  sensor: ContactSensor = env.scene[sensor_name]
+  found = sensor.data.found
+  assert found is not None
+  contact = found > contact_threshold
+  if contact.shape[1] != 4:
+    raise ValueError(f"Expected four foot contacts, got shape {tuple(contact.shape)}")
+
+  phase = (
+    env.episode_length_buf.to(dtype=torch.float32) * env.step_dt
+  ) % cycle_time / cycle_time
+  stance_a = phase < 0.5
+  # Contact sensor order is (FR, FL, RR, RL).  Diagonal pairs are FR/RL and
+  # FL/RR, matching the source implementation's trot mask.
+  expected = torch.stack(
+    (stance_a, ~stance_a, ~stance_a, stance_a),
+    dim=1,
+  )
+  diagonal = (contact[:, 0] == contact[:, 3]) & (contact[:, 1] == contact[:, 2])
+  phase_match = torch.all(contact == expected, dim=1)
+  command = env.command_manager.get_command(command_name)
+  assert command is not None
+  moving = torch.linalg.vector_norm(command[:, :3], dim=1) > 0.1
+  return (diagonal & phase_match & moving).to(torch.float32)
+
+
+def go2_default_hip_position_penalty(
+  env: ManagerBasedRlEnv,
+  asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
+) -> torch.Tensor:
+  """Penalize abduction/hip displacement as in the source trot task."""
+  asset: Entity = env.scene[asset_cfg.name]
+  joint_pos = asset.data.joint_pos[:, asset_cfg.joint_ids]
+  default = asset.data.default_joint_pos[asset_cfg.joint_ids]
+  return torch.sum(torch.abs(joint_pos[:, 0::3] - default[:, 0::3]), dim=1)
+
+
+def go2_stand_still_penalty(
+  env: ManagerBasedRlEnv,
+  command_name: str = "twist",
+  asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
+) -> torch.Tensor:
+  """Penalize joint displacement when no velocity command is active."""
+  asset: Entity = env.scene[asset_cfg.name]
+  command = env.command_manager.get_command(command_name)
+  assert command is not None
+  error = torch.sum(
+    torch.abs(asset.data.joint_pos - asset.data.default_joint_pos), dim=1
+  )
+  return error * (torch.linalg.vector_norm(command[:, :3], dim=1) < 0.1)
+
+
+def go2_contact_without_command(
+  env: ManagerBasedRlEnv,
+  sensor_name: str = "feet_ground_contact",
+  command_name: str = "twist",
+) -> torch.Tensor:
+  """Penalize all four feet being in contact while standing without a command."""
+  sensor: ContactSensor = env.scene[sensor_name]
+  found = sensor.data.found
+  assert found is not None
+  command = env.command_manager.get_command(command_name)
+  assert command is not None
+  all_contact = torch.all(found > 0, dim=1)
+  idle = torch.linalg.vector_norm(command[:, :3], dim=1) < 0.1
+  return (all_contact & idle).to(torch.float32)
+
+
 def track_linear_velocity(
   env: ManagerBasedRlEnv,
   std: float,
