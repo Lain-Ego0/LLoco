@@ -1,5 +1,6 @@
 """Unitree Go2 asset and actuator configuration for mjlab."""
 
+from copy import deepcopy
 from pathlib import Path
 
 import mujoco
@@ -85,10 +86,12 @@ GO2_ARTICULATION = EntityArticulationInfoCfg(
 def get_go2_robot_cfg() -> EntityCfg:
   """Return a fresh Go2 entity configuration."""
   return EntityCfg(
-    init_state=INIT_STATE,
-    collisions=(FULL_COLLISION,),
+    # These dataclasses are intentionally copied: task-specific configs may
+    # adjust the initial pose or actuator gains without mutating later tasks.
+    init_state=deepcopy(INIT_STATE),
+    collisions=(deepcopy(FULL_COLLISION),),
     spec_fn=get_spec,
-    articulation=GO2_ARTICULATION,
+    articulation=deepcopy(GO2_ARTICULATION),
   )
 
 

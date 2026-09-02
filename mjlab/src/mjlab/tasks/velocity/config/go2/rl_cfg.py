@@ -45,3 +45,40 @@ def unitree_go2_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
     max_iterations=10_000,
   )
 
+
+def unitree_go2_custom_runner_cfg(kind: str) -> RslRlOnPolicyRunnerCfg:
+  """Return PPO config using the migrated Go2 auxiliary update hook."""
+  cfg = unitree_go2_ppo_runner_cfg()
+  algorithm_classes = {
+    "cts": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.CtsPPO",
+    "amp_cts": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.AmpCtsPPO",
+    "dreamwaq": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.DreamWaQPPO",
+    "amp_dreamwaq": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.AmpDreamWaQPPO",
+    "amp_ts": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.AmpTeacherStudentPPO",
+    "amp_ts_student": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.AmpTeacherStudentPPO",
+    "ts": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.TeacherStudentPPO",
+    "ts_student": "mjlab.tasks.velocity.rl.go2_algorithms.algorithms.TeacherStudentPPO",
+  }
+  actor_classes = {
+    "cts": "mjlab.tasks.velocity.rl.go2_algorithms.models.CtsActorModel",
+    "amp_cts": "mjlab.tasks.velocity.rl.go2_algorithms.models.CtsActorModel",
+    "dreamwaq": "mjlab.tasks.velocity.rl.go2_algorithms.models.DreamWaQActorModel",
+    "amp_dreamwaq": "mjlab.tasks.velocity.rl.go2_algorithms.models.DreamWaQActorModel",
+    "amp_ts": "mjlab.tasks.velocity.rl.go2_algorithms.models.TeacherActorModel",
+    "amp_ts_student": "mjlab.tasks.velocity.rl.go2_algorithms.models.StudentActorModel",
+    "ts": "mjlab.tasks.velocity.rl.go2_algorithms.models.TeacherActorModel",
+    "ts_student": "mjlab.tasks.velocity.rl.go2_algorithms.models.StudentActorModel",
+  }
+  critic_classes = {
+    "cts": "mjlab.tasks.velocity.rl.go2_algorithms.models.CtsCriticModel",
+    "amp_cts": "mjlab.tasks.velocity.rl.go2_algorithms.models.CtsCriticModel",
+  }
+  try:
+    cfg.algorithm.class_name = algorithm_classes[kind]
+    cfg.actor.class_name = actor_classes[kind]
+    if kind in critic_classes:
+      cfg.critic.class_name = critic_classes[kind]
+  except KeyError as exc:
+    raise ValueError(f"Unknown Go2 custom algorithm: {kind}") from exc
+  cfg.experiment_name = f"go2_{kind}"
+  return cfg

@@ -56,11 +56,13 @@ class RewardManager(ManagerBase):
     env: ManagerBasedRlEnv,
     *,
     scale_by_dt: bool = True,
+    clip_to_positive: bool = False,
   ):
     self._term_names: list[str] = list()
     self._term_cfgs: list[RewardTermCfg] = list()
     self._class_term_cfgs: list[RewardTermCfg] = list()
     self._scale_by_dt = scale_by_dt
+    self._clip_to_positive = clip_to_positive
 
     self.cfg = deepcopy(cfg)
     super().__init__(env=env)
@@ -130,6 +132,8 @@ class RewardManager(ManagerBase):
       self._reward_buf += value
       self._episode_sums[name] += value
       self._step_reward[:, term_idx] = value / scale
+    if self._clip_to_positive:
+      self._reward_buf.clamp_min_(0.0)
     return self._reward_buf
 
   def debug_vis(self, visualizer: DebugVisualizer) -> None:

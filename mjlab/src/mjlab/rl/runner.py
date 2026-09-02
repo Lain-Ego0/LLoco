@@ -57,6 +57,39 @@ class MjlabOnPolicyRunner(OnPolicyRunner):
       dynamo=False,
     )
 
+  def export_recurrent_policy_to_onnx(
+    self, path: str, filename: str = "policy_recurrent.onnx", verbose: bool = False
+  ) -> bool:
+    """Export an optional source-compatible recurrent policy companion.
+
+    Most policies only expose the regular ``as_onnx`` path.  Go2 TS-Student
+    additionally exposes ``as_recurrent_onnx`` for the legacy
+    ``obs,h,c -> actions,he,ce`` deployment contract.  Keeping this hook
+    optional preserves the normal exporter for every other task while making
+    the recurrent artifact available whenever the actor supplies it.
+    """
+    actor = self.alg.get_policy()
+    factory = getattr(actor, "as_recurrent_onnx", None)
+    if factory is None:
+      return False
+    onnx_model = factory(verbose)
+    onnx_model.to("cpu")
+    onnx_model.eval()
+    os.makedirs(path, exist_ok=True)
+    torch.onnx.export(
+      onnx_model,
+      onnx_model.get_dummy_inputs(),  # type: ignore[operator]
+      os.path.join(path, filename),
+      export_params=True,
+      opset_version=18,
+      verbose=verbose,
+      input_names=onnx_model.input_names,  # type: ignore[arg-type]
+      output_names=onnx_model.output_names,  # type: ignore[arg-type]
+      dynamic_axes={},
+      dynamo=False,
+    )
+    return True
+
   @staticmethod
   def _get_export_paths(checkpoint_path: str) -> tuple[Path, str, Path]:
     """Resolve ONNX export paths from a checkpoint path."""

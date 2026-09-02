@@ -23,6 +23,16 @@ class VelocityOnPolicyRunner(MjlabOnPolicyRunner):
       )  # type: ignore[assignment]
       metadata = get_base_metadata(self.env.unwrapped, run_name)
       attach_metadata_to_onnx(str(onnx_path), metadata)
+      # TS-Student also has a source-compatible recurrent artifact.  Keep the
+      # regular two-input ONNX file above for mjlab callers and emit the
+      # optional ``obs,h,c`` companion beside it when the actor supports it.
+      try:
+        recurrent_filename = f"{onnx_path.stem}_recurrent.onnx"
+        recurrent_path = policy_dir / recurrent_filename
+        if self.export_recurrent_policy_to_onnx(str(policy_dir), recurrent_filename):
+          attach_metadata_to_onnx(str(recurrent_path), metadata)
+      except Exception as recurrent_error:
+        print(f"[WARN] recurrent ONNX export failed (training continues): {recurrent_error}")
       if (
         self.logger.logger_type in ("wandb", "WandbLogWriter")
         and self.cfg["upload_model"]

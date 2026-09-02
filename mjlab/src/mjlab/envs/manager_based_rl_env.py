@@ -162,6 +162,9 @@ class ManagerBasedRlEnvCfg:
   algorithms that expect unscaled reward signals (e.g., HER, static reward scaling).
   """
 
+  clip_rewards_to_positive: bool = False
+  """Whether to clip the aggregate reward at zero after term aggregation."""
+
 
 class ManagerBasedRlEnv:
   """Manager-based RL environment."""
@@ -329,7 +332,10 @@ class ManagerBasedRlEnv:
     self.termination_manager = TerminationManager(self.cfg.terminations, self)
     print_info(f"[INFO] {self.termination_manager}")
     self.reward_manager = RewardManager(
-      self.cfg.rewards, self, scale_by_dt=self.cfg.scale_rewards_by_dt
+      self.cfg.rewards,
+      self,
+      scale_by_dt=self.cfg.scale_rewards_by_dt,
+      clip_to_positive=self.cfg.clip_rewards_to_positive,
     )
     print_info(f"[INFO] {self.reward_manager}")
     if len(self.cfg.curriculum) > 0:
@@ -440,6 +446,9 @@ class ManagerBasedRlEnv:
       self.scene.write_data_to_sim()
       self.sim.step()
       self.scene.update(dt=self.physics_dt)
+      # Optional action-term hooks run after integration, matching the timing
+      # of source sensor-latency buffers without burdening ordinary actions.
+      self.action_manager.post_physics_step()
       self.metrics_manager.compute_substep()
 
     # Update env counters.

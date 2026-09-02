@@ -183,6 +183,19 @@ class ActionManager(ManagerBase):
     for term in self._terms.values():
       term.apply_actions()
 
+  def post_physics_step(self) -> None:
+    """Notify action terms after each completed physics substep.
+
+    Most action terms are stateless at this point.  Optional terms can expose
+    a ``post_physics_step`` hook for sensor-side buffers whose source
+    implementation samples state after integration (for example Go2's
+    per-substep observation-latency buffers).
+    """
+    for term in self._terms.values():
+      callback = getattr(term, "post_physics_step", None)
+      if callback is not None:
+        callback()
+
   def get_active_iterable_terms(
     self, env_idx: int
   ) -> Sequence[tuple[str, Sequence[float]]]:

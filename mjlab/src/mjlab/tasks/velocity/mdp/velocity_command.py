@@ -71,6 +71,32 @@ class UniformVelocityCommand(CommandTerm):
       / max_command_step
     )
 
+  def _apply_source_command_masks(self, env_ids: torch.Tensor) -> None:
+    """Apply optional source Go2 zero/small-command sampling masks."""
+    if len(env_ids) == 0:
+      return
+    r = torch.empty(len(env_ids), device=self.device)
+    if self.cfg.source_zero_command_prob > 0.0:
+      zero_ids = env_ids[
+        r.uniform_(0.0, 1.0) < self.cfg.source_zero_command_prob
+      ]
+      if len(zero_ids) > 0:
+        self.vel_command_b[zero_ids] = 0.0
+        self.vel_command_w[zero_ids] = 0.0
+        self.heading_target[zero_ids] = 0.0
+    if self.cfg.source_zero_xy_prob > 0.0:
+      zero_xy_ids = env_ids[
+        r.uniform_(0.0, 1.0) < self.cfg.source_zero_xy_prob
+      ]
+      if len(zero_xy_ids) > 0:
+        self.vel_command_b[zero_xy_ids, :2] = 0.0
+        self.vel_command_w[zero_xy_ids, :2] = 0.0
+    if self.cfg.source_min_lin_norm > 0.0:
+      small = torch.linalg.vector_norm(self.vel_command_b[env_ids, :2], dim=1)
+      self.vel_command_b[env_ids, :2] *= (
+        small > self.cfg.source_min_lin_norm
+      ).unsqueeze(-1)
+
   def _resample_command(self, env_ids: torch.Tensor) -> None:
     r = torch.empty(len(env_ids), device=self.device)
     self.vel_command_b[env_ids, 0] = r.uniform_(*self.cfg.ranges.lin_vel_x)
@@ -96,6 +122,10 @@ class UniformVelocityCommand(CommandTerm):
       )
       self.vel_command_b[fwd_ids, 1] = 0.0
       self.vel_command_b[fwd_ids, 2] = 0.0
+
+    # Isaac Gym Go2 tasks apply these masks after sampling the command vector.
+    # Keep them opt-in so the common mjlab velocity command remains unchanged.
+    self._apply_source_command_masks(env_ids)
 
   def reset(self, env_ids: torch.Tensor | slice | None) -> dict[str, float]:
     extras = super().reset(env_ids)
@@ -298,6 +328,11 @@ class UniformVelocityCommandCfg(CommandTermCfg):
   init_velocity_prob: float = 0.0
   """Probability that an env starts its episode already moving at its sampled
   planar command velocity. Applied on reset only."""
+  # Optional source Go2 command-sampling semantics.  These are applied at
+  # command resampling time and remain zero for generic mjlab tasks.
+  source_zero_command_prob: float = 0.0
+  source_zero_xy_prob: float = 0.0
+  source_min_lin_norm: float = 0.0
 
   @dataclass
   class Ranges:
