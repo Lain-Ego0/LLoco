@@ -95,7 +95,11 @@ def go2_trot_phase_reward(
   idle_contact = torch.all(
     _go2_reward_contact_mask(sensor, threshold=0.1), dim=1
   )
-  moving_gate = diagonal.to(torch.float32).mean() > 0.7
+  # ``self.trot`` in the source is the batch-wide fraction of complete
+  # phase-matched trot transitions (not merely diagonal contacts).  Include
+  # the phase condition here so the following tracking terms see the same
+  # readiness gate.
+  moving_gate = (diagonal & phase_match).to(torch.float32).mean() > 0.7
   env._go2_trot_ready = torch.where(moving, moving_gate, idle_contact)
   return (diagonal & phase_match & moving).to(torch.float32)
 
@@ -238,7 +242,9 @@ def go2_jump_angular_velocity_reward(
 ) -> torch.Tensor:
   """Positive roll/pitch angular-velocity kernel from Go2 jump."""
   asset: Entity = env.scene[asset_cfg.name]
-  return torch.exp(-torch.abs(asset.data.root_link_ang_vel_b[:, :2]).sum(dim=-1))
+  return torch.exp(
+    -torch.linalg.vector_norm(torch.abs(asset.data.root_link_ang_vel_b[:, :2]), dim=-1)
+  )
 
 
 def go2_jump_orientation_reward(
@@ -416,11 +422,29 @@ def go2_base_height_penalty(
 
 def go2_joint_acceleration_penalty(
   env: ManagerBasedRlEnv,
+  divide_by_dt: bool = True,
   asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
 ) -> torch.Tensor:
-  """Squared joint acceleration term used in all source rough tasks."""
+  """Source finite-difference joint-velocity penalty.
+
+  Isaac Gym stores the velocity from the preceding policy step and normally
+  divides the difference by the policy ``dt``.  Jump is the one source task
+  that intentionally omits that division.
+  """
   asset: Entity = env.scene[asset_cfg.name]
-  return torch.sum(torch.square(asset.data.joint_acc[:, asset_cfg.joint_ids]), dim=-1)
+  current = asset.data.joint_vel[:, asset_cfg.joint_ids]
+  previous = getattr(env, "_go2_previous_joint_velocity", None)
+  if previous is None or previous.shape != current.shape:
+    previous = torch.zeros_like(current)
+  # The source explicitly clears ``last_dof_vel`` during every environment
+  # reset.  At the first post-reset reward step, reproduce that zero state.
+  first_step = env.episode_length_buf <= 1
+  previous = torch.where(first_step.unsqueeze(-1), torch.zeros_like(previous), previous)
+  delta = previous - current
+  env._go2_previous_joint_velocity = current.clone()
+  if divide_by_dt:
+    delta = delta / env.step_dt
+  return torch.sum(torch.square(delta), dim=-1)
 
 
 def go2_action_smoothness_penalty(env: ManagerBasedRlEnv) -> torch.Tensor:
@@ -521,6 +545,74 @@ def go2_stumble_penalty(
   return (horizontal > horizontal_ratio * vertical).any(dim=-1).to(force.dtype)
 
 
+def go2_source_feet_air_time_reward(
+  env: ManagerBasedRlEnv,
+  sensor_name: str = "feet_ground_contact",
+  offset: float = 0.5,
+  command_name: str = "twist",
+  command_dimensions: int = 3,
+  contact_threshold: float = 1.0,
+) -> torch.Tensor:
+  """Reproduce the source first-contact air-time accumulator.
+
+  The generic mjlab term rewards every frame inside a bounded air-time
+  interval.  The source instead emits ``air_time-offset`` only on the first
+  filtered landing frame, using a vertical-force threshold and a one-frame
+  contact history.
+  """
+  sensor: ContactSensor = env.scene[sensor_name]
+  contact = _go2_reward_contact_mask(
+    sensor, threshold=contact_threshold, vertical_only=True
+  )
+  air_time = getattr(env, "_go2_source_feet_air_time", None)
+  last_contact = getattr(env, "_go2_source_last_foot_contact", None)
+  if air_time is None or air_time.shape != contact.shape:
+    air_time = torch.zeros_like(contact, dtype=torch.float32)
+  if last_contact is None or last_contact.shape != contact.shape:
+    last_contact = torch.zeros_like(contact)
+  first_step = env.episode_length_buf <= 1
+  air_time = torch.where(first_step.unsqueeze(-1), torch.zeros_like(air_time), air_time)
+  last_contact = torch.where(
+    first_step.unsqueeze(-1), torch.zeros_like(last_contact), last_contact
+  )
+  contact_filtered = contact | last_contact
+  first_contact = (air_time > 0.0) & contact_filtered
+  air_time = air_time + env.step_dt
+  reward = ((air_time - offset) * first_contact.to(air_time.dtype)).sum(dim=-1)
+  command = env.command_manager.get_command(command_name)
+  assert command is not None
+  moving = torch.linalg.vector_norm(
+    command[:, :command_dimensions], dim=-1
+  ) > 0.1
+  env._go2_source_feet_air_time = air_time * (~contact_filtered).to(air_time.dtype)
+  env._go2_source_last_foot_contact = contact
+  return reward * moving
+
+
+def go2_source_foot_clearance_penalty(
+  env: ManagerBasedRlEnv,
+  target_height: float,
+  asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
+) -> torch.Tensor:
+  """Source body-frame foot-clearance cost weighted by lateral foot speed."""
+  asset: Entity = env.scene[asset_cfg.name]
+  positions = asset.data.site_pos_w[:, asset_cfg.site_ids]
+  velocities = asset.data.site_lin_vel_w[:, asset_cfg.site_ids]
+  num_feet = positions.shape[1]
+  quaternion = asset.data.root_link_quat_w[:, None, :].expand(-1, num_feet, -1)
+  position_b = quat_apply_inverse(
+    quaternion.reshape(-1, 4),
+    (positions - asset.data.root_link_pos_w.unsqueeze(1)).reshape(-1, 3),
+  ).reshape_as(positions)
+  velocity_b = quat_apply_inverse(
+    quaternion.reshape(-1, 4),
+    (velocities - asset.data.root_link_lin_vel_w.unsqueeze(1)).reshape(-1, 3),
+  ).reshape_as(velocities)
+  height_error = torch.square(position_b[..., 2] - target_height)
+  lateral_speed = torch.linalg.vector_norm(velocity_b[..., :2], dim=-1)
+  return torch.sum(height_error * lateral_speed, dim=-1)
+
+
 def go2_base_height_phase_reward(
   env: ManagerBasedRlEnv,
   target_height: float,
@@ -556,10 +648,16 @@ def go2_upward_velocity_reward(
   command_name: str = "twist",
   asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
 ) -> torch.Tensor:
-  """Reward positive vertical base velocity before the first landing."""
+  """Reward positive world-frame vertical base velocity before landing.
+
+  The Isaac Gym source reads ``root_states[:, 9]`` for this term.  That is
+  the world-frame Z velocity, not the base-frame component exposed by
+  ``root_link_lin_vel_b``.  Using the world frame is important once the robot
+  pitches through a flip, where the two components no longer agree.
+  """
   asset: Entity = env.scene[asset_cfg.name]
   triggered, _was_in_flight, has_jumped = _go2_trigger_state(env, command_name)
-  reward = asset.data.root_link_lin_vel_b[:, 2].clamp_min(0.0)
+  reward = asset.data.root_link_lin_vel_w[:, 2].clamp_min(0.0)
   if triggered is not None and has_jumped is not None:
     reward = reward * (triggered & ~has_jumped)
   return reward
@@ -576,7 +674,7 @@ def go2_pitch_angular_velocity_reward(
   triggered, was_in_flight, has_jumped = _go2_trigger_state(env, command_name)
   if triggered is not None and was_in_flight is not None and has_jumped is not None:
     velocity = velocity * (
-      triggered.to(velocity.dtype) * (~was_in_flight & ~has_jumped).to(velocity.dtype)
+      (triggered & ~has_jumped).to(velocity.dtype)
       + 3.0 * (was_in_flight & ~has_jumped).to(velocity.dtype)
     )
   return velocity.clamp_max(20.0)
@@ -609,6 +707,7 @@ def go2_landing_position_reward(
   target_offset_scale: float = 1.0,
   min_jump_height: float | None = None,
   max_orientation_error: float | None = None,
+  absolute_orientation_error: bool = True,
   asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
 ) -> torch.Tensor:
   """Reward returning near the source task's expected landing position.
@@ -638,7 +737,12 @@ def go2_landing_position_reward(
   if max_orientation_error is not None:
     asset: Entity = env.scene[asset_cfg.name]
     roll, pitch, yaw = euler_xyz_from_quat(asset.data.root_link_quat_w)
-    orientation_error = torch.abs(torch.stack((roll, pitch, yaw), dim=-1)).sum(dim=-1)
+    angles = torch.stack((roll, pitch, yaw), dim=-1)
+    orientation_error = (
+      torch.abs(angles).sum(dim=-1)
+      if absolute_orientation_error
+      else angles.sum(dim=-1)
+    )
     success = success & (orientation_error < max_orientation_error)
   return torch.exp(-error) * success
 
@@ -705,13 +809,20 @@ def go2_rear_hip_limit_penalty(
 def go2_line_velocity_stance_penalty(
   env: ManagerBasedRlEnv,
   command_name: str = "twist",
+  include_vertical: bool = False,
+  after_landing: bool = True,
   asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
 ) -> torch.Tensor:
-  """Penalize planar drift once the source flip has landed."""
+  """Penalize source flip-task base drift."""
   asset: Entity = env.scene[asset_cfg.name]
-  penalty = torch.abs(asset.data.root_link_lin_vel_b[:, :2]).sum(dim=-1)
+  velocity = (
+    asset.data.root_link_lin_vel_b
+    if include_vertical
+    else asset.data.root_link_lin_vel_b[:, :2]
+  )
+  penalty = torch.abs(velocity).sum(dim=-1)
   _triggered, _was_in_flight, has_jumped = _go2_trigger_state(env, command_name)
-  if has_jumped is not None:
+  if after_landing and has_jumped is not None:
     penalty = penalty * has_jumped
   return penalty
 
@@ -1206,7 +1317,9 @@ def go2_jump_contact_reward(
   phase = (
     env.episode_length_buf.to(dtype=torch.float32) * env.step_dt
   ) % cycle_time / cycle_time
-  stance = phase < 0.6
+  # ``_get_gait_phase`` in the source uses a half-cycle split for the
+  # synchronized contact flag, even though the Jump task's cycle is 1.5 s.
+  stance = phase < 0.5
   synchronized = (contact[:, 0] == contact[:, 1])
   synchronized &= contact[:, 1] == contact[:, 2]
   synchronized &= contact[:, 2] == contact[:, 3]
@@ -1233,39 +1346,11 @@ def go2_jump_feet_clearance(
     - 0.02
   )
   phase = (env.episode_length_buf.to(dtype=torch.float32) * env.step_dt) % 1.5 / 1.5
-  swing = (phase >= 0.6).to(torch.float32).unsqueeze(1)
+  swing = (phase >= 0.5).to(torch.float32).unsqueeze(1)
   command = env.command_manager.get_command(command_name)
   assert command is not None
   active = (torch.linalg.vector_norm(command[:, :3], dim=1) > 0.1).to(torch.float32)
   return torch.sum(torch.clamp(foot_height, min=0.0, max=target_height) * swing, dim=1) * active
-
-
-def go2_jump_feet_air_time(
-  env: ManagerBasedRlEnv,
-  sensor_name: str = "feet_ground_contact",
-  command_name: str = "twist",
-  command_threshold: float = 0.1,
-  target_air_time: float = 0.5,
-) -> torch.Tensor:
-  """Reward first landings using the source Jump air-time bookkeeping."""
-  sensor: ContactSensor = env.scene[sensor_name]
-  data = sensor.data
-  if data.current_air_time is None or data.last_air_time is None:
-    return torch.zeros(env.num_envs, device=env.device)
-  # ``compute_first_contact`` uses the same found-bit state that updates
-  # ``last_air_time`` and avoids introducing a Python-side last-contact cache.
-  first_contact = sensor.compute_first_contact(dt=env.step_dt)
-  first_contact &= _go2_reward_contact_mask(
-    sensor, threshold=1.0, vertical_only=True
-  )
-  landing_reward = torch.sum(
-    (data.last_air_time - target_air_time) * first_contact.to(data.last_air_time.dtype),
-    dim=-1,
-  )
-  command = env.command_manager.get_command(command_name)
-  assert command is not None
-  active = torch.linalg.vector_norm(command[:, :3], dim=-1) > command_threshold
-  return landing_reward * active.to(landing_reward.dtype)
 
 
 def track_linear_velocity(

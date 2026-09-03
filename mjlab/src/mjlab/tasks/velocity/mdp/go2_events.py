@@ -81,15 +81,37 @@ def go2_torque_multiplier(
 
   gainprm = env.sim.model.actuator_gainprm
   biasprm = env.sim.model.actuator_biasprm
+  default_gainprm = env.sim.get_default_field("actuator_gainprm")
+  default_biasprm = env.sim.get_default_field("actuator_biasprm")
+  joint_count = asset.data.joint_pos.shape[-1]
+  if not hasattr(env, "_go2_pd_kp_multiplier"):
+    env._go2_pd_kp_multiplier = torch.ones(
+      (env.num_envs, joint_count), device=env.device
+    )
+    env._go2_pd_kd_multiplier = torch.ones_like(env._go2_pd_kp_multiplier)
+    env._go2_torque_multiplier = torch.ones_like(env._go2_pd_kp_multiplier)
   for actuator in actuators:
     ctrl_ids = actuator.global_ctrl_ids
+    target_ids = actuator.target_ids
     n_targets = len(ctrl_ids)
+    # Capture the independent PD samples before applying the complete-torque
+    # multiplier.  Reading gainprm afterwards would conflate two distinct
+    # source privileged-observation fields.
+    env._go2_pd_kp_multiplier[env_ids[:, None], target_ids] = (
+      gainprm[env_ids[:, None], ctrl_ids, 0]
+      / default_gainprm[ctrl_ids, 0].clamp_min(1.0e-6)
+    )
+    env._go2_pd_kd_multiplier[env_ids[:, None], target_ids] = (
+      -biasprm[env_ids[:, None], ctrl_ids, 2]
+      / (-default_biasprm[ctrl_ids, 2]).clamp_min(1.0e-6)
+    )
     multipliers = sample_uniform(
       torque_multiplier_range[0],
       torque_multiplier_range[1],
       (len(env_ids), n_targets),
       env.device,
     )
+    env._go2_torque_multiplier[env_ids[:, None], target_ids] = multipliers
     gainprm[env_ids[:, None], ctrl_ids, 0] *= multipliers
     biasprm[env_ids[:, None], ctrl_ids, 1] *= multipliers
     biasprm[env_ids[:, None], ctrl_ids, 2] *= multipliers

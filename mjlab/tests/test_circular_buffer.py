@@ -80,6 +80,16 @@ def test_circular_buffer_first_append_fills(device):
   assert torch.equal(cl.cpu(), torch.tensor([1, 1]))
 
 
+def test_circular_buffer_first_append_can_leave_history_zero(device):
+  """First append can retain zero padding instead of repeating the frame."""
+  buffer = CircularBuffer(max_len=3, batch_size=2, device=device)
+  buffer.append(torch.tensor([[1.0], [2.0]], device=device), fill_all=False)
+
+  result = buffer.buffer
+  assert torch.allclose(result[0].flatten(), torch.tensor([0.0, 0.0, 1.0], device=device))
+  assert torch.allclose(result[1].flatten(), torch.tensor([0.0, 0.0, 2.0], device=device))
+
+
 def test_current_length_counts_and_clamps(device):
   """current_length counts per-batch valid frames and clamps to max_len."""
   buffer = CircularBuffer(max_len=4, batch_size=3, device=device)
@@ -247,6 +257,20 @@ def test_backfill_only_touches_given_rows(device):
     result[1].flatten(), torch.tensor([99.0, 99.0, 40.0], device=device)
   )
   assert buffer.current_length.tolist() == [3, 2, 3]
+
+
+def test_backfill_can_leave_reset_history_zero(device):
+  buffer = CircularBuffer(max_len=3, batch_size=2, device=device)
+  buffer.append(torch.tensor([[1.0], [10.0]], device=device))
+  buffer.append(torch.tensor([[2.0], [20.0]], device=device))
+  buffer.reset(batch_ids=torch.tensor([1], device=device))
+
+  data = torch.tensor([[-1.0], [99.0]], device=device)
+  buffer.backfill(data, torch.tensor([1], device=device), fill_all=False)
+
+  result = buffer.buffer
+  assert torch.allclose(result[0].flatten(), torch.tensor([1.0, 1.0, 2.0], device=device))
+  assert torch.allclose(result[1].flatten(), torch.tensor([0.0, 0.0, 99.0], device=device))
 
 
 def test_backfill_uninitialized_raises(device):

@@ -187,17 +187,23 @@ class CircularBuffer:
     if self._buffer is not None:
       self._buffer[:, ids] = 0.0
 
-  def backfill(self, data: torch.Tensor, batch_ids: torch.Tensor) -> None:
-    """Fill the given rows' entire history with one frame, without advancing time.
+  def backfill(
+    self,
+    data: torch.Tensor,
+    batch_ids: torch.Tensor,
+    fill_all: bool = True,
+  ) -> None:
+    """Initialize the given rows with one frame, without advancing time.
 
-    Unlike append, the global pointer does not move and other rows are
-    untouched. Used after a partial reset: the reset rows get their first
-    post-reset frame in every slot (the same backfill their next append would
-    apply) while the remaining rows keep their history intact.
+    Unlike append, the global pointer does not move and other rows are untouched.
+    When ``fill_all`` is true, every history slot receives the frame.  Otherwise,
+    the rows remain zero except for the newest slot.  The latter matches systems
+    that explicitly zero their history at episode boundaries.
 
     Args:
       data: Tensor of shape (batch_size, ...); only rows at batch_ids are read.
       batch_ids: Batch indices to backfill.
+      fill_all: Whether to copy the first frame into every history slot.
     """
     if data.shape[0] != self._batch_size:
       raise ValueError(f"Expected batch size {self._batch_size}, got {data.shape[0]}")
@@ -205,14 +211,20 @@ class CircularBuffer:
       raise RuntimeError("Buffer not initialized. Call append() first.")
 
     data = data.to(self._device)
-    self._buffer[:, batch_ids] = data[batch_ids].unsqueeze(0)
+    if fill_all:
+      self._buffer[:, batch_ids] = data[batch_ids].unsqueeze(0)
+    else:
+      self._buffer[:, batch_ids] = 0.0
+      self._buffer[self._pointer, batch_ids] = data[batch_ids]
     self._num_pushes[batch_ids] = 1
 
-  def append(self, data: torch.Tensor) -> None:
+  def append(self, data: torch.Tensor, fill_all: bool = True) -> None:
     """Append a new frame for all batch elements.
 
     Args:
       data: Tensor of shape (batch_size, ...).
+      fill_all: Whether a batch row's first frame should be copied into every
+        history slot. If false, unfilled slots remain zero.
     """
     if data.shape[0] != self._batch_size:
       raise ValueError(f"Expected batch size {self._batch_size}, got {data.shape[0]}")
@@ -221,7 +233,7 @@ class CircularBuffer:
 
     if self._buffer is None:
       self._pointer = -1
-      self._buffer = torch.empty(
+      self._buffer = torch.zeros(
         (self._max_len, *data.shape), dtype=data.dtype, device=self._device
       )
 
@@ -231,9 +243,10 @@ class CircularBuffer:
     # Backfill entire history with first frame for newly initialized batches.
     # The condition and data are reshaped to broadcast against the buffer's
     # (max_len, batch_size, ...) shape for data of any rank.
-    is_first_push = self._num_pushes == 0
-    condition = is_first_push.view(1, self._batch_size, *([1] * (data.ndim - 1)))
-    torch.where(condition, data.unsqueeze(0), self._buffer, out=self._buffer)
+    if fill_all:
+      is_first_push = self._num_pushes == 0
+      condition = is_first_push.view(1, self._batch_size, *([1] * (data.ndim - 1)))
+      torch.where(condition, data.unsqueeze(0), self._buffer, out=self._buffer)
 
     self._num_pushes += 1
 

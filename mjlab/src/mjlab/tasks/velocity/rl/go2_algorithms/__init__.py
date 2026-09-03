@@ -20,12 +20,14 @@ from .algorithms import (
   TeacherStudentPPO,
 )
 from .deployment import (
+  GO2_POLICY_CONTRACT_VERSION,
   Go2DeploymentAdapter,
   Go2HistoryBuffer,
   Go2OnnxPolicy,
   Go2PolicyInputSpec,
   Go2RecurrentDeploymentAdapter,
   Go2RecurrentOnnxPolicy,
+  go2_policy_contract_metadata,
 )
 from .models import (
   AmpDiscriminator,
@@ -79,11 +81,13 @@ __all__ = [
   "GO2_JOINT_NAMES",
   "joint_permutation",
   "Go2DeploymentAdapter",
+  "GO2_POLICY_CONTRACT_VERSION",
   "Go2HistoryBuffer",
   "Go2OnnxPolicy",
   "Go2PolicyInputSpec",
   "Go2RecurrentDeploymentAdapter",
   "Go2RecurrentOnnxPolicy",
+  "go2_policy_contract_metadata",
   "Go2Transition",
   "Go2CustomRunner",
   "TeacherStudentActorCritic",

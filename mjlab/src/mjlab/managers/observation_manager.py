@@ -64,6 +64,20 @@ class ObservationTermCfg(ManagerTermBaseCfg):
   [A_t0, A_t1, ..., A_tH-1, B_t0, B_t1, ..., B_tH-1, ...]
   See docs/source/observation.rst for details on ordering."""
 
+  history_fill: Literal["repeat", "zero"] = "repeat"
+  """How to fill unavailable history at episode start.
+
+  ``"repeat"`` copies the first frame into every slot (the mjlab default), while
+  ``"zero"`` leaves older slots at zero and places the first frame in the newest
+  slot."""
+
+  history_source: tuple[str, str] | None = None
+  """Optional ``(group, term)`` whose processed frame feeds this history.
+
+  This keeps a history input identical to a policy term, including the exact
+  noise sample, instead of evaluating the same observation function twice.
+  The source group must appear before this term's group."""
+
 
 @dataclass
 class ObservationGroupCfg:
@@ -325,8 +339,11 @@ class ObservationManager(ManagerBase):
       return self._obs_buffer
 
     obs_buffer: dict[str, torch.Tensor | dict[str, torch.Tensor]] = dict()
+    term_cache: dict[tuple[str, str], torch.Tensor] = {}
     for group_name in self._group_obs_term_names:
-      obs_buffer[group_name] = self.compute_group(group_name, update_history, env_ids)
+      obs_buffer[group_name] = self.compute_group(
+        group_name, update_history, env_ids, term_cache
+      )
     self._obs_buffer = obs_buffer
     return obs_buffer
 
@@ -335,6 +352,7 @@ class ObservationManager(ManagerBase):
     group_name: str,
     update_history: bool = False,
     env_ids: torch.Tensor | None = None,
+    term_cache: dict[tuple[str, str], torch.Tensor] | None = None,
   ) -> torch.Tensor | dict[str, torch.Tensor]:
     group_cfg = self.cfg[group_name]
     group_term_names = self._group_obs_term_names[group_name]
@@ -369,13 +387,30 @@ class ObservationManager(ManagerBase):
         else:
           delay_buffer.backfill(obs, env_ids)
           obs = delay_buffer.peek()
+      if term_cfg.history_source is not None:
+        if term_cache is None or term_cfg.history_source not in term_cache:
+          raise RuntimeError(
+            f"Observation term '{group_name}/{term_name}' requires history source "
+            f"'{term_cfg.history_source[0]}/{term_cfg.history_source[1]}' to be "
+            "computed first."
+          )
+        source_obs = term_cache[term_cfg.history_source]
+        if source_obs.shape != obs.shape:
+          raise RuntimeError(
+            f"Observation history source {term_cfg.history_source} has shape "
+            f"{tuple(source_obs.shape)}, expected {tuple(obs.shape)}."
+          )
+        obs = source_obs
+      if term_cache is not None:
+        term_cache[(group_name, term_name)] = obs
       if term_cfg.history_length > 0:
         circular_buffer = self._group_obs_term_history_buffer[group_name][term_name]
+        fill_all = term_cfg.history_fill == "repeat"
         if env_ids is None or not circular_buffer.is_initialized:
           if update_history or not circular_buffer.is_initialized:
-            circular_buffer.append(obs)
+            circular_buffer.append(obs, fill_all=fill_all)
         else:
-          circular_buffer.backfill(obs, env_ids)
+          circular_buffer.backfill(obs, env_ids, fill_all=fill_all)
 
         if term_cfg.flatten_history_dim:
           group_obs[term_name] = circular_buffer.buffer.reshape(self._env.num_envs, -1)
@@ -461,6 +496,15 @@ class ObservationManager(ManagerBase):
         if group_cfg.history_length is not None:
           term_cfg.history_length = group_cfg.history_length
           term_cfg.flatten_history_dim = group_cfg.flatten_history_dim
+        if term_cfg.history_fill not in ("repeat", "zero"):
+          raise ValueError(
+            f"Observation term '{term_name}' has invalid history_fill "
+            f"'{term_cfg.history_fill}'. Expected 'repeat' or 'zero'."
+          )
+        if term_cfg.history_source is not None and term_cfg.history_length <= 0:
+          raise ValueError(
+            f"Observation term '{term_name}' sets history_source without history."
+          )
         self._group_obs_term_names[group_name].append(term_name)
         self._group_obs_term_cfgs[group_name].append(term_cfg)
         if hasattr(term_cfg.func, "reset") and callable(term_cfg.func.reset):

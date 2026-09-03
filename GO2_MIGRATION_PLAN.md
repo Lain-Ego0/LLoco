@@ -76,8 +76,8 @@ critic 列是源项目直接送入 value/encoder 的配置维度，CTS/TS 的历
 | `go2_ts_student` | 45 | 309 | student history | 20 | 10 |
 
 公共基线：12 个动作、仿真步长 `dt=0.005`、控制 decimation=4、动作缩放
-`0.25`。特殊动作任务的默认姿态、周期和奖励权重仍需在对应阶段逐项迁移；该表
-仅用于防止观测维度和时序发生无意漂移。
+`0.25`。特殊动作任务的默认姿态、周期和奖励权重已接入，仍需以行为短训检查
+MuJoCo 与 PhysX 的数值差异；该表用于防止观测维度和时序发生无意漂移。
 
 源项目基线启动形式：`python legged_gym/scripts/train.py --task <task>`；回放形式：
 `python legged_gym/scripts/play.py --task <task>`。当前 mjlab 对应入口为
@@ -232,9 +232,9 @@ expert transition。未设置时仍保留无数据环境下的有限 smoke fallb
 
 先分别完成基础 AMP、CTS、DreamWaQ，再组合成 AMP-CTS、AMP-DreamWaQ 和
 AMP-TS。TS student 需要单独处理 LSTM hidden state、蒸馏 runner 和 ONNX 导出；
-纯 TS 不启用 AMP 判别器和动捕数据。当前导出 wrapper 将策略条件输入显式化，
-TS student 的 `conditional` 为 5 帧 history（225 维），TS teacher 为 terrain 与
-privileged 的拼接输入；后续仍需接入部署端的持续 hidden-state/观测缓存管理。
+纯 TS 不启用 AMP 判别器和动捕数据。当前导出 wrapper 将策略条件输入显式化；
+TS teacher 使用 terrain 与 privileged 的拼接输入，TS student 的源兼容递归接口使用
+当前帧 `obs(45)` 以及三层 LSTM 的 hidden/cell，并由部署适配器跨步保存和按环境清零状态。
 
 ## 8. 观测、动作和 checkpoint 契约
 
@@ -331,7 +331,8 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 ## 13. 当前执行状态
 
 阶段 0（源项目基线记录）和阶段 1（Go2 资产、最小环境、有限回放入口）已完成；
-阶段 2–5 正在按依赖顺序增量迁移，以下列表记录当前可验证状态。
+阶段 2–4 的任务、MDP 与算法调用链已接入，当前处于源代码语义复核和训练验收阶段。
+阶段 5 仅保留算法推理与 ONNX/sim-to-sim 接口，真实 Go2 硬件闭环不在本次范围内。
 
 已完成的增量实现：
 
@@ -342,7 +343,8 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - Trot 任务已注册，actor 为 47 维单帧 × 10，critic 为 68 维特权单帧 × 3；
 - Trot 已接入源项目的平面速度/偏航跟踪、垂向速度、姿态、基座高度、关节加速度、动作平滑、髋部默认姿态、trot 相位、静止接触等奖励；Jump 已接入源项目的正向垂向/角速度/姿态核、默认姿态/髋部姿态、动作延迟和静止接触奖励；两者均保留 470/204 或 470/210 的观测契约。
 - 六个标准 PPO 入口均已注册并可 reset/step；Trot/Jump/Spring-Jump/Backflip 已对齐 470 维 actor 历史，分别对齐 204/210/195/150 维 critic 历史；Handstand/Leggedstand 已对齐 45 维 actor 和 86 维 critic；
-- 五个特殊动作已接入独立观测项和部分源奖励，仍需继续补齐源项目的全部状态变量、奖励、终止和延迟语义；
+- 五个特殊动作已接入独立观测、源奖励表、终止、reset、动作/观测延迟和触发状态；
+  当前剩余工作是行为级校准，而不是缺失任务调用链；
 - 已用少量 CPU smoke test 验证 Go2 编译、flat/rough/trot reset-step、任务列表和现有 velocity 测试。
 - 新增有限步、无 viewer 的 `go2-smoke` 入口，支持 `zero`/`random` 动作回放，例如：
   `cd /home/lxy/RoboLab/mjlab && uv run go2-smoke Mjlab-Velocity-Flat-Unitree-Go2 --agent random --steps 4`。
@@ -355,7 +357,10 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - 新增 `tasks/velocity/rl/go2_algorithms/` 兼容层：CTS teacher/student 编码器、DreamWaQ VAE、AMP 判别器、TS 编码器、Go2 rollout storage、GAE 和有限 rollout runner；各模块已完成小 batch 前向、loss 和 storage smoke 验证。
 - 源项目 14 个任务现在均有对应的 mjlab 注册入口；CTS/AMP/DreamWaQ/TS 入口使用 rough-terrain 的 45 维 actor 与源项目对应的 233/278/281/309/783 维 critic 输入契约，均已完成一次有限步 reset/step 验证。
 - 当前 registry 可枚举 16 个 Go2 入口：上述源项目 14 个任务，加上 `Mjlab-Velocity-Flat/Rough-Unitree-Go2` 两个公共基线；注册数量检查仅用于入口完整性，不替代逐项行为验收。
-- 自定义 8 个任务已切换到当前 RSL-RL 的 `Go2AuxiliaryPPO` 子类：CTS/AMP-CTS 执行 latent distillation，DreamWaQ/AMP-DreamWaQ 执行 VAE+KL，TS/AMP-TS 执行 teacher-student distillation，AMP 变体额外执行 discriminator update；最小 rollout/update 和 auxiliary state 保存已验证。
+- 六个 teacher/custom 任务已切换到当前 RSL-RL 的 `Go2AuxiliaryPPO` 子类：CTS/AMP-CTS
+  执行 latent distillation，DreamWaQ/AMP-DreamWaQ 执行 VAE+KL，TS/AMP-TS 执行
+  teacher policy PPO，AMP teacher/custom 变体额外执行 discriminator update；两个 TS-Student
+  入口使用独立的纯行为蒸馏 runner，不执行 PPO 或 AMP discriminator update。
 - 自定义 actor conditioning 已接入 RSL-RL actor：CTS 使用 privileged teacher latent，DreamWaQ 使用 history VAE latent，TS/TS-Student 使用 terrain/privileged encoder 或 history LSTM；CTS、DreamWaQ、TS-Student 均已完成一次最小 runner 学习迭代验证。
 - CTS、DreamWaQ、AMP-TS 的 actor 拼接顺序已统一为源项目的 `latent || current_observation`；普通 PPO 仍保持单一 actor observation。
 - AMP 动捕管线已新增 `Go2MotionLoader`：读取源项目 `Frames/FrameDuration/MotionWeight` JSON 轨迹，归一化根部四元数并采样成对的 31 维 AMP 状态；AMP 任务新增独立 `amp` observation group，设置 `GO2_MOTION_DIR` 后判别器使用真实动捕 expert transition。
@@ -370,7 +375,10 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - DreamWaQ VAE、CTS teacher encoder 及 TS teacher/student encoder 已与实际 RSL-RL actor 共享对应模块；辅助蒸馏/重建更新会作用于最终 PPO/ONNX 使用的策略参数。
 - DreamWaQ/AMP-DreamWaQ 已增加 3 维 body-frame 线速度标签组，VAE 辅助更新同时计算显式速度估计、当前观测重建和 KL 损失，与源项目的 `vel_buf` 监督保持一致。
 - DreamWaQ VAE 的输入已对齐源项目：5×45 历史的最新 45 维作为 actor 当前帧，VAE 仅编码前 4 帧（180 维）；训练、推理和 ONNX wrapper 使用同一切分。
-- 自定义 actor 已提供多输入 ONNX wrapper：统一输入为 `actor` 与 `conditional`，CTS/DreamWaQ/TS-Student 分别传 privileged/history/history，TS teacher 传 `terrain || privileged`；CTS teacher 与 TS-Student 已完成 CPU ONNX 导出和前向验证。
+- 自定义 actor 已提供多输入 ONNX wrapper：统一输入为 `actor` 与 `conditional`，CTS/DreamWaQ/TS-Student 均传 history，TS teacher 传 `terrain || privileged`；各接口已完成 CPU ONNX 导出和前向验证。
+- CTS 的训练 actor 仍按 3:1 混合 privileged teacher/history student，但回放和 ONNX 已修正为
+  源项目一致的纯 student 路径；导出条件输入从错误的 233 维 teacher privileged 改为 225 维
+  五帧历史，2 batch ONNX Runtime 前向已通过。
 - 新增 `Go2HistoryBuffer`、`Go2OnnxPolicy` 和 `Go2DeploymentAdapter`，明确五帧历史的 oldest→newest 拼接、reset 回填和 CTS/DreamWaQ/TS teacher/student 的条件输入；已用导出的 AMP-CTS ONNX 文件完成一次适配器前向。
 - Handstand/Leggedstand 已加入源任务目标重力、目标基座高度、指定足端离地和单支撑接触奖励；Spring-Jump/Backflip 已加入源项目的基座高度下限终止条件。
 - 五个特殊动作任务已移除通用平地配置中 70° 姿态的 `fell_over` 终止，改用源项目的躯干接触终止（`trunk_ground_touch`）；这样倒立、跳跃和翻转达到目标姿态时不会被通用姿态阈值提前截断。
@@ -378,7 +386,7 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - Jump/Spring-Jump/Backflip 与八个自定义任务的偏航角速度采样范围已对齐源项目的 `[-1, 1]` rad/s；站立任务保留各自的 `[-0.4, 0.4]` 范围。
 - Jump 已切换到源项目一致的向上楼梯地形生成器（`8×8 m`、`10×20` 网格、步宽 `0.31 m`、平台 `3 m`、步高 `0–0.1 m`），Spring-Jump/Backflip 继续使用源项目的平面场景。
 - 八个 custom 粗糙地形任务已切换为源项目的五类地形比例（平滑坡、随机粗糙、上/下楼梯、离散障碍 `0.15/0.15/0.30/0.30/0.10`），并按源配置设置 CTS/AMP-CTS 的 `70 m` 边界、其他 custom 的 `25 m` 边界；公共 rough 基线仍保留 mjlab 默认 preset。
-- Spring-Jump/Backflip 已加入 `Go2TriggeredCommand`：分别在源项目一致的 `50–60`/`50–100` 控制步触发第三 command 分量，并维护 `triggered`、`was_in_flight`、`has_jumped`、起始/着陆位置、最大高度和最大俯仰角速度；相关 critic flag、起跳/腾空/落地高度、着陆位置和姿态奖励已接入。
+- Spring-Jump/Backflip 已加入 `Go2TriggeredCommand`：两者均在源项目一致的 `50–60` 控制步触发第三 command 分量，并维护 `triggered`、`was_in_flight`、`has_jumped`、起始/着陆位置、最大高度和最大俯仰角速度；相关 critic flag、起跳/腾空/落地高度、着陆位置和姿态奖励已接入。
 - Spring-Jump/Backflip 的触发命令已接入源项目的一次性起跳推力：按 0.8 初始概率写入线速度（Spring `1.5–2.2`、Backflip `2.0–3.5` m/s），Backflip 另写入 `2.0–2.5` rad/s 的俯仰角速度。
 - Spring-Jump/Backflip 已补充源配置中的 pre-trigger 姿态、起跳后平面速度、关节/髋关节、角速度、关节速度/力矩、足端接触力和 source flight linear-velocity 奖励项；通用速度任务中无源对应的 tracking/pose 项在这两个任务中禁用。
 - Spring-Jump 的 `flight` 已改为读取 `Go2TriggeredCommand.was_in_flight` 的持久腾空状态（权重 2.0），不再误用周期接触相位奖励；CTS/DreamWaQ/TS 自定义任务已补充源项目的 stumble 接触力比惩罚和对应 collision 聚合项。
@@ -397,22 +405,32 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - 部署适配器已对条件输入做维度校验：CTS teacher 使用 233 维特权输入，TS teacher 使用 `terrain(187) || privileged(74)` 的 261 维输入，student/history 仍使用 5×45 历史。
 - 新增 `Go2RecurrentOnnxPolicy`，封装源 TS-Student 的 `obs(45), h, c → actions, h_next, c_next` ONNX 契约；hidden/cell 由部署循环显式保存并可在 episode reset 时清零。
 - `StudentActorModel` 的 student LSTM 已采用源项目的三层 `45→256` 结构和 `256→256→128→32` 编码头，并提供 `as_recurrent_onnx()`；velocity runner 在保留标准双输入 ONNX 的同时，会为 TS-Student 额外导出 `*_recurrent.onnx`（`obs,h,c → actions,he,ce`）伴随文件，已用 CPU ONNX Runtime 验证输出形状。
-- TS-Student 的辅助更新支持通过 `GO2_TS_TEACHER_CHECKPOINT=/path/to/go2_ts/model.pt` 加载并冻结 teacher 的 terrain/privileged encoder；未设置时仅保留有限 smoke 用的随机 teacher 回退，并明确打印警告，不将其误认为有效蒸馏训练。
+- TS-Student runner 支持通过 `GO2_TS_TEACHER_CHECKPOINT=/path/to/go2_ts/model.pt` 加载并
+  冻结 teacher 的 terrain/privileged encoder 和 actor，并用 teacher actor 初始化 student actor；
+  未设置时仅保留有限 smoke 用的随机 teacher 回退，并明确打印警告，不将其误认为有效蒸馏训练。
 - `Go2HistoryBuffer` 的 reset/首帧行为已对齐源项目 deque：策略调用先读取更新前历史，随后才把当前帧写入 newest 槽位；首帧之前保持零，后续按 oldest→newest 滚动，避免部署初始动作因重复首帧而偏移。
 - `Go2TriggeredCommand` 与 `go2_commands.py` 通过 `config/go2` → `tasks/velocity/mdp` 的显式依赖接入；没有新增独立任务目录或跨目录隐式注册。
 - 已用 4 步/环境的短跑验证标准 PPO 不产生 NaN，并完成 TS-Student checkpoint 保存、ONNX 导出和重新加载；单步/环境训练的优势归一化 NaN 属于零方差测试规模，不作为有效训练配置。
 - CTS teacher 与 TS-Student 的 ONNX 文件已用 `onnxruntime` 实际加载执行，和 PyTorch wrapper 输出最大误差约 `4.5e-8`（CTS）/`1.9e-8`（TS-Student）。
 - 已用当前 `VelocityOnPolicyRunner` 完成一次真实 CLI 级 CTS PPO+蒸馏迭代（2 环境、4 步），并完成一次 AMP-CTS PPO+蒸馏+判别器迭代；AMP-CTS 使用源动捕目录成功采样 expert pair，未出现 shape/NaN 错误。
-- 已用当前 `VelocityOnPolicyRunner` 完成一次真实 CLI 级 DreamWaQ PPO+VAE/KL 辅助迭代（2 环境、4 步）；随后用该 runner 保存的 TS teacher checkpoint 运行 TS-Student 一次 PPO+蒸馏迭代，确认 `GO2_TS_TEACHER_CHECKPOINT` 可加载并冻结 teacher encoder。
+- 已用当前 `VelocityOnPolicyRunner` 完成一次真实 CLI 级 DreamWaQ PPO+VAE/KL 辅助迭代
+  （2 环境、4 步）；TS-Student 随后改由 `VelocityDistillationRunner` 加载并冻结 TS teacher，
+  按源项目同时最小化 latent/action 的 L2 范数，不再混入 PPO 梯度。
 - TS-Student CLI 短跑同时生成标准双输入 ONNX 与源部署契约的 `*_recurrent.onnx`（`obs,h,c → actions,he,ce`）伴随文件；两者均在 CPU 环境完成导出，递归文件已用 ONNX Runtime 检查 batch=1 的输出形状。
 - `Go2RecurrentDeploymentAdapter` 已接入部署包，负责 TS-Student 三层 LSTM hidden/cell 的跨步保存、全量/按环境 reset 和 `obs(45) → actions(12)` 调用；已用导出的递归 ONNX 做两次连续推理及 reset 检查。
 - `Go2OnnxPolicy`/`Go2RecurrentOnnxPolicy` 已增加输入、输出名称及静态维度校验：普通策略固定 `actor(45)`、`actions(12)`，条件输入宽度按导出文件检查；运行时同时校验 batch 和动作输出形状，避免部署时静默使用错版本文件。
+- 自定义 ONNX 已加入 `go2_policy_contract_version=1` 和明确的 mode/维度/history/reset metadata；
+  conditional 与递归导出均使用动态 batch。CTS student、DreamWaQ、TS teacher、TS student 和
+  TS student recurrent 五种接口均从新导出文件以 batch=2 重新加载前向通过，部署 adapter 会拒绝
+  mode 不匹配的文件。
 - Handstand/Leggedstand 的站立奖励已进一步按源索引校准：`feet_clearance`/`feet_air_time` 使用 `contact_foot` 支撑腿，手部高度核只读取 `feet_name_reward` 的腾空腿，Leggedstand 对称关节只比较后侧支撑对；两个任务均完成一次 1-step reset/step smoke。
 - 站立任务的足端 clearance 已恢复源实现的 `-0.02 m` 足半径偏移；Leggedstand 的 `feet_air_time` 已改为仅在首次接触帧计算 `last_air_time - 0.4`，并通过 Handstand/Leggedstand 各一次 1-step smoke。
 - Handstand/Leggedstand 的 readiness gate 已按源实现改为批量平均 base-height reward 的统一开关；目标高度分别使用源系数 `5`/`10`，并通过 2 环境各一次 1-step smoke。
 - Trot 的速度/偏航跟踪已恢复源项目的 gait-readiness 门控：移动命令使用批量对角步态比例 `>0.7`，静止命令使用四足接触条件；并通过 2 环境 2-step smoke。
 - Trot 相位接触核已修正 `phase == 0.5` 的边界，严格使用源项目的 `phase < 0.5` 与 `phase > 0.5` 两个互补条件；1-step smoke 通过。
-- AMP-DreamWaQ、AMP-TS、AMP-TS-Student 均已在源动捕目录下完成一次真实 CLI 短迭代（2 环境、4 步），分别确认 VAE+AMP、teacher 蒸馏+AMP、student 蒸馏+AMP 的更新链路可运行；至此八个 custom 任务均有至少一次 runner 级 smoke 证据。
+- AMP-DreamWaQ、AMP-TS 已在源动捕目录下完成一次真实 CLI 短迭代（2 环境、4 步），
+  分别确认 VAE+AMP、teacher PPO+AMP 更新链路可运行；AMP-TS-Student 与 TS-Student
+  共用源项目的纯递归蒸馏流程，均不读取动捕或更新 AMP discriminator。
 - Jump 的源奖励核已进一步对齐：恢复源项目的移动/静止线速度与偏航跟踪分支，修正足端 clearance 的 `-0.02 m` 偏移和 `[0, 0.05]` 裁剪，增加基于 `compute_first_contact` 的 `last_air_time−0.5` 着地奖励，并关闭源配置未启用的关节位置限制项、将 action-rate 权重设为 `-0.01`；Jump 仍通过 470/210 观测契约 smoke。
 - DreamWaQ、AMP-TS、AMP-TS-Student 的 CLI 导出文件已由 ONNX Runtime 实际加载；分别通过 `dreamwaq` 历史输入、`ts_teacher` 的 `terrain||privileged` 输入和 `ts_student` 历史输入完成适配器前向，输出均为 12 维动作。
 - Trot 的源奖励核已进一步对齐：关闭未在源配置中启用的 joint-limit/二阶 smoothness 项，将 action-rate 改为 `-0.01`，并按源项目的对角腿组、`-0.02 m` 足端偏移、正弦目标高度和互补相位门控重写 clearance；Trot 470/204 观测契约 smoke 通过。
@@ -422,7 +440,11 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - Handstand/Leggedstand 的站立 reward scale 已补齐源项目的关节加速度正则 `dof_acc=-2.5e-7`；`dof_pos_limits=-2` 仅在 Handstand 启用，Leggedstand 保持关闭，并分别完成 1-step smoke。
 - Backflip 已按源 reward scale 关闭继承的 `inverted_orientation` 项，并恢复 `dof_pos_limits=-10`、`action_rate=-0.01`；projected-gravity IMU/特权线速度缩放修正后保持 2-step smoke 通过。
 - 各任务的 interval push 已按源项目重新设置：Trot/Jump/Spring-Jump/Backflip 为 4 s，Handstand/Leggedstand 为 8 s，自定义 TS 系列为 8 s；水平线速度与角速度范围已对齐，z 方向推力关闭。
-- 自定义 reward scale 已区分 TS 继承项：TS/TS-Student/AMP-TS-Student 使用源基础 `smoothness=-0.005` 且关闭 `dof_pos_limits`；CTS、DreamWaQ、AMP-CTS、AMP-DreamWaQ 和 AMP-TS 保留源配置的 `dof_pos_limits=-2`，并通过配置检查确认。
+- 自定义 reward scale 已区分 TS 的嵌套配置继承语义：AMP-TS/TS teacher 替换了
+  `scales` 类，因此关闭基础 `smoothness`、`foot_clearance` 与 `feet_air_time`；两个
+  student 显式继承基础 `scales`，保留 `smoothness=-0.005`、`foot_clearance=-0.01`
+  和 `feet_air_time=1`，但不额外启用 `stumble`。`dof_pos_limits=-2` 仅保留在源配置
+  实际声明的 CTS、DreamWaQ、AMP-CTS、AMP-DreamWaQ 和 AMP-TS teacher 中；配置检查通过。
 - 自定义命令范围已按 8 个源配置逐项拆分：CTS/DreamWaQ 的横向范围为 ±1，AMP-CTS 为 ±0.65，AMP-DreamWaQ/AMP-TS/TS 为 ±0.6，两个 student 为 ±0.5；TS 系列 yaw/heading 范围为 ±π，其余为 ±1，重采样周期保持 8/10 s。
 - Trot/Jump 已补回源配置中遗漏的 torque penalty：Trot 使用平方力 `-0.0001`，Jump 使用源实现的绝对力 `-0.0002`，并通过配置导入检查确认。
 - Trot 的偏航命令范围已修正为源项目的 ±1 rad/s（此前 flat 公共配置训练态仍继承 ±0.5），并与 Jump 一起完成 1-step actor/critic shape smoke。
@@ -434,26 +456,150 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - 已补齐源项目的关节/root reset 分布：Spring-Jump 使用默认关节姿态，Backflip 使用 `default_q×U(0.5,1.25)`，Handstand/Leggedstand 使用 `default_q×U(0.5,1.5)`，CTS 使用 `default_q×U(0.9,1.1)`，其余 custom 使用 `default_q×U(0.5,1.5)`；站立和 custom 任务的 reset root 6D 速度均使用 `U(-0.5,0.5)`，并通过独立 `reset_joints_by_scale` 事件接入。
 - CTS 的 `hip_pos` 已改为源项目四髋关节误差平方和；AMP-DreamWaQ 已补充源项目的 rear-hip 越界惩罚（`|q|>0.4`）。
 - custom 任务的 torque-multiplier 已通过 MuJoCo position actuator 的 `gainprm/biasprm` 接入：CTS/DreamWaQ/AMP 变体使用 `U(0.9,1.1)`，TS 变体使用 `U(0.8,1.2)`，每个目标共享同一系数并在独立 PD-gain 随机化之后执行。
-- DreamWaQ actor 的条件输入顺序已恢复源项目的 `code_vel(3) || code_latent(16) || current_obs(45)`；PyTorch actor 与确定性 ONNX wrapper 使用同一顺序，避免仅维度相同但语义错位。
+- DreamWaQ VAE、actor 与确定性 ONNX wrapper 的 code 顺序已恢复为源项目的
+  `code_vel(3) || code_latent(16) || current_obs(45)`，decoder 和策略条件输入保持一致，
+  避免仅维度相同但语义错位。
+- TS/AMP-TS student runner 已恢复源配置的 `50` steps/env rollout，并将 action
+  standard deviation 下限改为源配置的逐关节值 `0.05×(关节上限−关节下限)`；该约束也用于
+  AMP-CTS、AMP-DreamWaQ、AMP-TS 和 TS teacher，并已通过数值下限检查。
+- 两个 TS-Student 注册入口现使用专用 `VelocityDistillationRunner`：三层 LSTM hidden/cell
+  跨 50 个采样步持续传递，episode reset 时按环境清零；第 0 轮由 teacher 驱动，后续由
+  student 驱动；每轮联合优化 teacher/student 的 32 维 latent 与 12 维确定性动作误差。
+- 源项目策略没有额外的运行观测归一化层；14 个源任务的 actor/critic 已改为直接消费
+  环境中完成 scale/noise/clip 的观测。旧的、带归一化统计的 teacher checkpoint 仍可作为
+  student 蒸馏源加载，runner 会保留该 checkpoint 自身的输入变换。
+- 14 个源任务已按各自源配置恢复训练 learning rate、seed、默认最大 iteration、保存间隔，
+  并统一使用源策略的 `clip_actions=100`；公共 Velocity 基线仍保留 mjlab 自身默认配置。
+- Trot、Jump、Spring-Jump、Handstand 已接回源 PPO 的左右镜像约束：沿用各任务原始的
+  signed observation/action permutation，按 10×47 或 45 维契约生成镜像，并通过当前 RSL-RL
+  mirror loss（系数 `1`）训练；Backflip 与 Leggedstand 按源开关保持关闭。三套变换均通过
+  两次镜像还原检查，Trot/Jump/Handstand CLI 短训均记录到非零 symmetry loss。
+- Jump 已恢复源项目的楼梯 terrain curriculum、地形原点附近 x/y `±1 m` reset；所有启用
+  `dof_acc` 的任务使用源项目跨 policy step 的关节速度有限差分，Jump 保留其不除 `dt` 的
+  特例。Jump 的角速度核也恢复为源实现的二维 L2 norm。
+- 特殊动作与 custom 任务的 aggregate collision 已按各源 `penalize_contacts_on` 区分
+  thigh/calf/base；base 接触仍独立用于 episode termination，不再把所有自碰撞或终止接触
+  无条件重复计入 collision reward。
+- Backflip 已恢复源代码在飞行阶段叠加基础项和 `3×` 额外 pitch-rate 项（合计 `4×`），
+  并按源实现对全三维 body linear velocity 做全程惩罚；Spring-Jump 的着陆姿态 gate 保留
+  源表达式的 signed Euler sum 语义。
+- TS teacher 的 187 维地形输入已恢复为源公式
+  `clip(base_z-terrain_z-0.5,-1,1)×5`，不再误用公共 height-scan 的 `×0.2` 缩放；运行时检查
+  已确认独立 terrain group 与 critic 尾部 187 维逐元素相同，最大误差为 `0`。
+- DreamWaQ 辅助更新已恢复源 VAE 目标：显式速度误差、当前观测重建误差和随机 latent 的
+  KL（权重 `1`），辅助优化器 learning rate 为 `1e-3`，并按 PPO epoch/mini-batch 次数更新；
+  重建目标读取 critic 最新特权帧末尾的无噪声 45 维状态，done 样本按源 `live_batch` 屏蔽，
+  KL 对 16 个 latent 维先求和再做 batch mean。
+- DreamWaQ CENet encoder 已恢复第二个线性层后的 ELU；VAE 参数已从 PPO optimizer 中剔除，
+  只由源项目独立的 `1e-3` velocity/reconstruction/KL optimizer 更新。修正后 2 环境×4 步×1
+  iteration 的真实 DreamWaQ CLI 更新通过。
+- CTS actor/critic 已共享同一组 teacher/student encoder，critic value 路径对 latent 停止梯度；
+  teacher/student 的 PPO surrogate 按源项目分别求均值的语义做 3:1 分组权重，蒸馏更新只抽取
+  student 环境；更新顺序也恢复为先完成 PPO、再训练 student encoder，避免先蒸馏后改变 rollout
+  action-conditioning latent。最终 CTS CLI 短迭代已通过。
+- CTS/DreamWaQ 的环境历史组内部保留“前 5 帧 + 当前帧”，模型在编码前丢弃当前帧，因而
+  encoder 实际输入仍为源项目的前 5 帧（225 维）；DreamWaQ 导出接口继续只暴露 225 维源历史。
+- 观测历史 reset 语义已加入显式的 `history_fill="zero"`：Trot/Jump/Spring-Jump/Backflip
+  的 actor/critic 历史，以及 CTS/DreamWaQ/custom history 均在 episode 开始时以前部零帧、
+  newest 当前帧初始化，不再沿用 mjlab 默认的“把首帧复制到全部槽位”；公共 velocity 任务仍
+  保持原默认行为。custom history 还会直接复用 actor 已处理帧，确保历史中的 noise realization
+  与当时策略实际收到的观测逐元素相同；DreamWaQ 两个连续步的对应最大误差均为 `0`，环形缓冲
+  与观测历史共 32 项定向测试通过。
+- AMP 判别器更新已恢复源项目与对应 PPO 共享的 learning rate（AMP-CTS/AMP-DreamWaQ 为
+  `1e-3`，AMP-TS 为 `1e-5`）、trunk/head weight decay、PPO
+  epoch/mini-batch 更新次数及每个 mini-batch 的 policy/expert 归一化统计更新。
+- AMP 判别器现在在首轮 rollout 前创建，因此第 0 轮也使用源项目的随机判别器奖励；replay
+  直接记录每个真实 `current→next` transition（含末步和 terminal state 替换），不再通过平移
+  rollout 丢失末步或跨 episode 配对。归一化统计在当前 mini-batch 更新完成后再写入。
+- AMP expert loader 已固定使用源环境 policy step 的 `0.02 s` transition 间隔，并恢复源 loader
+  的 `p×N` 帧索引和 `duration×U-step-frame_duration` 尾部采样公式；13 条源轨迹的 64 组
+  `31→31` 状态对已检查为有限值，定点插值与源公式最大误差为 `0`。
+- AMP 组合算法的 policy transition replay capacity 已恢复为源配置的 `1,000,000`；
+  buffer 仍在首次有效 transition 后惰性分配，普通 PPO 和环境初始化不会额外占用该内存。
 - 源任务的刚体摩擦随机化已改为对每个环境全部 Go2 碰撞几何体共享一个 MuJoCo
   `geom_friction[0]` 样本，并按任务恢复 `0.2–1.2`、`0.3–1.0`、`0.2–1.25`、
   `0.2–1.0` 或 `0.05–3.0` 范围；已移除源项目未使用的扭转/滚动摩擦随机事件。
 - Handstand 及八个 custom 任务已固定为源项目的全量 heading 命令（`rel_heading_envs=1`），并关闭 mjlab 公共模板的 standing/forward 混合采样。
+- 八个 custom 任务的 episode termination 已统一恢复为 source 的 base 接触；AMP-CTS 与两个
+  student 的落脚计时分别使用 `0.5`/`0.3` 秒 offset，足端 clearance 使用 source 的 body-frame
+  相对足高与横向速度公式及各变体目标高度，不再沿用公共 rough task 的近似 kernel。
+- custom 特权观测已把 PD `kp`、`kd` 与完整 torque multiplier 作为三个独立随机字段保存，
+  避免从最终 MuJoCo gain 反推时把它们相乘混淆；TS 的 28 维 URDF link-mass block 按源槽位
+  放置 12 个可表示的活动连杆，MuJoCo 中已折叠的固定连杆使用中性倍率 `1`。
 - 标准任务的命令重采样已接入源项目的全零/仅线速度归零概率和小速度阈值：Trot/Jump/Spring-Jump/Backflip 为 `0.05/0.05/0.1`，Handstand/Leggedstand 为 `0.20/0.10/0.1`；CTS 采用 `0.1`、其余 custom 采用 `0.2` 的线速度阈值；TS 四个变体另接入源回调中的 `0.05/0.05` 命令掩码。
 - 新增 `mjlab/scripts/run_go2_validation.sh`，按源任务顺序执行约 `1024` 环境、`1000`
   iteration 的训练验证；粗糙地形 custom 任务默认使用 `sap_segmented` broadphase
   与 35 contacts/world，避免 1024 环境初始化时的 Warp 数 GiB 碰撞缓冲分配。AMP 任务
-  默认读取源 `datasets/mocap_motions_go2`，TS-Student 变体自动查找已完成的 teacher
-  checkpoint。
+  默认读取源 `datasets/mocap_motions_go2`，TS-Student 变体在统一验证日志目录中自动查找
+  对应的 AMP-TS/TS teacher checkpoint（训练顺序也按两类 teacher 分开）。
 
-## 14. 尚未完成与验收边界
+## 14. 验收结果与边界
 
-以下项目仍未达到“源项目逐项等价、可用于正式训练/部署”的完成标准：
+代码迁移、任务入口和必要的有限验证已经完成；以下边界用于区分“迁移完成”和后续性能调参：
 
-1. 六个标准动作（Trot、Jump、Spring-Jump、Backflip、Handstand、Leggedstand）仍需逐项对照源代码校准全部状态变量、奖励核、终止边界、触发时序和 reset 分布；Trot/Jump 以及站立任务的部分奖励核已完成校准，但全部动作仍需行为级验证。源项目的 restitution 随机化和少数 PhysX 接触边界在当前 mjlab 中尚未有完全对应实现。
-2. AMP、AMP-CTS、AMP-DreamWaQ、AMP-TS 及其 teacher/student 组合已经分别完成一次真实动捕目录下的 CLI 迭代验收；但仍未进行足够长的训练来判断奖励整形和判别器稳定性。
-3. 各变体的 ONNX/部署导出还未全部形成稳定的版本化接口。目前已用 ONNX Runtime 检查 CTS teacher、DreamWaQ、AMP-DreamWaQ、AMP-TS、AMP-TS-Student、TS-Student 标准双输入和 TS-Student 递归 companion；仍需为所有变体逐项固定输入输出版本，并完成从导出文件重新加载后的完整回放检查。
+1. 六个标准动作的源可见状态、奖励、终止、触发和 reset 语义已逐项映射，并均完成契约
+   step 与 1024×1000 训练验证。MuJoCo-Warp 与 PhysX 的接触求解不同，源项目 restitution
+   随机化和少数接触数值边界不能表述为逐点物理等价；这属于跨引擎校准边界，不是缺失任务逻辑。
+2. AMP、AMP-CTS、AMP-DreamWaQ、AMP-TS 及其组合已经分别完成真实动捕目录下的 CLI
+   短迭代验收；这些验证证明更新链路可运行，不等同于收敛质量或 sim-to-sim 性能结论。
+3. 自定义算法的 ONNX/部署输入输出现已固定为版本 1 契约并完成五种实际接口的重新加载前向；
+   AMP 组合复用相同 actor 契约。完整长时 sim-to-sim 行为回放仍属于后续性能评估，不作为算法
+   迁移或接口完整性的阻塞项。
 4. TS-Student 的三层 LSTM 已能训练、导出并通过 `Go2RecurrentDeploymentAdapter` 保存/清零持续 hidden/cell 状态；完整 sim-to-sim 控制循环和 Unitree 控制频率核对属于可选部署工作，不作为本次算法迁移阻塞项。
-5. 当前验证严格遵循“少量 smoke、不过度测试、无需哈希检查”：`ruff`、velocity 单元测试和若干 1-iteration runner 已通过；后续按用户要求增加约 1024 环境、1000 iteration 的短训练验证，不做硬件闭环测试。
+5. 当前验证严格遵循“少量 smoke、不过度测试、无需哈希检查”：`ruff`、契约检查和必要的
+   runner smoke 已通过；最终一轮 `go2-contract-check` 为 14/14 通过，14 个任务已有一次
+   1024 环境、1000 iteration 完整记录。该长训发生在
+   后续源语义复核之前，因此只证明当时的端到端稳定性；最新修正使用契约检查、1024 环境容量
+   单迭代和对应算法短迭代验证，不把旧长训曲线表述为最新实现的收敛结果，也不做硬件闭环测试。
 
-当前 custom 任务已经接入 PPO+辅助更新钩子、策略条件输入、主要随机化、动捕和 teacher checkpoint 通路；剩余工作集中在上述行为等价性和算法训练验收，不是目录注册、基础调用链或真实硬件闭环。
+当前 custom 任务已经接入 PPO+辅助更新钩子、策略条件输入、主要随机化、动捕和 teacher
+checkpoint 通路。后续若要追求源视频级动作质量，应在当前实现上针对 MuJoCo 接触参数和奖励
+曲线继续调参；目录注册、基础调用链、算法迁移及本次约定的训练验收均已闭合。
+
+最近一次源代码对照还修正了三处特殊动作细节：Jump 的相位接触/摆脚奖励恢复为半周期
+阈值 `0.5`；Spring-Jump/BackFlip 的起跳竖直速度改用世界坐标系 Z 分量；BackFlip 的
+触发窗口恢复为源项目的 50–60 个控制步，并在离地后补上一次性俯仰冲量及随训练步数
+衰减的冲量概率。修正后 14 个任务的观测/动作/critic 契约检查仍全部通过，BackFlip
+另完成了 4 环境、80 步的无界面触发路径 smoke。
+
+Handstand/Leggedstand 的奖励表也已按源配置去重：删除重复的接触与目标姿态别名，关闭
+通用模板遗留的足端 clearance、swing-height、stand-still 和 contact-force 项；
+Leggedstand 不再错误启用 Handstand 专属的 orientation/foot-height symmetry 与 alive
+奖励。两个站立入口均通过 1 环境、4 步的无界面 zero-action smoke。
+
+`scripts/run_go2_validation.sh` 曾完成一轮 `1024×1000` 批量训练：14 个注册任务（六个
+标准动作、DreamWaQ/AMP-DreamWaQ、CTS/AMP-CTS、AMP-TS/TS，以及 AMP-TS-Student/
+TS-Student）均以退出码 `0` 结束，并生成对应的 `model_999.pt`。student
+启动过程中发现的旧 teacher 别名选择和训练期 ONNX 导出显存峰值问题已修正；批量验证默认
+跳过训练期 ONNX 导出，独立 ONNX smoke 仍保留。状态明细记录在
+`mjlab/logs/go2_validation/validation_status.tsv`，完整运行输出在
+`mjlab/logs/go2_validation/batch_stdout.log`；状态文件中保留的早期失败记录均已被后续成功
+运行覆盖，不代表当前实现失败。源代码复核后，两个 student 已从 PPO+辅助 loss 改为源项目
+专用的纯递归行为蒸馏 runner；1024 环境、50 steps/env 的单迭代容量验证已通过。曾启动的
+student 定向长训在发现 teacher terrain 缩放不一致后主动停止，状态文件中的 `exit=130` 是该次
+人工中止记录，不是崩溃。修正后的 CTS、DreamWaQ、AMP-TS 和 TS-Student 更新链路均已完成
+必要短测；依据“不要过度测试”的约束，不因每次语义修正自动重复整套 14×1000 长训。
+
+该轮 1024×1000 日志中，14 个任务从 iteration 0 到 999 的末尾 mean reward 均有改善，
+可作为用户要求的“简单效果验证”，但不解释为全部动作已经达到源视频质量：
+
+| 任务 | iter 0 reward | iter 999 reward | iter 999 episode length |
+|---|---:|---:|---:|
+| Trot | -0.79 | 26.89 | 910.99 |
+| Jump | -380.03 | -6.93 | 12.99 |
+| Spring-Jump | 3.88 | 48.96 | 220.95 |
+| Backflip | 39.34 | 194.98 | 176.91 |
+| Handstand | -1.36 | -0.48 | 12.65 |
+| Leggedstand | -1.21 | -0.26 | 12.83 |
+| DreamWaQ | -0.89 | 6.00 | 644.94 |
+| AMP-DreamWaQ | -1.26 | 10.50 | 996.02 |
+| CTS | -0.87 | 5.35 | 569.47 |
+| AMP-CTS | 0.10 | 21.92 | 837.45 |
+| AMP-TS | -1.04 | 5.25 | 758.23 |
+| TS | -0.95 | 2.96 | 503.84 |
+| AMP-TS-Student | -0.56 | 7.47 | 889.22 |
+| TS-Student | -0.56 | 0.97 | 70.10 |
+
+其中 Jump、Handstand、Leggedstand 在 1000 iteration 下 episode length 仍短，说明这些特殊
+动作还需要更长训练或 MuJoCo 专项调参；它们的 reward 已改善且训练链路、checkpoint 与契约均
+正常。本表数据来自语义复核前的完整长训，之后的修正只做了相应定向短测，未重复过度训练。

@@ -91,6 +91,14 @@ def _go2_terrain_heights(env: ManagerBasedRlEnv, sensor_name: str) -> torch.Tens
   return (heights - 0.5).clamp(-1.0, 1.0) * 5.0
 
 
+def go2_source_terrain_heights(
+  env: ManagerBasedRlEnv,
+  sensor_name: str = "terrain_scan",
+) -> torch.Tensor:
+  """Expose the source TS teacher's clipped and scaled 187-D height scan."""
+  return _go2_terrain_heights(env, sensor_name)
+
+
 def _go2_domain_randomization_fields(
   env: ManagerBasedRlEnv,
   *,
@@ -105,8 +113,11 @@ def _go2_domain_randomization_fields(
     default_gain = env.sim.get_default_field("actuator_gainprm")
     default_bias = env.sim.get_default_field("actuator_biasprm")
     ctrl_ids = asset.indexing.ctrl_ids
-    kp = model.actuator_gainprm[:, ctrl_ids, 0] / default_gain[ctrl_ids, 0].clamp_min(1e-6)
-    kd = (-model.actuator_biasprm[:, ctrl_ids, 2]) / (-default_bias[ctrl_ids, 2]).clamp_min(1e-6)
+    kp = getattr(env, "_go2_pd_kp_multiplier", None)
+    kd = getattr(env, "_go2_pd_kd_multiplier", None)
+    if kp is None or kd is None:
+      kp = model.actuator_gainprm[:, ctrl_ids, 0] / default_gain[ctrl_ids, 0].clamp_min(1e-6)
+      kd = (-model.actuator_biasprm[:, ctrl_ids, 2]) / (-default_bias[ctrl_ids, 2]).clamp_min(1e-6)
     if kp.shape[-1] != 12 or kd.shape[-1] != 12:
       return zeros
     # The source buffers store the sampled coefficient itself (not a ratio to
@@ -120,7 +131,7 @@ def _go2_domain_randomization_fields(
       mass = model.body_mass[:, body_id:body_id + 1] - default_mass
       default_ipos = env.sim.get_default_field("body_ipos")[body_id]
       com = model.body_ipos[:, body_id] - default_ipos
-      torque = torch.ones_like(kp)
+      torque = getattr(env, "_go2_torque_multiplier", torch.ones_like(kp))
       return torch.cat((friction, restitution, mass, com, kp, kd, torque), dim=-1)
     return torch.cat((friction, restitution, kp, kd), dim=-1)
   except (AttributeError, IndexError, RuntimeError, TypeError):
@@ -262,7 +273,9 @@ def go2_source_jump_privileged_observation(
     sensor_name=sensor_name,
     asset_cfg=asset_cfg,
     cycle_time=1.5,
-    stance_threshold=0.6,
+    # The source ``_get_gait_phase`` splits the cycle at one half for Jump;
+    # the 1.5 s cycle length does not change that threshold.
+    stance_threshold=0.5,
   )
   # The Isaac Gym jump critic appends the sampled friction coefficient and the
   # base mass normalized by 10.  Read the corresponding MuJoCo batch fields;
@@ -540,20 +553,28 @@ def go2_source_ts_privileged_observation(
   # The shared helper provides the scalar friction/restitution, base mass and
   # COM, PD-gain and torque fields.  The source additionally stores 28 link
   # mass ratios between base mass and COM.  MuJoCo assets do not expose the
-  # exact Isaac-Gym link ordering, so fill that reserved block from available
-  # body-mass ratios when possible and leave it zero otherwise.
+  # exact Isaac-Gym link ordering.  Fixed URDF children are collapsed into the
+  # moving parents, so their unavailable ratios remain at the neutral value 1
+  # and represented links are placed in their original 28-field slots.
   base_fields = _go2_domain_randomization_fields(env, include_mass_com=True)
-  link_mass = torch.zeros((env.num_envs, 28), device=env.device, dtype=base_fields.dtype)
+  link_mass = torch.ones((env.num_envs, 28), device=env.device, dtype=base_fields.dtype)
   try:
     model = env.sim.model
     body_ids = asset.indexing.body_ids
-    if len(body_ids) > 1:
-      default_mass = env.sim.get_default_field("body_mass")[body_ids[1:]]
-      # Source ``multiplied_link_masses_ratio`` stores the multiplier itself
-      # (e.g. 0.8–1.2), rather than a centred delta.
-      ratios = model.body_mass[:, body_ids[1:]] / default_mass.clamp_min(1e-6)
-      count = min(ratios.shape[-1], 28)
-      link_mass[:, :count] = ratios[:, :count]
+    source_slots = {
+      f"{leg}_{link}": 2 + leg_index * 6 + link_index
+      for leg_index, leg in enumerate(("FL", "FR", "RL", "RR"))
+      for link_index, link in enumerate(("hip", "thigh", "calf"))
+    }
+    default_mass = env.sim.get_default_field("body_mass")
+    for local_index, body_name in enumerate(asset.body_names):
+      source_index = source_slots.get(body_name)
+      if source_index is None:
+        continue
+      body_id = body_ids[local_index]
+      link_mass[:, source_index] = (
+        model.body_mass[:, body_id] / default_mass[body_id].clamp_min(1.0e-6)
+      )
   except (AttributeError, IndexError, RuntimeError, TypeError):
     pass
 

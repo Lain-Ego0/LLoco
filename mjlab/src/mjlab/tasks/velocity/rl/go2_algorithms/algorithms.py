@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from itertools import chain
 from pathlib import Path
 
 import torch
@@ -127,8 +128,48 @@ class Go2AuxiliaryPPO(PPO):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    if (
+      self.auxiliary_kind == "cts"
+      and hasattr(self.actor, "teacher_encoder")
+      and hasattr(self.critic, "teacher_encoder")
+    ):
+      # Source ActorCriticCTS owns one encoder pair shared by policy and
+      # value paths.  RSL-RL constructs actor/critic as separate models, so
+      # explicitly tie them after construction; critic latents are detached.
+      self.critic.teacher_encoder = self.actor.teacher_encoder
+      self.critic.student_encoder = self.actor.student_encoder
+      # ``PPO`` created its optimizer before the modules were tied.  Rebuild
+      # it so detached encoder copies are dropped and every active shared
+      # parameter appears exactly once.
+      unique_parameters = []
+      seen_parameter_ids: set[int] = set()
+      for parameter in chain(self.actor.parameters(), self.critic.parameters()):
+        if id(parameter) not in seen_parameter_ids:
+          unique_parameters.append(parameter)
+          seen_parameter_ids.add(id(parameter))
+      self.optimizer = type(self.optimizer)(unique_parameters, **self.optimizer.defaults)
+    elif self.auxiliary_kind == "dreamwaq" and hasattr(self.actor, "vae"):
+      # The source DreamWaQ PPO optimizer owns only actor/critic/noise
+      # parameters.  CENet/VAE is updated exclusively by its separate 1e-3
+      # reconstruction/velocity/KL optimizer, even though PPO backpropagates
+      # through the sampled code while evaluating the actor.
+      vae_parameter_ids = {id(parameter) for parameter in self.actor.vae.parameters()}
+      ppo_parameters = [
+        parameter
+        for parameter in chain(self.actor.parameters(), self.critic.parameters())
+        if id(parameter) not in vae_parameter_ids
+      ]
+      self.optimizer = type(self.optimizer)(
+        ppo_parameters, **self.optimizer.defaults
+      )
     self.auxiliary: nn.Module | None = None
     self.auxiliary_optimizer: torch.optim.Optimizer | None = None
+    self._amp_rollout_pairs: list[tuple[torch.Tensor, torch.Tensor]] = []
+    if self.uses_amp:
+      # All migrated Go2 AMP variants use the same 31-D discriminator state.
+      # Construct it before collection so iteration zero receives the source
+      # random-discriminator shaping reward as well.
+      self._ensure_amp_components(31)
 
   def _ensure_amp_components(self, state_dim: int) -> None:
     """Create AMP discriminator and statistics lazily from the env groups."""
@@ -141,7 +182,21 @@ class Go2AuxiliaryPPO(PPO):
         hidden_dims=(1024, 512),
         amp_reward_coef=self.amp_reward_coef,
       ).to(self.device)
-      self.amp_optimizer = torch.optim.Adam(self.amp_auxiliary.parameters(), lr=1e-4)
+      self.amp_optimizer = torch.optim.Adam(
+        (
+          {
+            "params": self.amp_auxiliary.net[:-1].parameters(),
+            "weight_decay": 1.0e-4,
+          },
+          {
+            "params": self.amp_auxiliary.net[-1].parameters(),
+            "weight_decay": 1.0e-2,
+          },
+        ),
+        # The discriminator shares the algorithm learning rate in the source:
+        # 1e-3 for AMP-CTS/DreamWaQ and 1e-5 for AMP-TS.
+        lr=self.learning_rate,
+      )
     if not hasattr(self, "amp_normalizer"):
       self.amp_normalizer = Go2RunningNormalizer(state_dim, device=self.device)
 
@@ -205,6 +260,10 @@ class Go2AuxiliaryPPO(PPO):
         if terminal is not None:
           done_mask = dones.to(torch.bool)
           next_state[done_mask] = terminal[done_mask]
+        # Preserve every physical transition, including the final rollout
+        # step and terminal replacements.  Reconstructing pairs later by
+        # shifting storage would lose the last step and cross reset boundaries.
+        self._amp_rollout_pairs.append((current.clone(), next_state.clone()))
         rewards = rewards + self.amp_auxiliary.reward(
           self.amp_normalizer.normalize(current),
           self.amp_normalizer.normalize(next_state),
@@ -259,7 +318,8 @@ class Go2AuxiliaryPPO(PPO):
       critic = self._flat_group(self.storage, "critic")
       if critic is not None:
         self.auxiliary = CtsActorCritic(
-          actor.shape[-1], privileged.shape[-1], critic.shape[-1], history.shape[-1],
+          actor.shape[-1], privileged.shape[-1], critic.shape[-1],
+          history.shape[-1] - actor.shape[-1],
           action_dim=12, hidden_dims=(128, 64)
         ).to(self.device)
         # The deployed CTS actor owns the teacher encoder.  Share it with the
@@ -306,7 +366,15 @@ class Go2AuxiliaryPPO(PPO):
       amp_input = actor if amp is None else amp
       self.auxiliary = AmpDiscriminator(amp_input.shape[-1], hidden_dims=(1024, 512)).to(self.device)
     if self.auxiliary is not None:
-      self.auxiliary_optimizer = torch.optim.Adam(self.auxiliary.parameters(), lr=1e-4)
+      # Source CTS student encoders and DreamWaQ VAE both use 1e-3.
+      auxiliary_parameters = (
+        self.actor.vae.parameters()
+        if self.auxiliary_kind == "dreamwaq" and hasattr(self.actor, "vae")
+        else self.auxiliary.parameters()
+      )
+      self.auxiliary_optimizer = torch.optim.Adam(
+        auxiliary_parameters, lr=1e-3
+      )
 
   def _auxiliary_update(self) -> dict[str, float]:
     if self.auxiliary is None:
@@ -318,19 +386,31 @@ class Go2AuxiliaryPPO(PPO):
     privileged = self._flat_group(self.storage, "privileged")
     terrain = self._flat_group(self.storage, "terrain")
     explicit = self._flat_group(self.storage, "explicit")
+    critic = self._flat_group(self.storage, "critic")
     if actor is None:
       return {}
     if self.auxiliary_kind == "cts" and isinstance(self.auxiliary, CtsActorCritic):
       assert history is not None and privileged is not None
-      loss = self.auxiliary.distillation_loss(privileged, history)
+      history = history[..., :-actor.shape[-1]]
+      teacher_mask = self._flat_group(self.storage, "teacher_mask")
+      if teacher_mask is not None:
+        student_rows = teacher_mask.squeeze(-1) <= 0.5
+        history = history[student_rows]
+        privileged = privileged[student_rows]
+      inputs = (privileged, history)
       key = "cts_distillation"
     elif self.auxiliary_kind == "dreamwaq" and isinstance(self.auxiliary, DreamWaQActorCritic):
-      assert history is not None
-      loss = self.auxiliary.auxiliary_loss(history, actor, explicit)
+      assert history is not None and critic is not None
+      # Source reconstruction targets the uncorrupted current frame stored at
+      # the tail of the newest privileged critic frame, not the noisy actor
+      # observation.  Terminal samples are masked out of all VAE losses.
+      reconstruction = critic[..., -actor.shape[-1]:]
+      live = (~self.storage.dones.to(torch.bool)).reshape(-1, 1).to(actor.dtype)
+      inputs = (history, reconstruction, explicit, live)
       key = "dreamwaq_auxiliary"
     elif self.auxiliary_kind == "ts" and isinstance(self.auxiliary, TeacherStudentActorCritic):
       assert history is not None and privileged is not None and terrain is not None
-      loss = self.auxiliary.distillation_loss(terrain, privileged, history)
+      inputs = (terrain, privileged, history)
       key = "ts_distillation"
     elif self.auxiliary_kind == "amp" and isinstance(self.auxiliary, AmpDiscriminator):
       pairs = self._amp_transition_pairs(self.storage)
@@ -346,11 +426,40 @@ class Go2AuxiliaryPPO(PPO):
       key = "amp"
     else:
       return {}
-    self.auxiliary_optimizer.zero_grad()
-    loss.backward()
-    nn.utils.clip_grad_norm_(self.auxiliary.parameters(), 1.0)
-    self.auxiliary_optimizer.step()
-    return {key: float(loss.detach())}
+    # The source algorithms update their auxiliary encoder/VAE once per PPO
+    # mini-batch and epoch, rather than once over the complete rollout.
+    sample_count = inputs[0].shape[0]
+    if sample_count == 0:
+      return {key: 0.0}
+    total_loss = 0.0
+    update_count = 0
+    for _ in range(self.num_learning_epochs):
+      for indices in torch.randperm(sample_count, device=self.device).tensor_split(
+        self.num_mini_batches
+      ):
+        if indices.numel() == 0:
+          continue
+        if self.auxiliary_kind == "cts":
+          loss = self.auxiliary.distillation_loss(
+            inputs[0][indices], inputs[1][indices]
+          )
+        elif self.auxiliary_kind == "dreamwaq":
+          target_velocity = None if inputs[2] is None else inputs[2][indices]
+          loss = self.auxiliary.auxiliary_loss(
+            inputs[0][indices], inputs[1][indices], target_velocity,
+            inputs[3][indices],
+          )
+        else:
+          loss = self.auxiliary.distillation_loss(
+            inputs[0][indices], inputs[1][indices], inputs[2][indices]
+          )
+        self.auxiliary_optimizer.zero_grad()
+        loss.backward()
+        nn.utils.clip_grad_norm_(self.auxiliary.parameters(), 1.0)
+        self.auxiliary_optimizer.step()
+        total_loss += float(loss.detach())
+        update_count += 1
+    return {key: total_loss / update_count}
 
   def _amp_update(self) -> dict[str, float]:
     from .motion import Go2MotionLoader
@@ -366,7 +475,17 @@ class Go2AuxiliaryPPO(PPO):
         else None
       )
 
-    pairs = self._amp_transition_pairs(self.storage)
+    if self._amp_rollout_pairs:
+      policy_current = torch.cat(
+        [pair[0] for pair in self._amp_rollout_pairs], dim=0
+      ).clone()
+      policy_next = torch.cat(
+        [pair[1] for pair in self._amp_rollout_pairs], dim=0
+      ).clone()
+      self._amp_rollout_pairs.clear()
+      pairs = (policy_current, policy_next)
+    else:
+      pairs = self._amp_transition_pairs(self.storage)
     if pairs is None:
       actor = self._flat_group(self.storage, "actor")
       amp_obs = self._flat_group(self.storage, "amp")
@@ -381,40 +500,73 @@ class Go2AuxiliaryPPO(PPO):
     policy_current, policy_next = pairs
     self._ensure_amp_components(int(policy_current.shape[-1]))
     if not hasattr(self, "amp_replay"):
-      self.amp_replay = Go2AmpReplayBuffer(policy_current.shape[-1], device=self.device)
+      self.amp_replay = Go2AmpReplayBuffer(
+        policy_current.shape[-1],
+        capacity=int(getattr(self, "amp_replay_buffer_size", 100_000)),
+        device=self.device,
+      )
     policy_current = policy_current.detach()
     policy_next = policy_next.detach()
     self.amp_replay.insert(policy_current, policy_next)
-    sample_count = min(policy_current.shape[0], 256)
-    policy, policy_next = self.amp_replay.sample(sample_count)
-    if self.motion_loader is not None:
-      expert, expert_next = self.motion_loader.sample_transition(sample_count)
-    else:
-      # Preserve a useful finite smoke path when no motion files are supplied.
-      expert = policy.roll(1, dims=0)
-      expert_next = expert.roll(-1, dims=0)
-    # Match the legacy Normalizer: statistics are updated from unnormalized
-    # policy/expert states, then both transition endpoints are clipped.
-    self.amp_normalizer.update(torch.cat((policy, policy_next, expert, expert_next), dim=0))
-    policy_n = self.amp_normalizer.normalize(policy)
-    policy_next_n = self.amp_normalizer.normalize(policy_next)
-    expert_n = self.amp_normalizer.normalize(expert)
-    expert_next_n = self.amp_normalizer.normalize(expert_next)
-    loss = self.amp_auxiliary.loss(expert_n, policy_n, expert_next_n, policy_next_n)
-    self.amp_optimizer.zero_grad()
-    loss.backward()
-    nn.utils.clip_grad_norm_(self.amp_auxiliary.parameters(), 1.0)
-    self.amp_optimizer.step()
-    return {"amp": float(loss.detach())}
+    sample_count = max(1, policy_current.shape[0] // self.num_mini_batches)
+    total_loss = 0.0
+    update_count = self.num_learning_epochs * self.num_mini_batches
+    for param_group in self.amp_optimizer.param_groups:
+      param_group["lr"] = self.learning_rate
+    for _ in range(update_count):
+      policy, policy_next = self.amp_replay.sample(sample_count)
+      if self.motion_loader is not None:
+        expert, expert_next = self.motion_loader.sample_transition(sample_count)
+      else:
+        # Preserve a useful finite smoke path when no motion files are supplied.
+        expert = policy.roll(1, dims=0)
+        expert_next = expert.roll(-1, dims=0)
+      # The legacy implementation normalizes with the existing statistics and
+      # updates them from unnormalized current states after the optimizer step.
+      policy_n = self.amp_normalizer.normalize(policy)
+      policy_next_n = self.amp_normalizer.normalize(policy_next)
+      expert_n = self.amp_normalizer.normalize(expert)
+      expert_next_n = self.amp_normalizer.normalize(expert_next)
+      loss = self.amp_auxiliary.loss(
+        expert_n, policy_n, expert_next_n, policy_next_n
+      )
+      self.amp_optimizer.zero_grad()
+      loss.backward()
+      nn.utils.clip_grad_norm_(self.amp_auxiliary.parameters(), 1.0)
+      self.amp_optimizer.step()
+      self.amp_normalizer.update(policy)
+      self.amp_normalizer.update(expert)
+      total_loss += float(loss.detach())
+    return {"amp": total_loss / update_count}
 
   def update(self) -> dict[str, float]:
-    auxiliary_metrics = self._auxiliary_update()
+    # Keep the source's PPO-before-auxiliary ordering.  CTS first completes
+    # every PPO mini-batch and only then distils the student encoder; DreamWaQ
+    # performs each VAE step after a PPO step.  Current RSL-RL owns its PPO
+    # mini-batch loop, so this adapter finishes that loop before running the
+    # same number of auxiliary mini-batch updates.  This is important for CTS
+    # in particular: updating the student first would change its (detached)
+    # action-conditioning latent before PPO evaluates the rollout actions.
+    # ``PPO.update`` only resets the storage cursor, so its tensors remain
+    # available to the following auxiliary phase.
     metrics = super().update()
+    auxiliary_metrics = self._auxiliary_update()
     metrics.update(auxiliary_metrics)
+    # Recurrent TS updates can leave sizable temporary CUDA allocator blocks
+    # alive while MuJoCo-Warp captures the next simulation graph.  Releasing
+    # cached (not live) blocks here prevents the 1024-env student validation
+    # from failing on the following ``env.step`` without changing tensors or
+    # the source rollout semantics.
+    if torch.device(self.device).type == "cuda":
+      torch.cuda.empty_cache()
     return metrics
 
   def save(self) -> dict:
     saved = super().save()
+    if hasattr(self, "student_distill_optimizer"):
+      saved["go2_student_distill_optimizer_state_dict"] = (
+        self.student_distill_optimizer.state_dict()
+      )
     if self.auxiliary is not None:
       saved["go2_auxiliary_state_dict"] = self.auxiliary.state_dict()
       if self.auxiliary_optimizer is not None:
@@ -436,6 +588,13 @@ class Go2AuxiliaryPPO(PPO):
       if self.auxiliary_optimizer is not None and "go2_auxiliary_optimizer_state_dict" in loaded_dict:
         self.auxiliary_optimizer.load_state_dict(loaded_dict["go2_auxiliary_optimizer_state_dict"])
     result = super().load(loaded_dict, load_cfg, strict)
+    if (
+      hasattr(self, "student_distill_optimizer")
+      and "go2_student_distill_optimizer_state_dict" in loaded_dict
+    ):
+      self.student_distill_optimizer.load_state_dict(
+        loaded_dict["go2_student_distill_optimizer_state_dict"]
+      )
     if "go2_amp_discriminator_state_dict" in loaded_dict:
       if not hasattr(self, "amp_auxiliary"):
         self._amp_update()
@@ -458,6 +617,19 @@ class Go2AuxiliaryPPO(PPO):
 class CtsPPO(Go2AuxiliaryPPO):
   auxiliary_kind = "cts"
 
+  def update(self) -> dict[str, float]:
+    # Source CTS computes teacher and student surrogate means independently
+    # and adds them, giving the 1/4 student partition equal group weight to
+    # the 3/4 teacher partition.  Pre-weighting advantages reproduces that
+    # objective inside the native shuffled PPO mini-batch implementation.
+    if "teacher_mask" in self.storage.observations.keys():
+      teacher = self.storage.observations["teacher_mask"] > 0.5
+      group_weight = torch.where(teacher, 1.0 / 0.75, 1.0 / 0.25)
+      # Rollout returns are computed under inference mode by RSL-RL.  Clone
+      # before weighting so the PPO update owns a regular mutable tensor.
+      self.storage.advantages = self.storage.advantages.clone() * group_weight
+    return super().update()
+
 
 class DreamWaQPPO(Go2AuxiliaryPPO):
   auxiliary_kind = "dreamwaq"
@@ -466,6 +638,11 @@ class DreamWaQPPO(Go2AuxiliaryPPO):
 class AmpPPO(Go2AuxiliaryPPO):
   auxiliary_kind = "amp"
   uses_amp = True
+
+  # The source AMP configurations reserve a million policy transitions.  The
+  # buffer is allocated lazily after the first valid rollout pair, so keeping
+  # this capacity does not inflate ordinary PPO or pre-step memory usage.
+  amp_replay_buffer_size = 1_000_000
 
   def _auxiliary_update(self) -> dict[str, float]:
     return self._amp_update()
@@ -477,6 +654,7 @@ class TeacherStudentPPO(Go2AuxiliaryPPO):
 
 class AmpCtsPPO(CtsPPO):
   uses_amp = True
+  amp_replay_buffer_size = 1_000_000
   def _auxiliary_update(self) -> dict[str, float]:
     metrics = super()._auxiliary_update()
     metrics.update(self._amp_update())
@@ -485,6 +663,7 @@ class AmpCtsPPO(CtsPPO):
 
 class AmpDreamWaQPPO(DreamWaQPPO):
   uses_amp = True
+  amp_replay_buffer_size = 1_000_000
   def _auxiliary_update(self) -> dict[str, float]:
     metrics = super()._auxiliary_update()
     metrics.update(self._amp_update())
@@ -493,6 +672,7 @@ class AmpDreamWaQPPO(DreamWaQPPO):
 
 class AmpTeacherStudentPPO(TeacherStudentPPO):
   uses_amp = True
+  amp_replay_buffer_size = 1_000_000
   def _auxiliary_update(self) -> dict[str, float]:
     metrics = super()._auxiliary_update()
     metrics.update(self._amp_update())

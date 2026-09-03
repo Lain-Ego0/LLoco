@@ -7,6 +7,7 @@ from typing import NamedTuple
 
 import torch
 from rsl_rl.models.mlp_model import MLPModel
+from rsl_rl.modules import GaussianDistribution
 from rsl_rl.modules.mlp import MLP
 from torch import nn
 from torch.distributions import Normal
@@ -43,6 +44,29 @@ class PolicyOutput(NamedTuple):
   log_prob: torch.Tensor
   mean: torch.Tensor
   std: torch.Tensor
+
+
+class Go2ClampedGaussianDistribution(GaussianDistribution):
+  """Gaussian policy noise with the source per-joint minimum standard deviation."""
+
+  def __init__(
+    self,
+    output_dim: int,
+    min_std: tuple[float, ...],
+    **kwargs,
+  ) -> None:
+    super().__init__(output_dim, **kwargs)
+    if len(min_std) != output_dim:
+      raise ValueError(f"Expected {output_dim} minimum std values, got {len(min_std)}")
+    self.register_buffer("min_std", torch.tensor(min_std, dtype=torch.float32))
+
+  def update(self, mlp_output: torch.Tensor) -> None:
+    super().update(mlp_output)
+    assert self._distribution is not None
+    self._distribution = Normal(
+      self._distribution.mean,
+      torch.maximum(self._distribution.stddev, self.min_std),
+    )
 
 
 class _GaussianPolicy(nn.Module):
@@ -121,7 +145,15 @@ class DreamWaQVAE(nn.Module):
 
   def __init__(self, history_dim: int, latent_dim: int, explicit_dim: int, decode_dim: int):
     super().__init__()
-    self.encoder = _mlp(history_dim, 64, (128,))
+    # Source CENet applies ELU after both encoder linear layers, including the
+    # 64-D bottleneck.  ``_mlp`` intentionally leaves output layers linear, so
+    # spell this encoder out rather than silently dropping the final ELU.
+    self.encoder = nn.Sequential(
+      nn.Linear(history_dim, 128),
+      nn.ELU(),
+      nn.Linear(128, 64),
+      nn.ELU(),
+    )
     self.mean_latent = nn.Linear(64, latent_dim)
     self.logvar_latent = nn.Sequential(nn.Linear(64, latent_dim), nn.Hardtanh(-5.0, 5.0))
     self.mean_explicit = nn.Linear(64, explicit_dim)
@@ -140,7 +172,11 @@ class DreamWaQVAE(nn.Module):
     logvar_explicit = self.logvar_explicit(encoded)
     latent = self.reparameterize(mean_latent, logvar_latent)
     explicit = self.reparameterize(mean_explicit, logvar_explicit)
-    decoded = self.decoder(torch.cat((latent, explicit), dim=-1))
+    # Keep the source VAE code layout: sampled velocity estimate first,
+    # followed by the stochastic latent code.  The decoder is trained against
+    # this ordering, so changing only the actor input would still make the
+    # auxiliary reconstruction objective semantically inconsistent.
+    decoded = self.decoder(torch.cat((explicit, latent), dim=-1))
     return {
       "latent": latent,
       "explicit": explicit,
@@ -188,19 +224,34 @@ class DreamWaQActorCritic(nn.Module):
     history: torch.Tensor,
     target_obs: torch.Tensor,
     target_velocity: torch.Tensor | None = None,
+    live_mask: torch.Tensor | None = None,
   ) -> torch.Tensor:
     encoded = self.vae(history[..., :-self.obs_dim])
-    reconstruction = F.mse_loss(encoded["decoded"], target_obs)
+    if live_mask is None:
+      live_mask = torch.ones(
+        (history.shape[0], 1), device=history.device, dtype=history.dtype
+      )
+    elif live_mask.ndim == 1:
+      live_mask = live_mask.unsqueeze(-1)
+    reconstruction = F.mse_loss(
+      encoded["decoded"] * live_mask, target_obs * live_mask
+    )
     velocity = (
-      F.mse_loss(encoded["explicit"], target_velocity)
+      F.mse_loss(encoded["explicit"] * live_mask, target_velocity * live_mask)
       if target_velocity is not None
       else encoded["explicit"].new_zeros(())
     )
-    kl_latent = -0.5 * torch.mean(1 + encoded["logvar_latent"] - encoded["mean_latent"].square() - encoded["logvar_latent"].exp())
-    kl_explicit = -0.5 * torch.mean(1 + encoded["logvar_explicit"] - encoded["mean_explicit"].square() - encoded["logvar_explicit"].exp())
-    # The source DreamWaQ update supervises explicit velocity and reconstructs
-    # the current actor observation, with a KL term on both latent branches.
-    return velocity + reconstruction + 0.001 * (kl_latent + kl_explicit)
+    kl_per_sample = torch.sum(
+      1
+      + encoded["logvar_latent"]
+      - encoded["mean_latent"].square()
+      - encoded["logvar_latent"].exp(),
+      dim=-1,
+    )
+    kl_latent = -0.5 * torch.mean(kl_per_sample * live_mask.squeeze(-1))
+    # The source update regularizes only the stochastic latent branch; the
+    # explicit velocity branch is supervised directly and has no KL penalty.
+    return velocity + reconstruction + kl_latent
 
 
 class AmpDiscriminator(nn.Module):
@@ -350,20 +401,22 @@ class _Go2ConditionalActor(MLPModel):
       latent_dim = 32
       if self.use_student:
         source_dim = int(obs["history"].shape[-1])
-        self._go2_conditional_dim = source_dim
-        self._go2_conditional_splits = (source_dim,)
-        self.student_encoder = _mlp(source_dim, latent_dim, (512, 256))
+        self._go2_cts_student_dim = source_dim - actor_dim
+        self._go2_conditional_dim = self._go2_cts_student_dim
+        self._go2_conditional_splits = (self._go2_conditional_dim,)
+        self.student_encoder = _mlp(source_dim - actor_dim, latent_dim, (512, 256))
       else:
         privileged_dim = int(obs["privileged"].shape[-1])
         history_dim = int(obs["history"].shape[-1])
+        self._go2_cts_student_dim = history_dim - actor_dim
         self._go2_conditional_dim = privileged_dim
         self._go2_conditional_splits = (privileged_dim, history_dim)
         self.teacher_encoder = _mlp(privileged_dim, latent_dim, (512, 256))
-        self.student_encoder = _mlp(history_dim, latent_dim, (512, 256))
+        self.student_encoder = _mlp(history_dim - actor_dim, latent_dim, (512, 256))
     elif self.latent_kind == "dreamwaq":
       history_dim = int(obs["history"].shape[-1])
-      self._go2_conditional_dim = history_dim
-      self._go2_conditional_splits = (history_dim,)
+      self._go2_conditional_dim = history_dim - actor_dim
+      self._go2_conditional_splits = (self._go2_conditional_dim,)
       # The source VAE consumes history excluding the newest actor frame;
       # that 45-D frame is concatenated directly to the latent downstream.
       self.vae = DreamWaQVAE(history_dim - actor_dim, 16, 3, actor_dim)
@@ -400,7 +453,14 @@ class _Go2ConditionalActor(MLPModel):
 
   def _conditional_features(self, obs: dict[str, torch.Tensor]) -> torch.Tensor:
     if self.latent_kind == "cts":
-      student = F.normalize(self.student_encoder(obs["history"]), p=2.0, dim=-1)
+      # Source ``obs_hist_buf`` excludes the current observation.  The mjlab
+      # compatibility group retains one extra frame so dropping its newest
+      # 45-D block reproduces the source five-frame input exactly.
+      student = F.normalize(
+        self.student_encoder(obs["history"][..., :-self._go2_actor_dim]),
+        p=2.0,
+        dim=-1,
+      )
       if self.use_student:
         return student
       teacher = F.normalize(self.teacher_encoder(obs["privileged"]), p=2.0, dim=-1)
@@ -449,23 +509,32 @@ class CtsCriticModel(MLPModel):
     super().__init__(obs, obs_groups, obs_set, output_dim, **kwargs)
     privileged_dim = int(obs["privileged"].shape[-1])
     history_dim = int(obs["history"].shape[-1])
+    self._go2_actor_dim = int(obs["actor"].shape[-1])
     hidden_dims = tuple(kwargs.get("hidden_dims", (512, 256, 128)))
     activation = kwargs.get("activation", "elu")
     self.teacher_encoder = _mlp(privileged_dim, 32, (512, 256))
-    self.student_encoder = _mlp(history_dim, 32, (512, 256))
+    self.student_encoder = _mlp(
+      history_dim - self._go2_actor_dim, 32, (512, 256)
+    )
     self.mlp = MLP(self.obs_dim + 32, output_dim, hidden_dims, activation)
 
   def get_latent(self, obs, masks=None, hidden_state=None):
     del masks, hidden_state
     critic_obs = self.obs_normalizer(torch.cat([obs[group] for group in self.obs_groups], dim=-1))
     teacher = F.normalize(self.teacher_encoder(obs["privileged"]), p=2.0, dim=-1)
-    student = F.normalize(self.student_encoder(obs["history"]), p=2.0, dim=-1)
+    student = F.normalize(
+      self.student_encoder(obs["history"][..., :-self._go2_actor_dim]),
+      p=2.0,
+      dim=-1,
+    )
     mask = obs.get("teacher_mask")
     if mask is None:
       latent = teacher
     else:
       latent = torch.where(mask > 0.5, teacher, student)
-    return torch.cat((latent, critic_obs), dim=-1)
+    # Source CTS explicitly detaches the selected encoder latent before the
+    # value network so critic loss cannot update teacher/student encoders.
+    return torch.cat((latent.detach(), critic_obs), dim=-1)
 
 
 class _Go2ConditionalOnnxModel(nn.Module):
@@ -479,9 +548,18 @@ class _Go2ConditionalOnnxModel(nn.Module):
     self.obs_normalizer = copy.deepcopy(model.obs_normalizer)
     self.mlp = copy.deepcopy(model.mlp)
     self.latent_kind = model.latent_kind
-    self.use_student = model.use_student
+    # CTS is concurrent only during rollout collection.  The source
+    # ``act_inference`` and deployment exporter always use the distilled
+    # history encoder, never the privileged teacher.  Force that path for the
+    # exported artifact even though the training actor itself is a mixed
+    # teacher/student model.
+    self.use_student = model.use_student or model.latent_kind == "cts"
     self.actor_dim = model._go2_actor_dim
-    self.conditional_dim = model._go2_conditional_dim
+    self.conditional_dim = (
+      model._go2_cts_student_dim
+      if model.latent_kind == "cts"
+      else model._go2_conditional_dim
+    )
     self.conditional_splits = model._go2_conditional_splits
     # Keep only the conditional modules needed by this policy.  Assigning the
     # modules (rather than deep-copying) preserves the trained weights when the
@@ -502,7 +580,10 @@ class _Go2ConditionalOnnxModel(nn.Module):
       encoder = self.student_encoder if self.use_student else self.teacher_encoder
       return F.normalize(encoder(conditional), p=2.0, dim=-1)
     if self.latent_kind == "dreamwaq":
-      encoded = self.vae.encoder(conditional[..., :-self.actor_dim])
+      # Deployment callers already provide the source five-frame history;
+      # only the in-environment observation group carries an extra current
+      # frame that must be removed before reaching this wrapper.
+      encoded = self.vae.encoder(conditional)
       mean_latent = self.vae.mean_latent(encoded)
       mean_explicit = self.vae.mean_explicit(encoded)
       return torch.cat((mean_explicit, mean_latent), dim=-1)
@@ -519,7 +600,11 @@ class _Go2ConditionalOnnxModel(nn.Module):
   def forward(self, actor: torch.Tensor, conditional: torch.Tensor) -> torch.Tensor:
     features = self._features(conditional)
     actor_obs = self.obs_normalizer(actor)
-    latent = torch.cat((features, actor_obs), dim=-1) if features.shape[-1] else actor_obs
+    # This wrapper is created only for conditional Go2 actors, so its feature
+    # width is statically non-zero.  Avoid a tensor-shape Python branch here;
+    # otherwise ONNX tracing bakes in the dummy batch and emits a misleading
+    # generalization warning.
+    latent = torch.cat((features, actor_obs), dim=-1)
     return self.deterministic_output(self.mlp(latent))
 
   def get_dummy_inputs(self) -> tuple[torch.Tensor, torch.Tensor]:
@@ -535,6 +620,14 @@ class _Go2ConditionalOnnxModel(nn.Module):
   @property
   def output_names(self) -> list[str]:
     return ["actions"]
+
+  @property
+  def dynamic_axes(self) -> dict[str, dict[int, str]]:
+    return {
+      "actor": {0: "batch"},
+      "conditional": {0: "batch"},
+      "actions": {0: "batch"},
+    }
 
 
 class CtsActorModel(_Go2ConditionalActor):
@@ -615,3 +708,14 @@ class _Go2TsStudentRecurrentOnnxModel(nn.Module):
   @property
   def output_names(self) -> list[str]:
     return ["actions", "he", "ce"]
+
+  @property
+  def dynamic_axes(self) -> dict[str, dict[int, str]]:
+    return {
+      "obs": {0: "batch"},
+      "h": {1: "batch"},
+      "c": {1: "batch"},
+      "actions": {0: "batch"},
+      "he": {1: "batch"},
+      "ce": {1: "batch"},
+    }

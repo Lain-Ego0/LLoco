@@ -10,7 +10,7 @@ from mjlab.asset_zoo.robots import (
 from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.envs import mdp as envs_mdp
 from mjlab.envs.mdp.actions import JointPositionActionCfg
-from mjlab.managers import TerminationTermCfg
+from mjlab.managers import CurriculumTermCfg, TerminationTermCfg
 from mjlab.managers.event_manager import EventTermCfg
 from mjlab.managers.observation_manager import ObservationGroupCfg, ObservationTermCfg
 from mjlab.managers.reward_manager import RewardTermCfg
@@ -37,6 +37,13 @@ from mjlab.terrains.terrain_generator import TerrainGeneratorCfg
 from mjlab.utils.noise.noise_cfg import UniformNoiseCfg
 
 TerrainType = Literal["rough", "obstacles"]
+
+
+def _go2_source_observation_clipping(cfg: ManagerBasedRlEnvCfg) -> None:
+  """Apply the source environment's final [-100, 100] observation clip."""
+  for group in cfg.observations.values():
+    for term in group.terms.values():
+      term.clip = (-100.0, 100.0)
 
 
 def _go2_source_geom_friction(
@@ -378,7 +385,8 @@ def unitree_go2_trot_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
   This is the first special-action task in the migration.  It keeps the common
   mjlab velocity MDP for scene plumbing while adding the source task's 47-D
   single-frame observation, ten-frame history, phase gait reward, and standstill
-  terms.  Latency buffers and symmetry augmentation are migrated separately.
+  terms.  Source motor/IMU/action latency is enabled on the action term; the
+  policy mirror loss is configured with the task's RL runner configuration.
   """
   cfg = unitree_go2_flat_env_cfg(play=play)
   cfg.events["reset_robot_joints"].params["position_range"] = (-0.1, 0.1)
@@ -390,9 +398,10 @@ def unitree_go2_trot_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
   # baseline removes these sensors, so restore only the three source body
   # groups here instead of weakening the task's collision contract.
   rough_sensor_cfgs = unitree_go2_rough_env_cfg(play=play).scene.sensors or ()
-  collision_sensor_names = {"thigh_ground_touch", "shank_ground_touch", "trunk_ground_touch"}
+  collision_sensor_names = {"thigh_ground_touch", "shank_ground_touch"}
+  required_sensor_names = collision_sensor_names | {"trunk_ground_touch"}
   cfg.scene.sensors = (cfg.scene.sensors or ()) + tuple(
-    sensor for sensor in rough_sensor_cfgs if sensor.name in collision_sensor_names
+    sensor for sensor in rough_sensor_cfgs if sensor.name in required_sensor_names
   )
   cfg.terminations.pop("fell_over", None)
   cfg.terminations["illegal_contact"] = TerminationTermCfg(
@@ -475,6 +484,7 @@ def unitree_go2_trot_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         noise=_go2_source_47_noise_cfg(),
         history_length=10,
         flatten_history_dim=True,
+        history_fill="zero",
       )
     },
     concatenate_terms=True,
@@ -487,6 +497,7 @@ def unitree_go2_trot_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         params={"command_name": "twist", "sensor_name": "feet_ground_contact"},
         history_length=3,
         flatten_history_dim=True,
+        history_fill="zero",
       )
     },
     concatenate_terms=True,
@@ -602,6 +613,7 @@ def unitree_go2_trot_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
       "x": (-0.4, 0.4), "y": (-0.4, 0.4), "z": (0.0, 0.0),
       "roll": (-0.6, 0.6), "pitch": (-0.6, 0.6), "yaw": (-0.6, 0.6),
     }
+  _go2_source_observation_clipping(cfg)
   return cfg
 
 
@@ -624,11 +636,10 @@ def _go2_special_action_env_cfg(
   # velocity baseline. Special-action source rewards still depend on body
   # collisions, so restore only the non-foot sensors here.
   rough_sensor_cfgs = unitree_go2_rough_env_cfg(play=play).scene.sensors or ()
-  collision_sensor_names = {
-    "self_collision", "thigh_ground_touch", "shank_ground_touch", "trunk_ground_touch",
-  }
+  collision_sensor_names = {"thigh_ground_touch", "shank_ground_touch"}
+  required_sensor_names = collision_sensor_names | {"trunk_ground_touch"}
   cfg.scene.sensors = (cfg.scene.sensors or ()) + tuple(
-    sensor for sensor in rough_sensor_cfgs if sensor.name in collision_sensor_names
+    sensor for sensor in rough_sensor_cfgs if sensor.name in required_sensor_names
   )
   # The source special tasks allow deliberate inversion/rotation.  The flat
   # baseline's 70-degree ``fell_over`` termination would stop a jump or
@@ -803,7 +814,10 @@ def _go2_special_action_env_cfg(
       trigger_steps = (50, 60)
     else:
       initial_lin_vel_x = (0.0, 0.0)
-      trigger_steps = (50, 100)
+      # BackFlip resets ``command_frame`` with randint(50, 60) in the
+      # source task.  The later 50--100 window was an accidental broadening
+      # that delayed take-off for a substantial fraction of episodes.
+      trigger_steps = (50, 60)
     twist.ranges.lin_vel_x = initial_lin_vel_x
     twist.ranges.lin_vel_y = (0.0, 0.0)
     cfg.commands["twist"] = Go2TriggeredCommandCfg(
@@ -818,6 +832,9 @@ def _go2_special_action_env_cfg(
       source_min_lin_norm=twist.source_min_lin_norm,
       trigger_steps=trigger_steps,
       initial_lin_vel_x=initial_lin_vel_x,
+      # Spring-Jump samples one scalar and broadcasts it to all environments
+      # reset in the same call; BackFlip's fixed zero command is unaffected.
+      shared_initial_lin_vel_x=task == "spring_jump",
       contact_sensor_name="feet_ground_contact",
       push_towards_goal=True,
       upward_push_range=(1.5, 2.2) if task == "spring_jump" else (2.0, 3.5),
@@ -831,13 +848,16 @@ def _go2_special_action_env_cfg(
     # Re-enable a generator after the common flat config removed it, while
     # retaining the source observation contract that does not expose heights.
     assert cfg.scene.terrain is not None
+    cfg.events["reset_base"].params["pose_range"].update(
+      {"x": (-1.0, 1.0), "y": (-1.0, 1.0)}
+    )
     cfg.scene.terrain.terrain_type = "generator"
     cfg.scene.terrain.terrain_generator = TerrainGeneratorCfg(
       size=(8.0, 8.0),
       border_width=25.0,
       num_rows=10,
       num_cols=20,
-      curriculum=False,
+      curriculum=not play,
       sub_terrains={
         "stairs": pyramid_stairs(
           proportion=1.0,
@@ -849,6 +869,11 @@ def _go2_special_action_env_cfg(
       },
       add_lights=True,
     )
+    if not play:
+      cfg.curriculum["terrain_levels"] = CurriculumTermCfg(
+        func=mdp.terrain_levels_vel,
+        params={"command_name": "twist"},
+      )
     cfg.episode_length_s = 24.0
     cfg.observations["actor"] = ObservationGroupCfg(
       terms={
@@ -858,6 +883,7 @@ def _go2_special_action_env_cfg(
           noise=_go2_source_47_noise_cfg(),
           history_length=10,
           flatten_history_dim=True,
+          history_fill="zero",
         )
       },
       concatenate_terms=True,
@@ -870,6 +896,7 @@ def _go2_special_action_env_cfg(
           params={"command_name": "twist", "sensor_name": "feet_ground_contact"},
           history_length=3,
           flatten_history_dim=True,
+          history_fill="zero",
         )
       },
       concatenate_terms=True,
@@ -919,6 +946,7 @@ def _go2_special_action_env_cfg(
           noise=_go2_source_47_noise_cfg(),
           history_length=10,
           flatten_history_dim=True,
+          history_fill="zero",
         )
       },
       concatenate_terms=True,
@@ -931,6 +959,7 @@ def _go2_special_action_env_cfg(
           params={"command_name": "twist", "sensor_name": "feet_ground_contact"},
           history_length=3,
           flatten_history_dim=True,
+          history_fill="zero",
         )
       },
       concatenate_terms=True,
@@ -1009,16 +1038,12 @@ def _go2_special_action_env_cfg(
       concatenate_terms=True,
       enable_corruption=False,
     )
-    cfg.rewards["stand_still"] = RewardTermCfg(
-      func=mdp.go2_stand_still_penalty,
-      weight=-1.0,
-      params={"command_name": "twist"},
-    )
+    # Neither source stand config enables the generic stand-still term.
+    cfg.rewards.pop("stand_still", None)
     if task == "handstand":
       target_gravity = (-1.0, 0.0, 0.0)
       target_height = 0.52
       airborne_indices = (0, 1)  # FL/FR in the source task.
-      support_indices = (2, 3)  # RL/RR support pair.
       target_joint_pos = (
         0.0, 0.8, -1.5,
         0.0, 0.8, -1.5,
@@ -1030,7 +1055,6 @@ def _go2_special_action_env_cfg(
       target_gravity = (1.0, 0.0, 0.0)
       target_height = 0.47
       airborne_indices = (2, 3)  # RL/RR in the source task.
-      support_indices = (0, 1)  # FL/FR support pair.
       target_joint_pos = (
         0.0, -0.7, -1.75,
         0.0, -0.7, -1.75,
@@ -1053,19 +1077,9 @@ def _go2_special_action_env_cfg(
       weight=0.4,
       params={"sensor_name": "feet_ground_contact", "foot_indices": airborne_indices},
     )
-    cfg.rewards["single_support_contact"] = RewardTermCfg(
-      func=mdp.go2_exactly_one_foot_contact,
-      weight=0.3,
-      params={"sensor_name": "feet_ground_contact", "foot_indices": support_indices},
-    )
-    cfg.rewards["desired_pose"] = RewardTermCfg(
-      func=mdp.go2_target_joint_position_penalty,
-      weight=-0.1 if task == "handstand" else -0.05,
-      params={
-        "target_joint_pos": target_joint_pos,
-        "asset_cfg": SceneEntityCfg("robot", joint_names=(".*",)),
-      },
-    )
+    # ``contact`` and ``default_pos`` below are the source terms.  Avoid
+    # registering equivalent aliases here, which previously doubled both
+    # contributions in the stand tasks.
     cfg.rewards["desired_pose_reward"] = RewardTermCfg(
       func=mdp.go2_target_joint_position_reward,
       weight=0.5,
@@ -1190,11 +1204,8 @@ def _go2_special_action_env_cfg(
       weight=-2.5e-7,
       params={"asset_cfg": stand_joint_cfg},
     )
-    cfg.rewards["feet_contact_forces"] = RewardTermCfg(
-      func=mdp.go2_foot_contact_force_penalty,
-      weight=-0.1,
-      params={"sensor_name": "feet_ground_contact", "max_contact_force": 200.0},
-    )
+    # The stand configs define ``max_contact_force`` but leave the matching
+    # reward scale unset, so no contact-force term is registered here.
     # Handstand explicitly enables the soft joint-limit term; Leggedstand's
     # source reward scale leaves it disabled.
     cfg.rewards["dof_pos_limits"].weight = -2.0 if task == "handstand" else 0.0
@@ -1251,16 +1262,19 @@ def _go2_special_action_env_cfg(
           "asset_cfg": stand_joint_cfg,
         },
       )
-    cfg.rewards["orientation_symmetry"] = RewardTermCfg(
-      func=mdp.go2_stand_orientation_symmetry_penalty,
-      weight=-0.5,
-      params={},
-    )
-    cfg.rewards["feet_height_symmetry"] = RewardTermCfg(
-      func=mdp.go2_stand_feet_height_symmetry_penalty,
-      weight=-0.2,
-      params={"foot_indices": swing_feet, "asset_cfg": stand_site_cfg},
-    )
+    if task == "handstand":
+      # These two symmetry terms exist only in Go2_Handstand_Config.  The
+      # Leggedstand source config does not assign either reward scale.
+      cfg.rewards["orientation_symmetry"] = RewardTermCfg(
+        func=mdp.go2_stand_orientation_symmetry_penalty,
+        weight=-0.5,
+        params={},
+      )
+      cfg.rewards["feet_height_symmetry"] = RewardTermCfg(
+        func=mdp.go2_stand_feet_height_symmetry_penalty,
+        weight=-0.2,
+        params={"foot_indices": swing_feet, "asset_cfg": stand_site_cfg},
+      )
     cfg.rewards["handstand_feet_height_exp"] = RewardTermCfg(
       func=mdp.go2_stand_hand_height_reward,
       weight=5.0,
@@ -1273,12 +1287,22 @@ def _go2_special_action_env_cfg(
         "asset_cfg": stand_site_cfg,
       },
     )
-    cfg.rewards["alive"] = RewardTermCfg(
-      func=mdp.go2_alive_reward,
-      weight=1.0,
-      params={},
-    )
-    for name in ("track_linear_velocity", "track_angular_velocity", "pose", "upright", "foot_slip", "soft_landing"):
+    if task == "handstand":
+      cfg.rewards["alive"] = RewardTermCfg(
+        func=mdp.go2_alive_reward,
+        weight=1.0,
+        params={},
+      )
+    for name in (
+      "track_linear_velocity",
+      "track_angular_velocity",
+      "pose",
+      "upright",
+      "foot_clearance",
+      "foot_swing_height",
+      "foot_slip",
+      "soft_landing",
+    ):
       cfg.rewards[name].weight = 0.0
   if task == "jump":
     # Source jump uses a positive idle-height kernel around 0.30 m.  The
@@ -1307,7 +1331,10 @@ def _go2_special_action_env_cfg(
     cfg.rewards["dof_acc"] = RewardTermCfg(
       func=mdp.go2_joint_acceleration_penalty,
       weight=-5.5e-4,
-      params={"asset_cfg": SceneEntityCfg("robot", joint_names=(".*",))},
+      params={
+        "divide_by_dt": False,
+        "asset_cfg": SceneEntityCfg("robot", joint_names=(".*",)),
+      },
     )
     cfg.rewards["default_pos"] = RewardTermCfg(
       func=mdp.go2_default_position_penalty,
@@ -1335,9 +1362,14 @@ def _go2_special_action_env_cfg(
       params={"command_name": "twist", "sigma": 0.25, "command_threshold": 0.1},
     )
     cfg.rewards["air_time"] = RewardTermCfg(
-      func=mdp.go2_jump_feet_air_time,
+      func=mdp.go2_source_feet_air_time_reward,
       weight=1.0,
-      params={"sensor_name": "feet_ground_contact", "command_name": "twist"},
+      params={
+        "sensor_name": "feet_ground_contact",
+        "offset": 0.5,
+        "command_name": "twist",
+        "command_dimensions": 3,
+      },
     )
     cfg.rewards["feet_contact_forces"] = RewardTermCfg(
       func=mdp.go2_foot_contact_force_penalty,
@@ -1405,6 +1437,9 @@ def _go2_special_action_env_cfg(
         "target_offset_scale": 1.0,
         "min_jump_height": 0.42,
         "max_orientation_error": 0.6,
+        # Preserve the source expression ``euler_xyz.sum() < 0.6`` (without
+        # an absolute value), including its signed-angle cancellation.
+        "absolute_orientation_error": False,
       },
     )
     cfg.rewards["before_setting"] = RewardTermCfg(
@@ -1465,6 +1500,7 @@ def _go2_special_action_env_cfg(
         "asset_cfg": SceneEntityCfg("robot", site_names=("FR", "FL", "RR", "RL")),
       },
     )
+    cfg.rewards["foot_swing_height"].weight = 0.0
     cfg.rewards["tracking_lin_vel_source"] = RewardTermCfg(
       func=mdp.go2_flight_linear_velocity_reward,
       weight=5.0,
@@ -1472,7 +1508,15 @@ def _go2_special_action_env_cfg(
     )
     # Terms from the generic velocity task that have no source equivalent are
     # disabled for the flip-specific reward contract.
-    for name in ("track_linear_velocity", "track_angular_velocity", "pose", "upright", "foot_slip", "soft_landing"):
+    for name in (
+      "track_linear_velocity",
+      "track_angular_velocity",
+      "pose",
+      "upright",
+      "foot_swing_height",
+      "foot_slip",
+      "soft_landing",
+    ):
       cfg.rewards[name].weight = 0.0
     cfg.rewards["dof_pos_limits"].weight = -10.0
     cfg.rewards["action_rate_l2"].weight = -0.01
@@ -1497,6 +1541,7 @@ def _go2_special_action_env_cfg(
           noise=_go2_source_47_noise_cfg(),
           history_length=10,
           flatten_history_dim=True,
+          history_fill="zero",
         )
       },
       concatenate_terms=True,
@@ -1509,6 +1554,7 @@ def _go2_special_action_env_cfg(
           params={"command_name": "twist"},
           history_length=3,
           flatten_history_dim=True,
+          history_fill="zero",
         )
       },
       concatenate_terms=True,
@@ -1588,7 +1634,13 @@ def _go2_special_action_env_cfg(
     cfg.rewards["line_vel_stance"] = RewardTermCfg(
       func=mdp.go2_line_velocity_stance_penalty,
       weight=-1.0,
-      params={"command_name": "twist"},
+      # BackFlip penalizes all three body-frame linear velocity components
+      # throughout the episode; Spring-Jump uses planar velocity after landing.
+      params={
+        "command_name": "twist",
+        "include_vertical": True,
+        "after_landing": False,
+      },
     )
     cfg.rewards["ang_vel_xy"] = RewardTermCfg(
       func=mdp.go2_ang_vel_xy_penalty,
@@ -1623,12 +1675,22 @@ def _go2_special_action_env_cfg(
     cfg.rewards["action_rate_l2"].weight = -0.01
     # Backflip has explicit pre-trigger/post-landing shaping instead of the
     # generic velocity-task tracking terms.
-    for name in ("track_linear_velocity", "track_angular_velocity", "pose", "upright", "foot_slip", "soft_landing"):
+    for name in (
+      "track_linear_velocity",
+      "track_angular_velocity",
+      "pose",
+      "upright",
+      "foot_clearance",
+      "foot_swing_height",
+      "foot_slip",
+      "soft_landing",
+    ):
       cfg.rewards[name].weight = 0.0
     cfg.terminations["reset_height"] = TerminationTermCfg(
       func=envs_mdp.root_height_below_minimum,
       params={"minimum_height": 0.1},
     )
+  _go2_source_observation_clipping(cfg)
   return cfg
 
 
@@ -1667,6 +1729,12 @@ def _go2_custom_algorithm_env_cfg(
 ) -> ManagerBasedRlEnvCfg:
   """Configure source-shaped observations for a custom algorithm task."""
   cfg = unitree_go2_rough_env_cfg(play=play)
+  # Public rough velocity terminates on thigh contact.  Every migrated custom
+  # source task instead uses ``terminate_after_contacts_on=['base']``.
+  cfg.terminations["illegal_contact"] = TerminationTermCfg(
+    func=mdp.illegal_contact,
+    params={"sensor_name": "trunk_ground_touch"},
+  )
   # The custom source classes use multiplicative joint reset ranges. CTS is
   # narrower (0.9–1.1); DreamWaQ/AMP/TS use 0.5–1.5.
   cfg.events["reset_robot_joints"].func = mdp.reset_joints_by_scale
@@ -1887,9 +1955,12 @@ def _go2_custom_algorithm_env_cfg(
   )
   cfg.rewards["action_smoothness"] = RewardTermCfg(
     func=mdp.go2_action_smoothness_penalty,
-    # TS configs inherit the source base scale ``smoothness=-0.005``;
-    # non-TS custom configs override it to ``action_smoothness=-0.01``.
-    weight=-0.005 if is_ts_family else -0.01,
+    # Only the student configs explicitly inherit the source base scale
+    # ``smoothness=-0.005``.  The two teacher configs replace the nested
+    # scales class, so this inherited term is absent there.
+    weight=-0.005 if kind in ("amp_ts_student", "ts_student") else (
+      0.0 if kind in ("amp_ts", "ts") else -0.01
+    ),
     params={},
   )
   cfg.rewards["dof_pos_limits"].weight = (
@@ -1905,11 +1976,33 @@ def _go2_custom_algorithm_env_cfg(
     weight=-0.5 if kind == "ts" else -1.0,
     params={
       "sensor_names": (
-        "self_collision", "thigh_ground_touch", "shank_ground_touch", "trunk_ground_touch",
+        ("thigh_ground_touch", "shank_ground_touch")
+        if kind == "amp_cts"
+        else ("thigh_ground_touch", "shank_ground_touch", "trunk_ground_touch")
       ),
     },
   )
-  cfg.rewards["foot_clearance"].weight = -0.5
+  # TS teachers replace the base reward-scale class and omit clearance.  TS
+  # students inherit the base ``foot_clearance=-0.01``; the other custom
+  # configurations define their own -0.5 scale.
+  foot_clearance_weight = (
+    -0.01 if kind in ("amp_ts_student", "ts_student") else (
+      0.0 if kind in ("amp_ts", "ts") else -0.5
+    )
+  )
+  cfg.rewards["foot_clearance"] = RewardTermCfg(
+    func=mdp.go2_source_foot_clearance_penalty,
+    weight=foot_clearance_weight,
+    params={
+      "target_height": (
+        0.09 if kind in ("amp_ts_student", "ts_student")
+        else (-0.25 if kind == "amp_cts" else -0.20)
+      ),
+      "asset_cfg": SceneEntityCfg(
+        "robot", site_names=("FR", "FL", "RR", "RL"), preserve_order=True
+      ),
+    },
+  )
   cfg.rewards["foot_swing_height"].weight = 0.0
   cfg.rewards["foot_slip"].weight = 0.0
   cfg.rewards["soft_landing"].weight = 0.0
@@ -1917,7 +2010,8 @@ def _go2_custom_algorithm_env_cfg(
   cfg.rewards["angular_momentum"].weight = 0.0
   cfg.rewards["stumble"] = RewardTermCfg(
     func=mdp.go2_stumble_penalty,
-    weight=-0.5,
+    # Student scales inherit the source base class, which has no stumble term.
+    weight=0.0 if kind in ("amp_ts_student", "ts_student") else -0.5,
     params={"sensor_name": "feet_ground_contact"},
   )
   if kind == "amp_cts":
@@ -1937,7 +2031,19 @@ def _go2_custom_algorithm_env_cfg(
         ),
       },
     )
-  cfg.rewards["air_time"].weight = 1.0 if kind in ("amp_cts", "amp_ts_student", "ts_student") else 0.0
+  if kind in ("amp_cts", "amp_ts_student", "ts_student"):
+    cfg.rewards["air_time"] = RewardTermCfg(
+      func=mdp.go2_source_feet_air_time_reward,
+      weight=1.0,
+      params={
+        "sensor_name": "feet_ground_contact",
+        "offset": 0.3 if kind in ("amp_ts_student", "ts_student") else 0.5,
+        "command_name": "twist",
+        "command_dimensions": 3,
+      },
+    )
+  else:
+    cfg.rewards["air_time"].weight = 0.0
   cfg.rewards["base_height"].params["target_height"] = 0.35 if kind == "amp_dreamwaq" else 0.4
   # Keep the per-world contact budget bounded for large parallel runs.  The
   # source Isaac-Gym tasks use a fixed contact buffer; an unbounded MuJoCo
@@ -1971,9 +2077,19 @@ def _go2_custom_algorithm_env_cfg(
       "source_history": ObservationTermCfg(
         func=mdp.go2_source_stand_observation,
         params={"command_name": "twist", "command_first": True},
-        noise=custom_noise,
-        history_length=5,
+        # Reuse the processed actor frame so the history contains the exact
+        # policy noise sample, as in the source ``obs_hist_buf``.
+        history_source=("actor", "source_stand"),
+        # CTS and DreamWaQ feed the five observations immediately preceding
+        # the current actor frame to their history encoders.  mjlab history
+        # includes the current frame, so retain six here and drop the newest
+        # frame in the matching models.  TS students keep recurrent state in
+        # their dedicated runner and do not consume this compatibility group.
+        history_length=(
+          6 if kind in ("cts", "amp_cts", "dreamwaq", "amp_dreamwaq") else 5
+        ),
         flatten_history_dim=True,
+        history_fill="zero",
       )
     },
     concatenate_terms=True,
@@ -1982,9 +2098,8 @@ def _go2_custom_algorithm_env_cfg(
   cfg.observations["terrain"] = ObservationGroupCfg(
     terms={
       "terrain_scan": ObservationTermCfg(
-        func=envs_mdp.height_scan,
+        func=mdp.go2_source_terrain_heights,
         params={"sensor_name": "terrain_scan"},
-        scale=1 / 5.0,
       )
     },
     concatenate_terms=True,
@@ -2063,6 +2178,7 @@ def _go2_custom_algorithm_env_cfg(
           params={"command_name": "twist", "sensor_name": "terrain_scan"},
           history_length=3,
           flatten_history_dim=True,
+          history_fill="zero",
         )
       },
       concatenate_terms=True,
@@ -2145,6 +2261,7 @@ def _go2_custom_algorithm_env_cfg(
       concatenate_terms=True,
       enable_corruption=False,
     )
+  _go2_source_observation_clipping(cfg)
   return cfg
 
 

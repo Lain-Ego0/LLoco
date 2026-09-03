@@ -197,6 +197,53 @@ def test_history_accumulates_correctly(mock_env, simple_obs_func):
   assert torch.allclose(policy_obs[0], expected)
 
 
+def test_history_can_reuse_exact_processed_policy_frame(mock_env, device):
+  """A history group can reuse a prior term without recomputing its noise."""
+  calls = {"actor": 0, "history": 0}
+
+  def actor_obs(env):
+    calls["actor"] += 1
+    return torch.full((env.num_envs, 2), float(calls["actor"]), device=device)
+
+  def unused_history_obs(env):
+    calls["history"] += 1
+    return torch.full((env.num_envs, 2), -1.0, device=device)
+
+  cfg = {
+    "actor": ObservationGroupCfg(
+      terms={"policy": ObservationTermCfg(func=actor_obs, params={})}
+    ),
+    "history": ObservationGroupCfg(
+      terms={
+        "policy_history": ObservationTermCfg(
+          func=unused_history_obs,
+          params={},
+          history_length=3,
+          flatten_history_dim=False,
+          history_fill="zero",
+          history_source=("actor", "policy"),
+        )
+      }
+    ),
+  }
+  manager = ObservationManager(cfg, mock_env)
+
+  obs = manager.compute(update_history=True)
+  actor = obs["actor"]
+  history = obs["history"]
+  assert isinstance(actor, torch.Tensor)
+  assert isinstance(history, torch.Tensor)
+  assert torch.allclose(history[:, :-1], torch.zeros_like(history[:, :-1]))
+  assert torch.equal(history[:, -1], actor)
+
+  obs = manager.compute(update_history=True)
+  actor = obs["actor"]
+  history = obs["history"]
+  assert isinstance(actor, torch.Tensor)
+  assert isinstance(history, torch.Tensor)
+  assert torch.equal(history[:, -1], actor)
+
+
 def test_update_history_false_doesnt_modify_buffer(mock_env, simple_obs_func):
   """Test that update_history=False doesn't modify the buffer."""
 

@@ -73,6 +73,7 @@ class Go2MotionLoader:
 
   RAW_FRAME_DIM = 49
   AMP_OBS_DIM = 31
+  SOURCE_TRANSITION_DT = 0.02
   _ROOT_POS = slice(0, 3)
   _ROOT_QUAT = slice(3, 7)
   _JOINT_POS = slice(7, 19)
@@ -85,8 +86,12 @@ class Go2MotionLoader:
     motion_files: list[str | Path] | tuple[str | Path, ...],
     device: str | torch.device = "cpu",
     joint_permutation: Sequence[int] | None = None,
+    time_between_frames: float = SOURCE_TRANSITION_DT,
   ) -> None:
     self.device = torch.device(device)
+    if time_between_frames <= 0.0:
+      raise ValueError("time_between_frames must be positive")
+    self._time_between_frames = float(time_between_frames)
     permutation = self._validate_permutation(joint_permutation)
     self.trajectories = tuple(
       self._load_file(Path(path), permutation) for path in motion_files
@@ -104,12 +109,18 @@ class Go2MotionLoader:
     directory: str | Path,
     device: str | torch.device = "cpu",
     joint_permutation: Sequence[int] | None = None,
+    time_between_frames: float = SOURCE_TRANSITION_DT,
   ) -> "Go2MotionLoader":
     """Load all JSON-like trajectory files in a directory."""
     paths = sorted(Path(directory).glob("*.txt"))
     if not paths:
       paths = sorted(Path(directory).glob("*.json"))
-    return cls(paths, device=device, joint_permutation=joint_permutation)
+    return cls(
+      paths,
+      device=device,
+      joint_permutation=joint_permutation,
+      time_between_frames=time_between_frames,
+    )
 
   @staticmethod
   def _validate_permutation(
@@ -181,7 +192,8 @@ class Go2MotionLoader:
 
   @property
   def time_between_frames(self) -> float:
-    return min(trajectory.frame_duration for trajectory in self.trajectories)
+    """Source environment control period between AMP transition states."""
+    return self._time_between_frames
 
   def _sample_indices(self, batch_size: int) -> torch.Tensor:
     return torch.multinomial(self.weights, batch_size, replacement=True)
@@ -190,7 +202,11 @@ class Go2MotionLoader:
   def _interpolate(frames: torch.Tensor, times: torch.Tensor, duration: float) -> torch.Tensor:
     if frames.shape[0] == 1 or duration <= 0.0:
       return frames[:1].expand(times.shape[0], -1)
-    positions = (times.clamp(0.0, duration) / duration) * (frames.shape[0] - 1)
+    # Preserve the legacy loader's indexing convention.  It multiplies the
+    # normalized trajectory time by N (not N-1) and reserves one source frame
+    # at the tail when sampling, so expert transitions retain the exact source
+    # phase distribution.
+    positions = (times.clamp(0.0, duration) / duration) * frames.shape[0]
     low = positions.floor().long().clamp(max=frames.shape[0] - 1)
     high = (low + 1).clamp(max=frames.shape[0] - 1)
     blend = (positions - low).unsqueeze(-1)
@@ -231,8 +247,12 @@ class Go2MotionLoader:
       mask = indices == trajectory_index
       if not mask.any():
         continue
-      max_time = max(0.0, trajectory.duration - step)
-      sampled = times[mask] * max_time
+      # ``traj_time_sample_batch`` in the source subtracts both the transition
+      # step and one native frame duration.  This keeps ceil(p*N) in range for
+      # its N-based interpolation convention.
+      sampled = (
+        times[mask] * trajectory.duration - step - trajectory.frame_duration
+      ).clamp_min(0.0)
       frames = trajectory.frames
       current.append((mask, self._interpolate(frames, sampled, trajectory.duration)))
       following.append((mask, self._interpolate(frames, sampled + step, trajectory.duration)))

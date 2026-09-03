@@ -15,6 +15,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
+GO2_POLICY_CONTRACT_VERSION = "1"
+
 
 @dataclass(frozen=True)
 class Go2PolicyInputSpec:
@@ -32,6 +34,44 @@ class Go2PolicyInputSpec:
   @property
   def history_dim(self) -> int:
     return self.actor_dim * self.history_length
+
+
+def go2_policy_contract_metadata(actor, *, recurrent: bool = False) -> dict[str, str | float]:
+  """Return versioned deployment metadata for a migrated conditional actor."""
+  latent_kind = getattr(actor, "latent_kind", None)
+  use_student = bool(getattr(actor, "use_student", False))
+  if latent_kind == "cts":
+    # Source CTS never deploys its privileged teacher path.
+    mode = "cts_student"
+    conditional_dim = Go2PolicyInputSpec().history_dim
+  elif latent_kind == "dreamwaq":
+    mode = "dreamwaq"
+    conditional_dim = Go2PolicyInputSpec().history_dim
+  elif latent_kind == "ts":
+    mode = "ts_student" if use_student else "ts_teacher"
+    conditional_dim = (
+      Go2PolicyInputSpec().history_dim
+      if use_student
+      else Go2PolicyInputSpec().terrain_dim + Go2PolicyInputSpec().ts_privileged_dim
+    )
+  else:
+    return {}
+  if recurrent:
+    if mode != "ts_student":
+      return {}
+    mode = "ts_student_recurrent"
+    conditional_dim = 0
+  spec = Go2PolicyInputSpec()
+  return {
+    "go2_policy_contract_version": GO2_POLICY_CONTRACT_VERSION,
+    "go2_policy_mode": mode,
+    "go2_actor_dim": float(spec.actor_dim),
+    "go2_conditional_dim": float(conditional_dim),
+    "go2_action_dim": float(spec.action_dim),
+    "go2_history_order": "oldest_to_newest",
+    "go2_history_reset": "zero",
+    "go2_recurrent_state": "external" if recurrent else "none",
+  }
 
 
 class Go2HistoryBuffer:
@@ -118,13 +158,33 @@ def _static_shape_dim(shape: list[object] | None, index: int) -> int | None:
 class Go2OnnxPolicy:
   """Lazy ONNX Runtime wrapper with shape checks for Go2 policy files."""
 
-  def __init__(self, path: str | Path, providers: list[str] | None = None) -> None:
+  def __init__(
+    self,
+    path: str | Path,
+    providers: list[str] | None = None,
+    expected_mode: str | None = None,
+  ) -> None:
     try:
       import onnxruntime as ort
     except ImportError as exc:  # pragma: no cover - optional deployment dependency
       raise RuntimeError("onnxruntime is required to run an exported Go2 policy") from exc
     session_providers = providers or ["CPUExecutionProvider"]
     self.session = ort.InferenceSession(str(path), providers=session_providers)
+    metadata = self.session.get_modelmeta().custom_metadata_map
+    self.contract_version = metadata.get("go2_policy_contract_version")
+    self.mode = metadata.get("go2_policy_mode")
+    if (
+      self.contract_version is not None
+      and self.contract_version != GO2_POLICY_CONTRACT_VERSION
+    ):
+      raise ValueError(
+        f"Unsupported Go2 policy contract version {self.contract_version!r}; "
+        f"expected {GO2_POLICY_CONTRACT_VERSION!r}"
+      )
+    if expected_mode is not None and self.mode != expected_mode:
+      raise ValueError(
+        f"Expected Go2 policy mode {expected_mode!r}, got {self.mode!r}"
+      )
     inputs = self.session.get_inputs()
     if [item.name for item in inputs] != ["actor", "conditional"]:
       raise ValueError(
@@ -137,6 +197,21 @@ class Go2OnnxPolicy:
       raise ValueError(
         f"Expected actor input width {Go2PolicyInputSpec.actor_dim}, got {self.actor_dim}"
       )
+    expected_conditional_dims = {
+      "cts_student": Go2PolicyInputSpec().history_dim,
+      "dreamwaq": Go2PolicyInputSpec().history_dim,
+      "ts_teacher": (
+        Go2PolicyInputSpec().terrain_dim + Go2PolicyInputSpec().ts_privileged_dim
+      ),
+      "ts_student": Go2PolicyInputSpec().history_dim,
+    }
+    if self.mode in expected_conditional_dims and self.conditional_dim is not None:
+      expected_dim = expected_conditional_dims[self.mode]
+      if self.conditional_dim != expected_dim:
+        raise ValueError(
+          f"Go2 mode {self.mode!r} requires conditional width {expected_dim}, "
+          f"got {self.conditional_dim}"
+        )
     outputs = self.session.get_outputs()
     if [item.name for item in outputs] != ["actions"]:
       raise ValueError(
@@ -174,7 +249,12 @@ class Go2RecurrentOnnxPolicy:
   ONNX session makes reset-on-episode-boundary explicit for sim-to-sim loops.
   """
 
-  def __init__(self, path: str | Path, providers: list[str] | None = None) -> None:
+  def __init__(
+    self,
+    path: str | Path,
+    providers: list[str] | None = None,
+    expected_mode: str | None = None,
+  ) -> None:
     try:
       import onnxruntime as ort
     except ImportError as exc:  # pragma: no cover - optional deployment dependency
@@ -182,6 +262,25 @@ class Go2RecurrentOnnxPolicy:
     self.session = ort.InferenceSession(
       str(path), providers=providers or ["CPUExecutionProvider"]
     )
+    metadata = self.session.get_modelmeta().custom_metadata_map
+    self.contract_version = metadata.get("go2_policy_contract_version")
+    self.mode = metadata.get("go2_policy_mode")
+    if (
+      self.contract_version is not None
+      and self.contract_version != GO2_POLICY_CONTRACT_VERSION
+    ):
+      raise ValueError(
+        f"Unsupported Go2 policy contract version {self.contract_version!r}; "
+        f"expected {GO2_POLICY_CONTRACT_VERSION!r}"
+      )
+    if expected_mode is not None and self.mode != expected_mode:
+      raise ValueError(
+        f"Expected Go2 policy mode {expected_mode!r}, got {self.mode!r}"
+      )
+    if self.mode is not None and self.mode != "ts_student_recurrent":
+      raise ValueError(
+        f"Recurrent Go2 policy requires mode 'ts_student_recurrent', got {self.mode!r}"
+      )
     inputs = [item.name for item in self.session.get_inputs()]
     if inputs != ["obs", "h", "c"]:
       raise ValueError(f"Expected recurrent ONNX inputs ['obs', 'h', 'c'], got {inputs}")
@@ -319,6 +418,11 @@ class Go2DeploymentAdapter:
     self.mode = mode
     self.spec = Go2PolicyInputSpec()
     self.policy = policy
+    if policy is not None and policy.mode is not None and policy.mode != mode:
+      raise ValueError(
+        f"Deployment adapter mode {mode!r} does not match ONNX policy mode "
+        f"{policy.mode!r}"
+      )
     self.history = (
       Go2HistoryBuffer(batch_size, self.spec.actor_dim, self.spec.history_length, device)
       if mode in self._HISTORY_MODES
