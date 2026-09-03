@@ -82,7 +82,8 @@ MuJoCo 与 PhysX 的数值差异；该表用于防止观测维度和时序发生
 源项目基线启动形式：`python legged_gym/scripts/train.py --task <task>`；回放形式：
 `python legged_gym/scripts/play.py --task <task>`。当前 mjlab 对应入口为
 `uv run train <task>`、`uv run play <task> --agent random`，阶段1的有限步无界面验证
-使用 `uv run go2-smoke <task> --agent {zero,random} --steps 4`。
+使用 `uv run --package lainloco --extra cpu lainloco validate smoke <task>
+--agent {zero,random} --steps 4`。
 
 ## 2. 任务清单
 
@@ -346,14 +347,14 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 - 五个特殊动作已接入独立观测、源奖励表、终止、reset、动作/观测延迟和触发状态；
   当前剩余工作是行为级校准，而不是缺失任务调用链；
 - 已用少量 CPU smoke test 验证 Go2 编译、flat/rough/trot reset-step、任务列表和现有 velocity 测试。
-- 新增有限步、无 viewer 的 `go2-smoke` 入口，支持 `zero`/`random` 动作回放，例如：
-  `cd /home/lxy/RoboLab/mjlab && uv run go2-smoke Mjlab-Velocity-Flat-Unitree-Go2 --agent random --steps 4`。
-- 新增无 viewer 的 `go2-asset-check` 入口，分别检查原始 Go2 XML 的 `nq=19,nv=18,nbody=14,ngeom=56`、环境注入后的 `nu=12` 及关键 body/joint/site 名称；该检查不比较哈希值。
-- 新增 `go2-contract-check` 入口，对源项目 14 个任务逐一执行一次无 viewer 的
+- 初始迁移阶段新增有限步、无 viewer 的 `go2-smoke` 入口；A1 重构后实现已迁至
+  `lainloco validate smoke`，继续支持 `zero`/`random` 动作回放。
+- 初始迁移阶段的 `go2-asset-check` 已迁至 `lainloco validate asset`，分别检查原始 Go2 XML 的 `nq=19,nv=18,nbody=14,ngeom=56`、环境注入后的 `nu=12` 及关键 body/joint/site 名称；该检查不比较哈希值。
+- 初始迁移阶段的 `go2-contract-check` 已迁至 `lainloco validate contracts`，对源项目 14 个任务逐一执行一次无 viewer 的
   reset/zero-action step，并检查 12 动作接口及 actor/critic 观测维度；该检查不做长时训练、性能基准或哈希比较。
-- `uv run go2-contract-check` 已通过：14/14 个源任务均完成构建、reset、zero-action step，
+- `lainloco validate contracts` 已通过：14/14 个源任务均完成构建、reset、zero-action step，
   actor/critic 维度与阶段 0 基线一致。
-- `uv run go2-asset-check --task Mjlab-Velocity-Flat-Unitree-Go2` 已实际通过，输出 XML `nq=19,nv=18,nbody=14,ngeom=56`，环境 `nu=12`，关键名称全部解析成功。
+- `lainloco validate asset --task Mjlab-Velocity-Flat-Unitree-Go2` 已实际通过，输出 XML `nq=19,nv=18,nbody=14,ngeom=56`，环境 `nu=12`，关键名称全部解析成功。
 - 新增 `tasks/velocity/rl/go2_algorithms/` 兼容层：CTS teacher/student 编码器、DreamWaQ VAE、AMP 判别器、TS 编码器、Go2 rollout storage、GAE 和有限 rollout runner；各模块已完成小 batch 前向、loss 和 storage smoke 验证。
 - 源项目 14 个任务现在均有对应的 mjlab 注册入口；CTS/AMP/DreamWaQ/TS 入口使用 rough-terrain 的 45 维 actor 与源项目对应的 233/278/281/309/783 维 critic 输入契约，均已完成一次有限步 reset/step 验证。
 - 当前 registry 可枚举 16 个 Go2 入口：上述源项目 14 个任务，加上 `Mjlab-Velocity-Flat/Rough-Unitree-Go2` 两个公共基线；注册数量检查仅用于入口完整性，不替代逐项行为验收。
@@ -380,6 +381,9 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
   源项目一致的纯 student 路径；导出条件输入从错误的 233 维 teacher privileged 改为 225 维
   五帧历史，2 batch ONNX Runtime 前向已通过。
 - 新增 `Go2HistoryBuffer`、`Go2OnnxPolicy` 和 `Go2DeploymentAdapter`，明确五帧历史的 oldest→newest 拼接、reset 回填和 CTS/DreamWaQ/TS teacher/student 的条件输入；已用导出的 AMP-CTS ONNX 文件完成一次适配器前向。
+- 架构收口后上述 Go2 专用适配器由 `robots/unitree/go2/deploy/policy.py` 拥有，
+  Go2 checkpoint/导出/student runner 位于 `go2/training/runner.py`；通用 `learning` 与
+  `runtime` 通过 AST 契约禁止反向导入机器人领域。
 - Handstand/Leggedstand 已加入源任务目标重力、目标基座高度、指定足端离地和单支撑接触奖励；Spring-Jump/Backflip 已加入源项目的基座高度下限终止条件。
 - 五个特殊动作任务已移除通用平地配置中 70° 姿态的 `fell_over` 终止，改用源项目的躯干接触终止（`trunk_ground_touch`）；这样倒立、跳跃和翻转达到目标姿态时不会被通用姿态阈值提前截断。
 - Jump 的静止基座高度核改为源项目的 `0.30 m` 正奖励；Spring-Jump 已加入起跳上升速度、全足离地、飞行高度和落地站姿高度项；Backflip 已加入上升速度、俯仰角速度、飞行/落地高度、姿态和左右关节对称项。
@@ -543,11 +547,13 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
 2. AMP、AMP-CTS、AMP-DreamWaQ、AMP-TS 及其组合已经分别完成真实动捕目录下的 CLI
    短迭代验收；这些验证证明更新链路可运行，不等同于收敛质量或 sim-to-sim 性能结论。
 3. 自定义算法的 ONNX/部署输入输出现已固定为版本 1 契约并完成五种实际接口的重新加载前向；
-   AMP 组合复用相同 actor 契约。完整长时 sim-to-sim 行为回放仍属于后续性能评估，不作为算法
-   迁移或接口完整性的阻塞项。
-4. TS-Student 的三层 LSTM 已能训练、导出并通过 `Go2RecurrentDeploymentAdapter` 保存/清零持续 hidden/cell 状态；完整 sim-to-sim 控制循环和 Unitree 控制频率核对属于可选部署工作，不作为本次算法迁移阻塞项。
+   AMP 组合复用相同 actor 契约。Policy Bundle runtime 已在独立 mjlab 环境完成 50 Hz、
+   2 环境×8 tick 的连续控制；更长时间的行为和数值稳定性仍属于后续性能评估。
+4. TS-Student 的三层 LSTM 已能训练、导出，并由 Bundle runtime 在连续控制中保存 hidden/cell、
+   按环境选择性清零。Go2 `physics_dt=0.005`、`control_dt=0.02` 的频率契约已校验；真实 Unitree
+   SDK、关节映射和硬件安全闭环仍是独立验收范围。
 5. 当前验证严格遵循“少量 smoke、不过度测试、无需哈希检查”：`ruff`、契约检查和必要的
-   runner smoke 已通过；最终一轮 `go2-contract-check` 为 14/14 通过，14 个任务已有一次
+   runner smoke 已通过；最终一轮 `lainloco validate contracts` 为 14/14 通过，14 个任务已有一次
    1024 环境、1000 iteration 完整记录。该长训发生在
    后续源语义复核之前，因此只证明当时的端到端稳定性；最新修正使用契约检查、1024 环境容量
    单迭代和对应算法短迭代验证，不把旧长训曲线表述为最新实现的收敛结果，也不做硬件闭环测试。

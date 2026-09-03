@@ -1,0 +1,17 @@
+# Python and workspace environments.
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Local tool state.
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+
+# Generated artifacts and experiment output.
+/dist/
+/runs/
+/logs/
+/wandb/

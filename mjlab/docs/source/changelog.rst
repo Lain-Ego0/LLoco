@@ -67,6 +67,39 @@ Added
 Changed
 ^^^^^^^
 
+- Unitree Go2 task registration and validation CLI ownership moved to the
+  external ``lainloco`` workspace package; legacy task IDs remain compatible.
+- Go2 environment factories and robot-specific action, command, event,
+  observation, and reward implementations moved to ``lainloco`` with runtime
+  aliases for legacy imports.
+- Go2 environment factories are now split by locomotion, aerial, and balance
+  skills; the former monolithic module remains only as a compatibility export.
+- Go2 custom learning implementations moved out of mjlab into
+  ``lainloco.learning``; robot-specific runners and deployment adapters are
+  owned by ``robots.unitree.go2.training`` and ``robots.unitree.go2.deploy``.
+  Legacy Python module paths remain available through the extension bootstrap.
+- Split the dependency-light core specifications into Robot, Task, Training,
+  PolicyContract, and Experiment modules with an explicit composition entry
+  point; the former aggregate module remains a compatibility export.
+- Removed the Rough-to-Flat environment factory chain; both public factories
+  now compose the same explicit terrain-profile builder.
+- Split repository tests into contract, integration, and documented training
+  acceptance tiers, with CPU CI covering the first two.
+- Added an explicit ``lainloco distill`` workflow that composes a task and
+  student profile with a required teacher checkpoint.
+- Added explicit ``lainloco train`` and ``lainloco play`` workflows that
+  resolve task/profile compositions before delegating to mjlab launchers.
+- Added checkpoint-to-Bundle ``lainloco export`` with strict actor loading,
+  recurrent student export, and preservation of legacy running normalization.
+- Added an extension checkpoint-migration hook to the generic runner; the Go2
+  runner uses it to restore legacy normalization and profile-owned ``min_std``
+  without weakening strict learned-weight loading.
+- Added versioned LainLoco Policy Bundles with integrity/contract validation,
+  stateful conditional and recurrent ONNX execution, and a headless
+  sim-to-sim rollout command.
+- Added a hardware-independent Go2 Passive/Stand/Policy FSM with a latched
+  safety fallback; SDK transport and physical deployment remain separately
+  gated.
 - Bumped ``mujoco`` and ``mujoco-warp`` from 3.10 to 3.11, and regenerated the
   bundled MuJoCo type stubs.
 - Bumped ``rsl-rl-lib`` from 5.4.0 to 5.4.2.
@@ -90,6 +123,8 @@ Changed
 Fixed
 ^^^^^
 
+- Go2 special-action play configurations now keep the intended unbounded
+  episode horizon after applying task-specific training horizons.
 - The Viser motion scrubber's Start Here button no longer computes relative
   body poses from stale pre-scrub kinematics, which could spuriously
   terminate the episode on the next step.

@@ -1,0 +1,63 @@
+name: CI
+
+permissions:
+  contents: read
+
+"on":
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-and-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      UV_LOCKED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.13"
+
+      - name: Sync locked CPU environment
+        run: uv sync --locked --package lainloco --extra cpu --group dev
+
+      - name: Lint
+        run: uv run --package lainloco --extra cpu ruff check .
+
+      - name: Type check
+        run: |
+          uv run --package lainloco --extra cpu ty check
+          uv run --package lainloco --extra cpu pyright
+
+      - name: Contract and regression tests
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: >-
+          uv run --package mjlab --extra cpu pytest -q
+          tests/contracts
+          tests/integration
+          mjlab/tests/test_task_configs.py
+          mjlab/tests/test_velocity_task.py
+          mjlab/tests/test_velocity_rewards.py
+          mjlab/tests/test_foot_height_sensor.py
+          mjlab/tests/test_runner.py
+
+      - name: Go2 runtime contracts
+        env:
+          MJLAB_WARP_QUIET: "1"
+        run: |
+          uv run --package lainloco --extra cpu lainloco validate asset --device cpu
+          uv run --package lainloco --extra cpu lainloco validate contracts --device cpu
+          uv run --package lainloco --extra cpu lainloco validate smoke \
+            Mjlab-Velocity-Flat-Unitree-Go2 --agent zero --steps 2 --num-envs 1
+
+      - name: Build distribution
+        run: uv build --package lainloco

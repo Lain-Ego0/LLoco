@@ -1,7 +1,7 @@
 # Lain's LocoLab 架构设计指南
 
-> 状态：已固化，待实施  
-> 版本：0.1  
+> 状态：已固化；A1–A5 已实施，A6 发布决策待所有者确认
+> 版本：0.3
 > 更新时间：2026-09-03
 
 本文档定义 Lain's LocoLab（工程简称 **LainLoco**）的目标架构、模块边界、依赖方向和实施约束。它是后续重构的设计依据，不表示文中目录已经全部落地。实际进度见 [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md)。
@@ -157,6 +157,11 @@ lainloco/
             ├── training/
             └── deploy/
 ```
+
+当前只有 Go2 一个机器人域，因此尚未创建公共 `lainloco.mdp`：依照本文件的依赖规则，
+机器人专用 MDP 继续由 `robots/unitree/go2/mdp` 持有，直到至少第二个机器人出现语义相同、
+且有跨机器人测试覆盖的实现后再提升到公共层。目标树中的 `lainloco.mdp` 是扩展点，不是
+为满足目录外形而复制 Go2 代码的要求。
 
 ## 6. Go2 领域结构
 
@@ -425,11 +430,12 @@ TRAINING_PROFILES
 lainloco robots list
 lainloco tasks list --robot go2
 lainloco profiles list --robot go2
-lainloco train go2/backflip --terrain flat --profile ppo
-lainloco train go2/locomotion --terrain rough --profile dreamwaq
-lainloco distill go2/locomotion --profile ts-student --teacher model.pt
-lainloco validate contracts --all
-lainloco export /path/to/model.pt
+lainloco train go2/backflip --profile ppo
+lainloco play go2/backflip --profile ppo --checkpoint model.pt
+lainloco train go2/velocity-rough --profile dreamwaq
+lainloco distill teacher.pt --task go2/velocity-rough --profile ts-student
+lainloco validate contracts
+lainloco export model.pt --task go2/backflip --profile ppo
 ```
 
 新 Task ID 不包含算法：
@@ -507,17 +513,23 @@ tests/
 
 | 当前路径 | 目标归属 |
 |---|---|
-| `tasks/velocity/config/go2/env_cfgs.py` | `robots/unitree/go2/tasks/*` |
-| `tasks/velocity/config/go2/rl_cfg.py` | `robots/unitree/go2/training/*` |
-| `tasks/velocity/mdp/go2_actions.py` | `robots/unitree/go2/mdp/actions.py` |
-| `tasks/velocity/mdp/go2_commands.py` | `robots/unitree/go2/mdp/commands.py` |
-| `tasks/velocity/mdp/go2_events.py` | `robots/unitree/go2/mdp/events.py` |
-| `observations.py` 中 Go2 函数 | 对应 Go2 task 或 `go2/mdp/observations.py` |
-| `rewards.py` 中 Go2 函数 | 对应 Go2 task 或 `go2/mdp/rewards.py` |
-| `rl/go2_algorithms/algorithms.py` | `learning/algorithms/*` |
-| `rl/go2_algorithms/models.py` | `learning/models/*` 与各算法模块 |
-| `rl/go2_algorithms/storage.py` | `learning/storage/*` |
-| `rl/go2_algorithms/deployment.py` | `runtime/*` 与 `go2/deploy/*` |
+| `lainloco/.../go2/tasks/legacy.py` | 已缩减为纯兼容导出；实现位于 `tasks/locomotion`、`aerial`、`balance` |
+| `lainloco/.../go2/training/config.py` | 已迁移到位 |
+| `lainloco/.../go2/mdp/actions.py` | 已迁移到位 |
+| `lainloco/.../go2/mdp/commands.py` | 已迁移到位 |
+| `lainloco/.../go2/mdp/events.py` | 已迁移到位 |
+| `lainloco/.../go2/mdp/observations.py` | 已迁移到位 |
+| `lainloco/.../go2/mdp/rewards.py` | 已迁移到位 |
+| `lainloco/learning/algorithms.py` | 已迁移并纳入静态类型门禁 |
+| `lainloco/learning/models.py` | 已迁移并纳入静态类型门禁 |
+| `lainloco/learning/storage.py` | 已迁移并纳入静态类型门禁 |
+| `lainloco/runtime/policy_bundle.py` | 已实现六件套产物、摘要与契约拒绝 |
+| `lainloco/runtime/bundle_runtime.py` | 已实现普通、history 和 recurrent ONNX 状态维护 |
+| `lainloco/runtime/sim_to_sim.py` | 已实现控制频率校验与独立 mjlab 连续控制 |
+| `lainloco/workflows/` | 已实现显式 train、play、distill 与 checkpoint→Bundle export |
+| `lainloco/.../go2/training/runner.py` | 已拥有 Go2 checkpoint 迁移、导出与 student workflow runner |
+| `lainloco/.../go2/deploy/policy.py` | 已拥有 Go2 ONNX metadata、history 与 recurrent 适配器 |
+| `lainloco/.../go2/deploy/fsm.py` | 已实现 Passive、Stand、Policy 和锁存安全回退 |
 | Go2 注册 `__init__.py` | `core/catalog.py` 与兼容适配器 |
 | Go2 资产 | `robots/unitree/go2/assets/` 或稳定资产包 |
 
@@ -580,7 +592,7 @@ tests/
 
 ## 17. 架构决策记录
 
-后续重大变化应在 `docs/architecture/decisions/` 中添加 ADR：
+重大边界决定已记录于 `docs/architecture/decisions/`，后续重大变化继续添加 ADR：
 
 ```text
 0001-robot-first-ownership.md

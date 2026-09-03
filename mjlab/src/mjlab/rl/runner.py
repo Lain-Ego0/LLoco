@@ -113,6 +113,10 @@ class MjlabOnPolicyRunner(OnPolicyRunner):
     if self.cfg["upload_model"]:
       self.logger.save_model(path, self.current_learning_iteration)
 
+  def _prepare_checkpoint_for_load(self, loaded_dict: dict, path: Path) -> None:
+    """Allow extension runners to perform explicit checkpoint migrations."""
+    del loaded_dict, path
+
   def load(
     self,
     path: str,
@@ -163,6 +167,8 @@ class MjlabOnPolicyRunner(OnPolicyRunner):
       actor_sd["distribution.std_param"] = actor_sd.pop("std")
     if "log_std" in actor_sd:
       actor_sd["distribution.log_std_param"] = actor_sd.pop("log_std")
+
+    self._prepare_checkpoint_for_load(loaded_dict, Path(path))
 
     load_iteration = self.alg.load(loaded_dict, load_cfg, strict)
     if load_iteration:

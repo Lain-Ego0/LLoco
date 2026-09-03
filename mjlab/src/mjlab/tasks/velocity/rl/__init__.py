@@ -1,6 +1,3 @@
-from mjlab.tasks.velocity.rl.runner import (
-  VelocityDistillationRunner,
-  VelocityOnPolicyRunner,
-)
+from mjlab.tasks.velocity.rl.runner import VelocityOnPolicyRunner
 
-__all__ = ["VelocityDistillationRunner", "VelocityOnPolicyRunner"]
+__all__ = ["VelocityOnPolicyRunner"]
