@@ -7,8 +7,7 @@ from pathlib import Path
 
 from mjlab.scripts.train import TrainConfig, launch_training
 
-from lainloco.robots.unitree.go2.experiments import resolve_experiment
-from lainloco.robots.unitree.go2.training.runner import VelocityDistillationRunner
+from lainloco.experiments import resolve_experiment
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,7 +36,7 @@ def build_training_plan(
   if num_envs <= 0:
     raise ValueError("num_envs must be positive")
   binding = resolve_experiment(task_id, profile_id)
-  if issubclass(binding.runner_cls, VelocityDistillationRunner):
+  if binding.distillation:
     raise ValueError(
       f"{task_id}::{profile_id} is a distillation experiment; use lainloco distill"
     )
@@ -48,7 +47,7 @@ def build_training_plan(
   return TrainingPlan(
     task_id=task_id,
     profile_id=profile_id,
-    registry_task_id=binding.legacy_task_id,
+    registry_task_id=binding.registry_task_id,
     iterations=selected_iterations,
     num_envs=num_envs,
     log_root=Path(log_root).expanduser().resolve(),
@@ -61,5 +60,7 @@ def launch_experiment_training(plan: TrainingPlan) -> None:
   cfg = TrainConfig.from_task(plan.registry_task_id)
   cfg.env.scene.num_envs = plan.num_envs
   cfg.agent.max_iterations = plan.iterations
+  cfg.agent.logger = "tensorboard"
+  cfg.agent.upload_model = False
   cfg = replace(cfg, log_root=str(plan.log_root), gpu_ids=plan.gpu_ids)
   launch_training(plan.registry_task_id, cfg)

@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
 from functools import partial
-from typing import Any
 
-from lainloco.core import Catalog, ExperimentSpec, ObservationField, compose_experiment
+from lainloco.core import Catalog, ObservationField, compose_experiment
+from lainloco.integrations.mjlab import ConfigFactory, MjlabExperimentBinding
 from lainloco.robots.unitree.go2.training.runner import (
   VelocityDistillationRunner,
   VelocityOnPolicyRunner,
 )
 
 from .contract import GO2_POLICY_INPUTS, make_go2_policy_contract
+from .deploy.policy import go2_policy_contract_metadata
 from .robot import GO2
 from .tasks import GO2_TASKS
 from .tasks.aerial import (
@@ -47,27 +46,6 @@ from .training.config import (
   unitree_go2_source_ppo_runner_cfg,
 )
 
-ConfigFactory = Callable[..., Any]
-
-
-@dataclass(frozen=True, slots=True)
-class MjlabExperimentBinding:
-  """An ExperimentSpec plus temporary factories used by the mjlab adapter."""
-
-  binding_id: str
-  experiment: ExperimentSpec
-  legacy_task_id: str
-  canonical_task_id: str | None
-  env_factory: ConfigFactory
-  rl_factory: ConfigFactory
-  runner_cls: type
-
-  @property
-  def registered_ids(self) -> tuple[str, ...]:
-    if self.canonical_task_id is None:
-      return (self.legacy_task_id,)
-    return (self.canonical_task_id, self.legacy_task_id)
-
 
 def _binding(
   *,
@@ -83,6 +61,7 @@ def _binding(
   recurrent: bool = False,
   conditional_fields: tuple[ObservationField, ...] = (),
   runner_cls: type = VelocityOnPolicyRunner,
+  distillation: bool = False,
 ) -> MjlabExperimentBinding:
   task = GO2_TASKS.get(task_id)
   experiment = compose_experiment(
@@ -100,11 +79,13 @@ def _binding(
   return MjlabExperimentBinding(
     binding_id=binding_id,
     experiment=experiment,
-    legacy_task_id=legacy_task_id,
+    registry_task_id=legacy_task_id,
     canonical_task_id=canonical_task_id,
     env_factory=env_factory,
     rl_factory=rl_factory,
     runner_cls=runner_cls,
+    distillation=distillation,
+    metadata_factory=go2_policy_contract_metadata,
   )
 
 
@@ -291,6 +272,7 @@ GO2_EXPERIMENTS = Catalog(
       history_length=GO2_POLICY_INPUTS.history_length,
       recurrent=True,
       runner_cls=VelocityDistillationRunner,
+      distillation=True,
     ),
     _binding(
       binding_id="go2/velocity-rough::ts-teacher",
@@ -316,6 +298,7 @@ GO2_EXPERIMENTS = Catalog(
       history_length=GO2_POLICY_INPUTS.history_length,
       recurrent=True,
       runner_cls=VelocityDistillationRunner,
+      distillation=True,
     ),
   ),
   id_of=lambda binding: binding.binding_id,

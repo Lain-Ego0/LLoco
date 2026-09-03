@@ -8,8 +8,7 @@ from pathlib import Path
 
 from mjlab.scripts.train import TrainConfig, launch_training
 
-from lainloco.robots.unitree.go2.experiments import resolve_experiment
-from lainloco.robots.unitree.go2.training.runner import VelocityDistillationRunner
+from lainloco.experiments import resolve_experiment
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,12 +44,12 @@ def build_distillation_plan(
   if num_envs <= 0:
     raise ValueError("num_envs must be positive")
   binding = resolve_experiment(task_id, profile_id)
-  if not issubclass(binding.runner_cls, VelocityDistillationRunner):
+  if not binding.distillation:
     raise ValueError(f"{task_id}::{profile_id} is not a distillation experiment")
   return DistillationPlan(
     task_id=task_id,
     profile_id=profile_id,
-    registry_task_id=binding.legacy_task_id,
+    registry_task_id=binding.registry_task_id,
     teacher_checkpoint=checkpoint,
     iterations=iterations,
     num_envs=num_envs,

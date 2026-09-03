@@ -8,7 +8,7 @@ from typing import Literal
 
 from mjlab.scripts.play import PlayConfig, run_play
 
-from lainloco.robots.unitree.go2.experiments import resolve_experiment
+from lainloco.experiments import resolve_experiment
 
 PlaybackAgent = Literal["zero", "random", "trained"]
 ViewerBackend = Literal["auto", "native", "viser"]
@@ -55,7 +55,7 @@ def build_playback_plan(
   return PlaybackPlan(
     task_id=task_id,
     profile_id=profile_id,
-    registry_task_id=binding.legacy_task_id,
+    registry_task_id=binding.registry_task_id,
     agent=agent,
     checkpoint=checkpoint_path,
     num_envs=num_envs,

@@ -5,11 +5,11 @@
 
 ## 背景
 
-项目需要 mjlab 的 Manager-based 环境、MuJoCo Warp、注册表和 RSL-RL 集成，同时又需要大量 Go2 专用任务和算法。直接把这些实现长期保存在 mjlab fork 中，会增加上游同步冲突并模糊两个项目的发布身份。
+项目需要 mjlab 的 Manager-based 环境、MuJoCo Warp、注册表和 RSL-RL 集成，同时又需要多个机器人的专用任务和算法。直接把这些实现长期保存在 mjlab fork 中，会增加上游同步冲突并模糊两个项目的发布身份。
 
 ## 决定
 
-LainLoco 是独立 workspace distribution，并通过 `mjlab.tasks` entry point 注册任务。依赖方向固定为 `lainloco → mjlab`；mjlab 不静态导入 LainLoco。只有可被非 Go2 任务复用的仿真能力才进入 mjlab。
+LainLoco 是独立 workspace distribution，并通过 `mjlab.tasks` entry point 注册任务。依赖方向固定为 `lainloco → mjlab`；mjlab 不静态导入 LainLoco。只有可被多个机器人复用的仿真能力才进入 mjlab。
 
 ## 替代方案
 

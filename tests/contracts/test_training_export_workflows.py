@@ -15,6 +15,7 @@ from lainloco.workflows import (
   build_playback_plan,
   build_policy_export_plan,
   build_training_plan,
+  launch_experiment_training,
 )
 
 
@@ -50,6 +51,36 @@ def test_training_plan_rejects_distillation_profile() -> None:
       profile_id="ts-student",
       num_envs=1,
     )
+
+
+def test_training_launch_uses_local_tensorboard(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  from lainloco.workflows import train
+
+  plan = build_training_plan(
+    task_id="g1/velocity-flat",
+    profile_id="ppo",
+    iterations=1,
+    num_envs=2,
+    log_root=tmp_path,
+    gpu_ids=None,
+  )
+  observed: dict[str, object] = {}
+
+  def fake_launch(task_id, cfg) -> None:
+    observed["task_id"] = task_id
+    observed["logger"] = cfg.agent.logger
+    observed["upload_model"] = cfg.agent.upload_model
+
+  monkeypatch.setattr(train, "launch_training", fake_launch)
+  launch_experiment_training(plan)
+
+  assert observed == {
+    "task_id": "Mjlab-Velocity-Flat-Unitree-G1",
+    "logger": "tensorboard",
+    "upload_model": False,
+  }
 
 
 def test_playback_plan_requires_checkpoint_only_for_trained(tmp_path: Path) -> None:

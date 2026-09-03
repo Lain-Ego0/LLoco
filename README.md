@@ -2,7 +2,7 @@
 
 > **LainLoco** — 面向腿式机器人的可组合运动学习实验场，从 MuJoCo 仿真训练到策略部署。
 
-Lain's LocoLab 是一个建立在 [mjlab](https://github.com/mujocolab/mjlab) 之上的机器人运动学习项目。Unitree Go2 的多种运动技能、自定义强化学习算法和部署契约现已迁入独立扩展包；后续工作重点是策略质量、公开发布准备和新增机器人能力。
+Lain's LocoLab 是一个建立在 [mjlab](https://github.com/mujocolab/mjlab) 之上的机器人运动学习项目。Unitree Go2 的多种运动技能、自定义强化学习算法和部署契约已迁入独立扩展包；Unitree G1 29-DoF 现已作为第二个机器人域接入速度训练、Policy Bundle 和 sim-to-sim 主链路。
 
 仓库当前仍沿用 `RoboLab` 目录名；`lainloco` Python 包和 CLI 已建立，原有
 `Mjlab-*` 任务 ID 作为兼容别名继续可用。项目后续改名时计划使用：
@@ -22,9 +22,10 @@ Lain's LocoLab 是一个建立在 [mjlab](https://github.com/mujocolab/mjlab) �
 
 ## 当前状态
 
-Go2 代码迁移与 A1–A5 架构重构已完成；A6 公开发布仍等待仓库名和项目自身许可证的选择。
+Go2 代码迁移与 A1–A5 架构重构已完成；首个多机器人增量已接入 G1 29-DoF 的 Flat/Rough 速度任务。A6 公开发布仍等待仓库名和项目自身许可证的选择。
 
 - 已接入 Unitree Go2 MJCF、12 关节动作接口、接触与地形传感器。
+- 已接入 Unitree G1 29-DoF RobotSpec、Flat/Rough PPO 任务及 99/111、286/298 观测契约。
 - 已注册原项目的 14 个 Go2 训练入口。
 - 已接入 PPO、AMP、CTS、DreamWaQ 和 Teacher-Student 相关训练流程。
 - 已提供资产检查、观测契约检查和有限步无界面 smoke test。
@@ -32,11 +33,22 @@ Go2 代码迁移与 A1–A5 架构重构已完成；A6 公开发布仍等待仓�
 - 已建立独立 `lainloco` 扩展包、mjlab task entry point、Robot/Task/Training/
   Experiment Spec 和类型化 Catalog。
 - 已建立完整 Policy Bundle、严格契约加载器、有状态 ONNX runtime、独立
-  sim-to-sim 控制循环与 Go2 Passive/Stand/Policy 安全状态机。
+  sim-to-sim 控制循环与 Go2 Passive/Stand/Policy 安全状态机；G1 已覆盖通用 Bundle
+  与 sim-to-sim 路径，但尚未提供实机 FSM。
 
 这些结果说明任务能够完成构建、reset、step、短训和策略导出，但**不代表全部技能已经完成收敛或通过实机性能验收**。
 
 详细迁移范围和观测维度见 [GO2_MIGRATION_PLAN.md](GO2_MIGRATION_PLAN.md)，当前验收状态见 [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md)。
+
+## G1 任务
+
+当前首批接入 29-DoF 速度基线：
+
+- `Mjlab-Velocity-Flat-Unitree-G1` / `LainLoco-G1-Velocity-Flat-v0`
+- `Mjlab-Velocity-Rough-Unitree-G1` / `LainLoco-G1-Velocity-Rough-v0`
+
+领域组合键为 `g1/velocity-flat::ppo` 和 `g1/velocity-rough::ppo`。运动追踪、
+G1-23DoF 以及 Unitree SDK 实机控制尚未纳入这一阶段。
 
 ## Go2 任务
 
@@ -100,6 +112,8 @@ uv run --package lainloco --extra cpu lainloco envs
 uv run --package lainloco --extra cpu lainloco robots list
 uv run --package lainloco --extra cpu lainloco tasks list
 uv run --package lainloco --extra cpu lainloco profiles list
+uv run --package lainloco --extra cpu lainloco tasks list --robot g1
+uv run --package lainloco --extra cpu lainloco profiles list --robot g1
 ```
 
 显式组合 task/profile 训练；先用 dry-run 检查解析结果：
@@ -109,6 +123,8 @@ uv run --package lainloco --extra cpu lainloco train go2/backflip \
   --profile ppo --iterations 1000 --num-envs 4096 --gpu-ids cpu --dry-run
 uv run --package lainloco --extra cu128 lainloco train go2/backflip \
   --profile ppo --iterations 1000 --num-envs 4096 --gpu-ids 0
+uv run --package lainloco --extra cpu lainloco train g1/velocity-flat \
+  --profile ppo --iterations 1 --num-envs 2 --gpu-ids cpu --dry-run
 ```
 
 通过同一组合回放随机策略或本地 checkpoint：
@@ -119,6 +135,9 @@ uv run --package lainloco --extra cpu lainloco play go2/trot \
 uv run --package lainloco --extra cu128 lainloco play go2/trot \
   --profile ppo --agent trained --checkpoint /path/to/model.pt
 ```
+
+`lainloco train` 默认使用本地 TensorBoard 日志，不要求 W&B 登录；训练输出保存在
+`runs/`。
 
 显式启动 teacher→student 蒸馏：
 
@@ -168,21 +187,24 @@ MJLAB_WARP_QUIET=1 uv run --package lainloco --extra cpu \
   --steps 100 --num-envs 2 --device cpu
 ```
 
-真实 Go2 SDK、硬件 joint mapping 和物理安全验收仍是独立范围；当前 FSM 只提供
-硬件无关的命令与安全回退边界。
+真实 Unitree SDK、硬件 joint mapping 和物理安全验收仍是独立范围；Go2 当前 FSM
+只提供硬件无关的命令与安全回退边界，G1 尚无实机 FSM。
 
-### 验证 Go2 迁移契约
+### 验证机器人契约
 
 检查机器人资产、执行器数量和关键实体名称：
 
 ```bash
 uv run --package lainloco --extra cpu lainloco validate asset
+uv run --package lainloco --extra cpu lainloco validate asset --robot g1
 ```
 
-逐一构建 14 个迁移任务，并检查动作及 actor/critic 观测维度：
+分别检查 Go2 的 14 个迁移任务或 G1 的两个速度任务，并验证动作及 actor/critic
+观测维度：
 
 ```bash
 uv run --package lainloco --extra cpu lainloco validate contracts
+uv run --package lainloco --extra cpu lainloco validate contracts --robot g1
 ```
 
 执行有限步无界面回放：
@@ -227,18 +249,20 @@ RoboLab/
 ├── pyproject.toml                              # 主产品元数据、workspace 与工具配置
 ├── src/lainloco/                              # 唯一主产品
 │   ├── core/                                   # Spec 与 Catalog
+│   ├── integrations/mjlab/                     # Experiment 与 mjlab 的适配边界
+│   ├── robots/unitree/g1/                      # G1 29-DoF 速度任务与策略契约
 │   ├── robots/unitree/go2/                     # Go2 任务、MDP、训练配置与部署契约
 │   ├── learning/                               # CTS/DreamWaQ/AMP/Teacher-Student
 │   ├── runtime/                                # Policy Bundle、ONNX 与 sim-to-sim
 │   ├── workflows/                              # train/play/distill/export 编排
 │   ├── bootstrap.py                           # mjlab task entry point
-│   └── validation.py                          # Go2 验收入口
+│   └── validation.py                          # 按机器人执行的验收入口
 ├── tests/
 │   ├── contracts/                              # 每次提交的结构与契约拒绝
 │   ├── integration/                            # ONNX、状态和连续控制边界
 │   └── training/                               # GPU/容量/收敛验收规则与记录
 ├── tools/                                      # 仓库级验证和开发脚本
-├── deploy/                                     # Go2 sim2sim 入口；硬件进程待 SDK/安全验收
+├── deploy/                                     # 通用 sim2sim 入口；硬件进程待 SDK/安全验收
 ├── vendor/mjlab/                               # 明确的本地后端 fork
 └── runs/                                       # 本地训练输出，Git 忽略
 ```
@@ -248,6 +272,9 @@ RoboLab/
 
 ```text
 src/lainloco/
+├── experiments.py                              # 全局 Robot/Experiment 发现
+├── integrations/mjlab/                         # 后端 binding
+├── robots/unitree/g1/                          # 29-DoF RobotSpec、Velocity、PPO、Contract
 ├── robots/unitree/go2/
 │   ├── robot.py
 │   ├── contract.py

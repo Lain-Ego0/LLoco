@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a Go2 Policy Bundle in the mjlab simulation backend."""
+"""Run a LainLoco Policy Bundle in the mjlab simulation backend."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from lainloco.workflows import run_mjlab_bundle
 
 def main() -> None:
   parser = argparse.ArgumentParser(description=__doc__)
-  parser.add_argument("bundle", help="path to a validated Go2 Policy Bundle")
+  parser.add_argument("bundle", help="path to a validated LainLoco Policy Bundle")
   parser.add_argument("--steps", type=int, default=100)
   parser.add_argument("--num-envs", type=int, default=1)
   parser.add_argument("--device", default="cpu")

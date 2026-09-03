@@ -23,6 +23,11 @@ component and its modifications.
 - Incorporated files: the Go2 MJCF and 16 OBJ meshes now under
   `vendor/mjlab/src/mjlab/asset_zoo/robots/unitree_go2/xmls/` are byte-identical to
   the local reference snapshot as of 2026-09-03.
+- Additional use: the G1 task/deployment layout was consulted as a semantic
+  reference for the multi-robot boundary. The current G1 slice reuses the G1
+  asset and Velocity factories already maintained by `vendor/mjlab` 1.6; no G1
+  deployment source, policy binary, motion data, or asset was copied from this
+  reference snapshot.
 
 The snapshot uses the British filename `LICENCE`, which was missed by the
 initial `LICENSE*` audit. Its README is byte-identical to upstream `main`, and

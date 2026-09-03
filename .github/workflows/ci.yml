@@ -50,12 +50,16 @@ jobs:
           vendor/mjlab/tests/test_foot_height_sensor.py
           vendor/mjlab/tests/test_runner.py
 
-      - name: Go2 runtime contracts
+      - name: Robot runtime contracts
         env:
           MJLAB_WARP_QUIET: "1"
         run: |
           uv run --package lainloco --extra cpu lainloco validate asset --device cpu
           uv run --package lainloco --extra cpu lainloco validate contracts --device cpu
+          uv run --package lainloco --extra cpu lainloco validate asset \
+            --robot g1 --device cpu
+          uv run --package lainloco --extra cpu lainloco validate contracts \
+            --robot g1 --device cpu
           uv run --package lainloco --extra cpu lainloco validate smoke \
             Mjlab-Velocity-Flat-Unitree-Go2 --agent zero --steps 2 --num-envs 1
 

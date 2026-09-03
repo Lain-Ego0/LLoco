@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import argparse
 
-from lainloco.robots.unitree.go2 import GO2, GO2_TASKS, GO2_TRAINING_PROFILES
+from lainloco.experiments import (
+  robot_catalog,
+  task_catalog,
+  training_profile_catalog,
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -26,7 +30,7 @@ def _build_parser() -> argparse.ArgumentParser:
   profiles_list.add_argument("--robot", default="go2")
 
   envs = commands.add_parser("envs", help="list registered mjlab environment IDs")
-  envs.add_argument("--keyword", default="Go2")
+  envs.add_argument("--keyword", default="")
 
   train = commands.add_parser(
     "train", help="train an explicit task/profile composition"
@@ -99,12 +103,14 @@ def _build_parser() -> argparse.ArgumentParser:
 
   validate = commands.add_parser("validate", help="run migration acceptance checks")
   validate_commands = validate.add_subparsers(dest="validate_command", required=True)
-  asset = validate_commands.add_parser("asset", help="validate the Go2 asset")
-  asset.add_argument("--task", default="Mjlab-Velocity-Flat-Unitree-Go2")
+  asset = validate_commands.add_parser("asset", help="validate one robot asset")
+  asset.add_argument("--robot", default="go2")
+  asset.add_argument("--task")
   asset.add_argument("--device", default="cpu")
   contracts = validate_commands.add_parser(
     "contracts", help="validate all source task contracts"
   )
+  contracts.add_argument("--robot", default="go2")
   contracts.add_argument("--device", default="cpu")
   smoke = validate_commands.add_parser("smoke", help="run a finite rollout")
   smoke.add_argument("task", nargs="?", default="Mjlab-Velocity-Flat-Unitree-Go2")
@@ -118,18 +124,23 @@ def _build_parser() -> argparse.ArgumentParser:
 def main() -> None:
   args = _build_parser().parse_args()
   if args.command == "robots":
-    print(f"{GO2.robot_id}\tactions={GO2.action_dim}\tdt={GO2.control_dt:g}")
+    for robot in robot_catalog().values():
+      print(f"{robot.robot_id}\tactions={robot.action_dim}\tdt={robot.control_dt:g}")
     return
   if args.command == "tasks":
-    if args.robot.lower() not in {"go2", "unitree/go2"}:
-      raise SystemExit(f"Unknown robot: {args.robot}")
-    for task in GO2_TASKS.values():
+    try:
+      tasks = task_catalog(args.robot)
+    except KeyError as exc:
+      raise SystemExit(str(exc)) from exc
+    for task in tasks.values():
       print(f"{task.task_id}\t{task.family}\t{task.terrain_profile}")
     return
   if args.command == "profiles":
-    if args.robot.lower() not in {"go2", "unitree/go2"}:
-      raise SystemExit(f"Unknown robot: {args.robot}")
-    for profile in GO2_TRAINING_PROFILES.values():
+    try:
+      profiles = training_profile_catalog(args.robot)
+    except KeyError as exc:
+      raise SystemExit(str(exc)) from exc
+    for profile in profiles.values():
       print(f"{profile.profile_id}\t{profile.algorithm}")
     return
   if args.command == "envs":
@@ -244,7 +255,7 @@ def main() -> None:
       )
     return
   if args.command == "bundle":
-    from lainloco.robots.unitree.go2.experiments import resolve_experiment
+    from lainloco.experiments import resolve_experiment
     from lainloco.runtime import (
       create_policy_bundle,
       load_policy_bundle,
@@ -293,9 +304,9 @@ def main() -> None:
     from lainloco.validation import smoke, validate_asset, validate_contracts
 
     if args.validate_command == "asset":
-      validate_asset(task_id=args.task, device=args.device)
+      validate_asset(task_id=args.task, device=args.device, robot_id=args.robot)
     elif args.validate_command == "contracts":
-      validate_contracts(device=args.device)
+      validate_contracts(device=args.device, robot_id=args.robot)
     elif args.validate_command == "smoke":
       smoke(
         args.task,

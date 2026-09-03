@@ -67,6 +67,7 @@ required = {
   'Mjlab-Trot-Flat-Unitree-Go2',
   'Mjlab-TS-Student-Rough-Unitree-Go2',
   'LainLoco-Go2-Trot-Flat-v0',
+  'LainLoco-G1-Velocity-Flat-v0',
 }
 missing = required.difference(list_tasks())
 if missing:

@@ -9,7 +9,7 @@ Go2 的任务、观测、控制约束和部署逻辑原先分散在 mjlab 的 ve
 
 ## 决定
 
-机器人专用资产、MDP、技能任务、训练参数绑定、PolicyContract 和部署 FSM 由 `lainloco.robots.unitree.go2` 拥有。真正与机器人无关且已有复用证据的算法实现位于 `lainloco.learning`，仿真生命周期仍由 mjlab 提供。
+机器人专用资产、MDP、技能任务、训练参数绑定、PolicyContract 和部署 FSM 由对应的 `lainloco.robots.<vendor>.<robot>` 领域拥有；Go2 是首个实现，G1 29-DoF 是第二个实现。真正与机器人无关且已有复用证据的算法实现位于 `lainloco.learning`，仿真生命周期仍由 mjlab 提供。
 
 ## 替代方案
 
@@ -19,8 +19,8 @@ Go2 的任务、观测、控制约束和部署逻辑原先分散在 mjlab 的 ve
 
 ## 后果
 
-Go2 能力集中可发现，mjlab 同步冲突减少；代价是需要 Catalog、entry point 和兼容 alias 连接新领域边界与旧入口。共享代码只有在出现跨机器人复用证据后才提升为通用模块。
+单机器人能力集中可发现，mjlab 同步冲突减少；代价是需要全局 Catalog、entry point 和兼容 alias 连接领域边界与旧入口。共享代码只有在出现跨机器人复用证据后才提升为通用模块。
 
 ## 迁移影响
 
-Go2 环境工厂和专用 MDP 已迁入机器人目录，mjlab 中的实现已删除。旧 Python 导入路径由扩展 bootstrap 临时映射，旧 Task ID 继续可用。
+Go2 环境工厂和专用 MDP 已迁入机器人目录，mjlab 中的实现已删除。G1 首批速度任务通过明确 binding 复用 mjlab 维护的环境。旧 Python 导入路径由扩展 bootstrap 临时映射，旧 Task ID 继续可用。

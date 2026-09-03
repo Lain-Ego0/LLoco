@@ -23,4 +23,4 @@
 
 ## 迁移影响
 
-PolicyContract v1 固化 Go2 的 12 维动作、45 维基础观测、条件字段、50 Hz 控制与 TS student recurrent state。`lainloco export` 从 checkpoint 直接生成完整 Bundle，旧式裸 ONNX 仍可显式通过 `bundle create` 封装。
+PolicyContract v1 最初固化 Go2 的 12 维动作、基础观测、条件字段、50 Hz 控制与 TS student recurrent state；同一结构现也表达 G1 29-DoF 的 Flat/Rough PPO 契约。`lainloco export` 从 checkpoint 直接生成完整 Bundle，旧式裸 ONNX 仍可显式通过 `bundle create` 封装。

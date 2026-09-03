@@ -30,10 +30,11 @@ checkpoints, ONNX files, videos, and local bundles do not belong in commits.
 
 1. Add one authoritative `RobotSpec`, including ordered joints, action scale,
    default pose, physics/control periods, and asset factory.
-2. Add task and training Catalogs without import-time registration side
-   effects.
-3. Compose explicit `ExperimentSpec` entries and register canonical IDs; add
-   legacy aliases only when compatibility requires them.
+2. Add task and training Catalogs without embedding backend registry details.
+3. Compose explicit `ExperimentSpec` entries, expose their backend factories
+   through `integrations/mjlab`, and make them discoverable from the global
+   `lainloco.experiments` Catalog. Register canonical IDs; add legacy aliases
+   only when compatibility requires them.
 4. Add contract tests for asset dimensions, observation/action widths, factory
    isolation, bundle reload, and timing rejection.
 
@@ -68,6 +69,8 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --package mjlab --extra cpu pytest -q \
   vendor/mjlab/tests/test_runner.py
 MJLAB_WARP_QUIET=1 uv run --package lainloco --extra cpu \
   lainloco validate contracts --device cpu
+MJLAB_WARP_QUIET=1 uv run --package lainloco --extra cpu \
+  lainloco validate contracts --robot g1 --device cpu
 uv build --package lainloco
 ```
 

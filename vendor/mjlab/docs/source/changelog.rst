@@ -67,6 +67,9 @@ Added
 Changed
 ^^^^^^^
 
+- LainLoco now discovers multiple robot domains through a global experiment
+  catalog and adds first-class Unitree G1 29-DoF Flat/Rough velocity bindings,
+  contracts, Policy Bundles, validation, and sim-to-sim coverage.
 - Unitree Go2 task registration and validation CLI ownership moved to the
   external ``lainloco`` workspace package; legacy task IDs remain compatible.
 - Go2 environment factories and robot-specific action, command, event,

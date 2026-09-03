@@ -37,10 +37,36 @@
 | 架构设计文档 | ✅ | 目标边界、依赖和阶段已固化 | 用 ADR 管理后续变更 |
 | LainLoco 独立包 | ✅ | uv workspace、独立包、task entry point、train/play/distill/export/Bundle CLI 已验收 | A6 发布元数据 |
 | 机器人优先目录 | ✅ | Go2 Spec、Catalog、MDP、技能环境与部署 FSM 已归位 | 保持单一事实来源 |
+| G1 29-DoF 首批接入 | ✅ | RobotSpec、Flat/Rough PPO、PolicyContract、Bundle runtime 已接入 | 长时策略质量与行为验收 |
+| G1 Tracking / 23-DoF | ⬜ | 参考仓库能力已盘点，未复制实现或 motion data | 先确定数据集与模型版本 |
+| 真实 G1 硬件闭环 | ➖ | 未设置 SDK joint mapping，未提供实机 FSM | 独立安全和实机计划 |
 | Task/Profile 分离 | ✅ | 技能 ID、8 个 TrainingSpec、learning 实现与显式 distill workflow 已分离 | 保持契约一致 |
 | Policy Bundle | ✅ | 六件套、SHA-256、语义/ONNX 校验与 runtime 已完成 | 真实训练产物长期回归 |
 | 品牌与仓库改名 | 🟡 | README 已使用 Lain's LocoLab | 仓库、包、CLI 正式改名 |
 | 项目级许可证与声明 | 🟡 | 来源清单已完成；算法源仅作行为参考且未复制实现 | 由所有者选择项目许可证 |
+
+### 2.1 G1 多机器人切片（2026-09-03）
+
+| 验收项 | 状态 | 当前证据 |
+|---|---|---|
+| 全局 Robot Catalog | ✅ | `lainloco robots list` 同时列出 `unitree/g1` 和 `unitree/go2` |
+| G1 RobotSpec | ✅ | 29 关节顺序、默认姿态、动作尺度、足端、碰撞几何及 200/50 Hz 时序已固化 |
+| G1 Velocity Catalog | ✅ | `g1/velocity-flat::ppo`、`g1/velocity-rough::ppo` 可由通用 resolver 解析 |
+| mjlab 注册适配 | ✅ | 两个 `LainLoco-G1-*` canonical ID 与 mjlab 源 ID 配置等价 |
+| 资产验收 | ✅ | 原始模型 `nq=36`、`nv=35`、`nbody=31`、`ngeom=68`；环境 `nu=29` |
+| 观测契约 | ✅ | Flat actor/critic `99/111`，Rough `286/298`，均完成 reset + step |
+| 通用工作流 | ✅ | 2 环境 × 1 iteration PPO update 生成 `model_0.pt` 与 ONNX；checkpoint 可再次严格导出 Bundle |
+| sim-to-sim | ✅ | 真实训练 checkpoint 导出的 G1 Bundle 在 Flat 环境完成 2 tick / 0.04 s 闭环 |
+| Tracking | ⬜ | 当前 mjlab Tracking 入口需要显式 motion NPZ，尚未纳入 LainLoco Catalog |
+| 实机部署 | ➖ | 未引入参考仓库 C++ 控制器、SDK mapping 或策略二进制 |
+
+本阶段采用当前 `vendor/mjlab` 1.6 已维护的 G1 资产与 Velocity 工厂；本地
+`unitree_rl_mjlab-main` 用于核对能力边界。其 mjlab 1.2 实现、motion data、ONNX 和
+C++ 实机程序没有复制进主产品。最终门禁为 ruff、ty、pyright 通过，LainLoco 与所选
+mjlab 回归 `123 passed`，G1 2/2 与 Go2 14/14 contract 通过；G1 Flat 已完成 2 环境、48 steps
+的真实 PPO update，产物位于 `runs/g1_smoke/g1_velocity/2026-09-03_19-31-39/`；由
+`model_0.pt` 严格导出的 Bundle 在真实环境执行 2 个控制 tick，distribution wheel/sdist
+构建成功。
 
 ## 3. 当前迁移验收
 
@@ -148,7 +174,7 @@ uv run --package lainloco --extra cpu lainloco validate contracts
 |---|---|---|
 | 根级 `src/lainloco` | ✅ | 唯一主产品、根 `pyproject.toml` 和 workspace lock 已生成 |
 | mjlab workspace/path dependency | ✅ | 元数据测试确认 LainLoco → mjlab 单向依赖 |
-| task entry point | ✅ | `mjlab.tasks` entry point 自动注册 16 个旧 ID 和 8 个新 ID |
+| task entry point | ✅ | Go2 16 个兼容 ID/8 个 canonical ID 保持；G1 两个源 ID 新增两个 canonical ID |
 | 独立 CLI | ✅ | `uv run --package lainloco --extra cpu lainloco --help` 通过 |
 | Go2 专用脚本迁出 | ✅ | asset/contract/smoke 已迁至 `lainloco validate`，mjlab 入口已移除 |
 
@@ -156,11 +182,11 @@ uv run --package lainloco --extra cpu lainloco validate contracts
 
 | 验收项 | 状态 | 完成条件 |
 |---|---|---|
-| RobotSpec | ✅ | 12 关节顺序、动作尺度、physics/control dt 与实体名已固化 |
+| RobotSpec | ✅ | Go2 12 关节与 G1 29 关节的顺序、动作尺度、physics/control dt 与实体名已固化 |
 | TaskSpec | ✅ | 8 个技能/地形规格不含优化器或算法参数 |
 | TrainingSpec | ✅ | 8 个 profile 显式绑定当前可导入的算法、模型、storage 与 runner |
 | ExperimentSpec | ✅ | 16 个迁移组合连接 Robot、Task、Training 与 PolicyContract |
-| Catalog | ✅ | 不可变 Catalog 拒绝重复 ID，单元测试通过 |
+| Catalog | ✅ | 不可变 Catalog 拒绝重复 ID；全局 Robot/Experiment Catalog 可跨 G1/Go2 解析 |
 | 旧 ID alias | ✅ | 16 个旧 ID 可见；8 个新技能 ID 与旧配置逐项等价 |
 | Core 模块边界 | ✅ | Robot/Task/Training/PolicyContract/Experiment 分文件，Catalog 使用显式 compose 入口 |
 
@@ -255,7 +281,7 @@ uv run --package lainloco --extra cpu lainloco validate contracts
 | 第三方声明 | ✅ | `THIRD_PARTY_NOTICES.md` 已记录已纳入资产及仅作行为参考的源码仓库 |
 | CI | ✅ | `.github/workflows/ci.yml` 覆盖 lint、type、contract、CPU smoke 和 build |
 | 贡献指南 | ✅ | `CONTRIBUTING.md` 固化新机器人、任务、算法、契约和验收流程 |
-| 架构决策记录 | ✅ | 0001–0005 ADR 已记录背景、决定、替代方案、后果和迁移影响 |
+| 架构决策记录 | ✅ | 0001–0006 ADR 已记录背景、决定、替代方案、后果和迁移影响 |
 
 ### A6 当前记录（2026-09-03）
 
@@ -268,7 +294,7 @@ uv run --package lainloco --extra cpu lainloco validate contracts
   其实现文件，因此作为技术来源致谢记录，不再列为 LainLoco 发布阻塞。
 - 未擅自选择项目许可证，也未执行会改变远端/本地路径的仓库改名；二者保留为所有者决策。
 - `docs/architecture/decisions/` 已落地机器人优先、Task/Profile 分离、mjlab 扩展边界、
-  PolicyContract 版本化和旧 Task ID 兼容五项 ADR。
+  PolicyContract 版本化、旧 Task ID 兼容和多机器人发现六项 ADR。
 - 测试树已分为 `tests/contracts`、`tests/integration` 与 `tests/training`；CPU CI 执行前两层，
   training 层要求记录 revision、task/profile、容量、预算、checkpoint 与行为指标。
 
@@ -343,9 +369,11 @@ cd /home/lxy/RoboLab
 
 # 资产和机器人接口
 uv run --package lainloco --extra cpu lainloco validate asset
+uv run --package lainloco --extra cpu lainloco validate asset --robot g1
 
 # 14 个源任务的动作及观测契约
 uv run --package lainloco --extra cpu lainloco validate contracts
+uv run --package lainloco --extra cpu lainloco validate contracts --robot g1
 
 # 单任务有限步环境检查
 uv run --package lainloco --extra cpu lainloco validate smoke \

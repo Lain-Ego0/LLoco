@@ -11,9 +11,7 @@ from mjlab.rl import RslRlVecEnvWrapper
 from mjlab.rl.exporter_utils import attach_metadata_to_onnx, get_base_metadata
 from mjlab.tasks.registry import load_env_cfg, load_rl_cfg
 
-from lainloco.robots.unitree.go2.deploy.policy import go2_policy_contract_metadata
-from lainloco.robots.unitree.go2.experiments import resolve_experiment
-from lainloco.robots.unitree.go2.training.runner import VelocityDistillationRunner
+from lainloco.experiments import resolve_experiment
 from lainloco.runtime import (
   LoadedPolicyBundle,
   create_policy_bundle,
@@ -57,7 +55,7 @@ def build_policy_export_plan(
     destination=destination_path,
     task_id=task_id,
     profile_id=profile_id,
-    registry_task_id=binding.legacy_task_id,
+    registry_task_id=binding.registry_task_id,
     device=device,
   )
 
@@ -86,17 +84,21 @@ def export_policy_bundle(plan: PolicyExportPlan) -> LoadedPolicyBundle:
       if binding.experiment.contract.recurrent_state is None:
         runner.export_policy_to_onnx(str(export_dir), filename)
       else:
-        if not isinstance(runner, VelocityDistillationRunner):
-          raise RuntimeError("Recurrent policy export requires a distillation runner")
         if not runner.export_recurrent_policy_to_onnx(str(export_dir), filename):
           raise RuntimeError("Selected runner did not provide a recurrent ONNX policy")
       policy_path = export_dir / filename
       metadata = get_base_metadata(env, "local-export")
+      contract = binding.experiment.contract
       metadata.update(
-        go2_policy_contract_metadata(
-          runner.alg.get_policy(),
-          recurrent=binding.experiment.contract.recurrent_state is not None,
+        binding.deployment_metadata(
+          runner.alg.get_policy(), recurrent=contract.recurrent_state is not None
         )
+      )
+      # mjlab's generic formatter rounds lists to three decimals. Preserve the
+      # exact policy contract for robots with actuator-derived action scales.
+      metadata["joint_names"] = ",".join(contract.joint_order)
+      metadata["action_scale"] = ",".join(
+        format(value, ".17g") for value in contract.action_scale
       )
       attach_metadata_to_onnx(str(policy_path), metadata)
       return create_policy_bundle(plan.destination, policy_path, binding.experiment)

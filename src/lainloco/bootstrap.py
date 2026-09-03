@@ -6,38 +6,65 @@ import sys
 from importlib import import_module
 from types import ModuleType
 
-from mjlab.tasks.registry import list_tasks, register_mjlab_task
+from mjlab.tasks.registry import (
+  list_tasks,
+  load_env_cfg,
+  load_rl_cfg,
+  load_runner_cls,
+  register_mjlab_task,
+)
+
+_EXPERIMENT_MODULES = {
+  "lainloco.robots.unitree.g1.experiments": "G1_EXPERIMENTS",
+  "lainloco.robots.unitree.go2.experiments": "GO2_EXPERIMENTS",
+}
+_REGISTERING = False
+
+
+def _catalog_is_being_built() -> bool:
+  return any(
+    module_name in sys.modules and not hasattr(sys.modules[module_name], catalog_name)
+    for module_name, catalog_name in _EXPERIMENT_MODULES.items()
+  )
 
 
 def register_tasks() -> None:
-  """Register canonical IDs and one-cycle-compatible legacy aliases."""
-  module_name = "lainloco.robots.unitree.go2.experiments"
-  experiments_module = sys.modules.get(module_name)
-  if experiments_module is not None and not hasattr(
-    experiments_module, "GO2_EXPERIMENTS"
-  ):
-    # Importing the experiment module can itself be what first imports mjlab.
-    # Its module footer will retry after all bindings have been constructed.
+  """Register every LainLoco experiment and compatibility alias."""
+  global _REGISTERING
+  if _REGISTERING or _catalog_is_being_built():
+    # Importing an experiment module can itself be what first imports mjlab.
+    # The module footer retries after its bindings have been constructed.
     return
-  from lainloco.robots.unitree.go2.experiments import GO2_EXPERIMENTS
+  _REGISTERING = True
+  try:
+    from lainloco.experiments import experiment_catalog
 
-  registered = set(list_tasks())
-  for binding in GO2_EXPERIMENTS.values():
-    env_cfg = binding.env_factory()
-    play_env_cfg = binding.env_factory(play=True)
-    rl_cfg = binding.rl_factory()
-    for task_id in binding.registered_ids:
-      if task_id in registered:
-        continue
-      register_mjlab_task(
-        task_id=task_id,
-        env_cfg=env_cfg,
-        play_env_cfg=play_env_cfg,
-        rl_cfg=rl_cfg,
-        runner_cls=binding.runner_cls,
-      )
-      registered.add(task_id)
-  _install_legacy_module_aliases()
+    registered = set(list_tasks())
+    for binding in experiment_catalog().values():
+      if binding.registry_task_id in registered:
+        env_cfg = load_env_cfg(binding.registry_task_id)
+        play_env_cfg = load_env_cfg(binding.registry_task_id, play=True)
+        rl_cfg = load_rl_cfg(binding.registry_task_id)
+        runner_cls = load_runner_cls(binding.registry_task_id) or binding.runner_cls
+      else:
+        env_cfg = binding.env_factory()
+        play_env_cfg = binding.env_factory(play=True)
+        rl_cfg = binding.rl_factory()
+        runner_cls = binding.runner_cls
+      for task_id in binding.registered_ids:
+        if task_id in registered:
+          continue
+        register_mjlab_task(
+          task_id=task_id,
+          env_cfg=env_cfg,
+          play_env_cfg=play_env_cfg,
+          rl_cfg=rl_cfg,
+          runner_cls=runner_cls,
+        )
+        registered.add(task_id)
+    _install_legacy_module_aliases()
+  finally:
+    _REGISTERING = False
 
 
 def _install_legacy_module_aliases() -> None:
