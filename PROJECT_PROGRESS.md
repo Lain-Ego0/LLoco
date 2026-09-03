@@ -146,7 +146,7 @@ uv run --package lainloco --extra cpu lainloco validate contracts
 
 | 验收项 | 状态 | 完成条件 |
 |---|---|---|
-| `packages/lainloco` | ✅ | 独立 `pyproject.toml`、`src/lainloco` 和 workspace lock 已生成 |
+| 根级 `src/lainloco` | ✅ | 唯一主产品、根 `pyproject.toml` 和 workspace lock 已生成 |
 | mjlab workspace/path dependency | ✅ | 元数据测试确认 LainLoco → mjlab 单向依赖 |
 | task entry point | ✅ | `mjlab.tasks` entry point 自动注册 16 个旧 ID 和 8 个新 ID |
 | 独立 CLI | ✅ | `uv run --package lainloco --extra cpu lainloco --help` 通过 |
@@ -198,14 +198,14 @@ uv run --package lainloco --extra cpu lainloco validate contracts
 - entry point 为旧算法与 `rl_cfg` 模块提供临时 alias；新旧路径和 TrainingSpec 引用
   均可导入。依赖方向现由 AST contract test 固化；迁入代码的动态 PyTorch 属性已全部收窄，根级 ty/pyright
   不再排除任何实现文件。
-- `lainloco distill` 已用迁移前的 `mjlab/logs/go2_validation/go2_ts/model_999.pt`
+- `lainloco distill` 已用迁移前的 `runs/go2_validation/go2_ts/model_999.pt`
   完成 2 环境、50 steps/env 的真实 student 更新；workflow 默认本地 TensorBoard 且作用域化
   teacher checkpoint 环境变量。
 - `lainloco train`、`play` 已封装 mjlab 维护的 launcher/viewer，并在启动前通过 Catalog
   校验 task/profile；trained playback 强制提供本地 checkpoint，普通训练拒绝误用蒸馏 profile。
 - A4 阶段门已在迁移后实现上逐项执行：PPO、CTS、DreamWaQ、AMP-CTS、TS teacher、
   TS student 均完成一次真实 CPU runner update。最终 ruff、ty、pyright、`80 passed`
-  与 14/14 contract 通过；日志位于 `mjlab/logs/go2_a4_smoke/`。
+  与 14/14 contract 通过；日志已归档至 `runs/go2_a4_smoke/`。
 
 ### A5：部署闭环
 
@@ -282,7 +282,7 @@ cd /home/lxy/RoboLab
 uv run --package lainloco --extra cpu lainloco --help
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --package mjlab --extra cpu \
   pytest -q tests/contracts/test_lainloco_catalog.py
-uv run --package mjlab --extra cpu ruff check packages/lainloco/src tests/contracts
+uv run --package lainloco --extra cpu ruff check src tests/contracts
 uv run --package mjlab --extra cpu ty check
 uv run --package mjlab --extra cpu pyright
 uv run --package lainloco --extra cpu lainloco validate asset
@@ -363,7 +363,7 @@ uv run --package lainloco --extra cpu lainloco export /path/to/model.pt \
   --task go2/trot --profile ppo --dry-run
 
 # 静态检查；具体范围随迁移阶段调整
-uv run --package mjlab --extra cpu ruff check packages/lainloco/src tests/contracts
+uv run --package lainloco --extra cpu ruff check src tests/contracts
 ```
 
 完整训练验证不应在每次结构性修改后自动重复。只有训练数学、观测数值、奖励或物理配置发生变化时，才选择对应任务进行定向训练验收。

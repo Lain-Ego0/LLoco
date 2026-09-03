@@ -22,15 +22,6 @@ members = [
     "mjlab",
 ]
 
-[manifest.dependency-groups]
-dev = [
-    { name = "onnxruntime", marker = "python_full_version >= '3.11'", specifier = ">=1.19.0" },
-    { name = "pyright", specifier = ">=1.1.408" },
-    { name = "pytest", specifier = ">=9.0.3" },
-    { name = "ruff", specifier = ">=0.16.1" },
-    { name = "ty", specifier = ">=0.0.14" },
-]
-
 [[package]]
 name = "absl-py"
 version = "2.5.0"
@@ -1355,7 +1346,7 @@ wheels = [
 [[package]]
 name = "lainloco"
 version = "0.1.0"
-source = { editable = "packages/lainloco" }
+source = { editable = "." }
 dependencies = [
     { name = "mjlab" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11' or (extra == 'extra-5-mjlab-cpu' and extra == 'extra-5-mjlab-cu128')" },
@@ -1374,17 +1365,35 @@ cu128 = [
     { name = "onnxruntime", marker = "python_full_version >= '3.11' or (extra == 'extra-5-mjlab-cpu' and extra == 'extra-5-mjlab-cu128')" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "onnxruntime", marker = "python_full_version >= '3.11' or (extra == 'extra-5-mjlab-cpu' and extra == 'extra-5-mjlab-cu128')" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "ty" },
+]
+
 [package.metadata]
 requires-dist = [
-    { name = "mjlab", editable = "mjlab" },
-    { name = "mjlab", extras = ["cpu"], marker = "extra == 'cpu'", editable = "mjlab" },
-    { name = "mjlab", extras = ["cu128"], marker = "extra == 'cu128'", editable = "mjlab" },
+    { name = "mjlab", editable = "vendor/mjlab" },
+    { name = "mjlab", extras = ["cpu"], marker = "extra == 'cpu'", editable = "vendor/mjlab" },
+    { name = "mjlab", extras = ["cu128"], marker = "extra == 'cu128'", editable = "vendor/mjlab" },
     { name = "numpy" },
     { name = "onnx", specifier = ">=1.19.0" },
     { name = "onnxruntime", marker = "python_full_version >= '3.11' and extra == 'cpu'", specifier = ">=1.19.0" },
     { name = "onnxruntime", marker = "python_full_version >= '3.11' and extra == 'cu128'", specifier = ">=1.19.0" },
 ]
 provides-extras = ["cpu", "cu128"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "onnxruntime", marker = "python_full_version >= '3.11'", specifier = ">=1.19.0" },
+    { name = "pyright", specifier = ">=1.1.408" },
+    { name = "pytest", specifier = ">=9.0.3" },
+    { name = "ruff", specifier = ">=0.16.1" },
+    { name = "ty", specifier = ">=0.0.14" },
+]
 
 [[package]]
 name = "latexcodec"
@@ -1681,7 +1690,7 @@ wheels = [
 [[package]]
 name = "mjlab"
 version = "1.6.0"
-source = { editable = "mjlab" }
+source = { editable = "vendor/mjlab" }
 dependencies = [
     { name = "imageio-ffmpeg" },
     { name = "mediapy" },

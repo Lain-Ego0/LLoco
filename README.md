@@ -18,7 +18,7 @@ Lain's LocoLab 是一个建立在 [mjlab](https://github.com/mujocolab/mjlab) �
 - [项目进度与验收表](PROJECT_PROGRESS.md)：迁移完整性、策略成熟度和架构实施度。
 - [Go2 全量迁移计划](GO2_MIGRATION_PLAN.md)：源项目语义、任务基线和详细迁移记录。
 - [架构决策记录](docs/architecture/decisions/)：已接受的关键边界及其迁移影响。
-- [mjlab 原始说明](mjlab/README.md)：底层框架安装、训练和开发文档。
+- [mjlab 原始说明](vendor/mjlab/README.md)：本地后端 fork 的安装、训练和开发文档。
 
 ## 当前状态
 
@@ -217,42 +217,37 @@ uv run --package mjlab --extra cu128 play Mjlab-Trot-Flat-Unitree-Go2 \
   --checkpoint-file /path/to/model.pt
 ```
 
-训练结果默认保存在 `mjlab/logs/`。不同任务的显存占用和稳定批量不同，正式训练前建议先用较小的 `num_envs` 完成 smoke test。
+训练结果默认保存在根目录 `runs/`（Git 忽略）。不同任务的显存占用和稳定批量不同，正式训练前建议先用较小的 `num_envs` 完成 smoke test。
 
 ## 当前代码结构
 
 ```text
 RoboLab/
 ├── README.md
-├── pyproject.toml                              # uv workspace
-├── packages/lainloco/
-│   └── src/lainloco/
-│       ├── core/                               # Spec 与 Catalog
-│       ├── robots/unitree/go2/tasks/           # 按 Locomotion/Aerial/Balance 分域的环境工厂
-│       ├── robots/unitree/go2/mdp/             # Go2 专用 MDP
-│       ├── learning/                            # CTS/DreamWaQ/AMP/Teacher-Student
-│       ├── runtime/                             # Policy Bundle、ONNX 与 sim-to-sim
-│       ├── workflows/                           # train/play/distill/export 编排
-│       ├── bootstrap.py                        # mjlab task entry point
-│       └── validation.py                       # Go2 验收入口
-├── GO2_MIGRATION_PLAN.md
+├── pyproject.toml                              # 主产品元数据、workspace 与工具配置
+├── src/lainloco/                              # 唯一主产品
+│   ├── core/                                   # Spec 与 Catalog
+│   ├── robots/unitree/go2/                     # Go2 任务、MDP、训练配置与部署契约
+│   ├── learning/                               # CTS/DreamWaQ/AMP/Teacher-Student
+│   ├── runtime/                                # Policy Bundle、ONNX 与 sim-to-sim
+│   ├── workflows/                              # train/play/distill/export 编排
+│   ├── bootstrap.py                           # mjlab task entry point
+│   └── validation.py                          # Go2 验收入口
 ├── tests/
 │   ├── contracts/                              # 每次提交的结构与契约拒绝
 │   ├── integration/                            # ONNX、状态和连续控制边界
 │   └── training/                               # GPU/容量/收敛验收规则与记录
-└── mjlab/
-    ├── src/mjlab/asset_zoo/robots/unitree_go2/  # Go2 资产
-    ├── src/mjlab/tasks/velocity/config/go2/    # 无注册副作用的兼容包
-    ├── src/mjlab/tasks/velocity/mdp/           # 通用 Velocity MDP
-    ├── src/mjlab/tasks/velocity/rl/            # 通用 Velocity runner
-    └── logs/                                   # 本地训练输出
+├── tools/                                      # 仓库级验证和开发脚本
+├── deploy/                                     # Go2 sim2sim 入口；硬件进程待 SDK/安全验收
+├── vendor/mjlab/                               # 明确的本地后端 fork
+└── runs/                                       # 本地训练输出，Git 忽略
 ```
 
 包边界、领域对象、环境/训练能力和部署闭环均已迁出；`tasks/legacy.py` 仅保留旧
 导入兼容。当前实现结构为：
 
 ```text
-packages/lainloco/src/lainloco/
+src/lainloco/
 ├── robots/unitree/go2/
 │   ├── robot.py
 │   ├── contract.py
@@ -278,10 +273,10 @@ packages/lainloco/src/lainloco/
 
 ## 与 mjlab 的关系
 
-本项目使用 mjlab 提供的 Manager-based 环境、MuJoCo Warp 仿真、任务注册和 RSL-RL 训练接口。`mjlab/` 目录目前包含迁移所需的本地改动；长期目标是把 LainLoco 的机器人、任务和算法扩展从上游框架代码中分离，降低后续同步 mjlab 的维护成本。
+本项目使用 mjlab 提供的 Manager-based 环境、MuJoCo Warp 仿真、任务注册和 RSL-RL 训练接口。`vendor/mjlab/` 明确表示包含迁移所需本地改动的后端 fork；LainLoco 的机器人、任务和算法扩展保持在根级主产品中，以降低后续同步 mjlab 的维护成本。
 
-mjlab 原始说明和开发文档见 [mjlab/README.md](mjlab/README.md)，贡献流程见
-[CONTRIBUTING.md](CONTRIBUTING.md)。底层组件的许可证见 [mjlab/LICENSE](mjlab/LICENSE)，
+mjlab 原始说明和开发文档见 [vendor/mjlab/README.md](vendor/mjlab/README.md)，贡献流程见
+[CONTRIBUTING.md](CONTRIBUTING.md)。底层组件的许可证见 [vendor/mjlab/LICENSE](vendor/mjlab/LICENSE)，
 第三方来源、使用方式和许可证说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 项目愿景

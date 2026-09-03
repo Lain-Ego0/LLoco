@@ -23,4 +23,4 @@ Go2 迭代与 mjlab 上游演进解耦，包元数据能验证单向依赖。兼
 
 ## 迁移影响
 
-workspace 已包含 `packages/lainloco`，entry point 自动注册新旧任务入口；mjlab 的 Go2 专用脚本、环境实现和 learning 实现已迁出。现存 mjlab 通用改动仍需按上游贡献或最小 fork 策略逐步收敛。
+workspace 根包即 `src/lainloco`，entry point 自动注册新旧任务入口；本地后端 fork 明确位于 `vendor/mjlab`，mjlab 的 Go2 专用脚本、环境实现和 learning 实现已迁出。现存 mjlab 通用改动仍需按上游贡献或最小 fork 策略逐步收敛。

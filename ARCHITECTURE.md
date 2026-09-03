@@ -75,40 +75,29 @@
 
 ```text
 Lains-LocoLab/
-├── pyproject.toml                 # uv workspace；仓库级工具配置
+├── pyproject.toml                 # 主产品元数据、uv workspace 与工具配置
 ├── README.md
 ├── ARCHITECTURE.md
 ├── PROJECT_PROGRESS.md
 ├── GO2_MIGRATION_PLAN.md
 │
-├── mjlab/                         # 上游框架或最小化 fork
-│
-├── packages/
-│   └── lainloco/
-│       ├── pyproject.toml
-│       └── src/lainloco/
-│           ├── core/
-│           ├── mdp/
-│           ├── learning/
-│           ├── runtime/
-│           ├── robots/
-│           └── bootstrap.py
-│
-├── deploy/
-│   └── unitree/go2/
-│       ├── sim2sim/
-│       ├── hardware/
-│       └── fsm/
+├── src/lainloco/                  # 唯一主产品
+│   ├── core/
+│   ├── learning/
+│   ├── robots/
+│   ├── runtime/
+│   └── workflows/
 │
 ├── tests/
 │   ├── contracts/
 │   ├── integration/
 │   └── training/
 │
-└── runs/                          # 本地生成，不纳入源码
+├── tools/                         # 验证和开发脚本
+├── deploy/                        # 真实 sim2sim/硬件程序
+├── vendor/mjlab/                  # 明确的本地后端 fork
+└── runs/                          # 本地生成，Git 忽略
 ```
-
-仓库改名和目录移动可以晚于 Python 包边界落地。任何阶段都不应通过一次性重命名破坏当前可运行基线。
 
 ## 5. LainLoco 包结构
 

@@ -44,11 +44,11 @@ jobs:
           uv run --package mjlab --extra cpu pytest -q
           tests/contracts
           tests/integration
-          mjlab/tests/test_task_configs.py
-          mjlab/tests/test_velocity_task.py
-          mjlab/tests/test_velocity_rewards.py
-          mjlab/tests/test_foot_height_sensor.py
-          mjlab/tests/test_runner.py
+          vendor/mjlab/tests/test_task_configs.py
+          vendor/mjlab/tests/test_velocity_task.py
+          vendor/mjlab/tests/test_velocity_rewards.py
+          vendor/mjlab/tests/test_foot_height_sensor.py
+          vendor/mjlab/tests/test_runner.py
 
       - name: Go2 runtime contracts
         env:

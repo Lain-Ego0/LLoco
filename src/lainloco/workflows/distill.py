@@ -33,7 +33,7 @@ def build_distillation_plan(
   profile_id: str = "ts-student",
   iterations: int = 20_000,
   num_envs: int = 1024,
-  log_root: str | Path = "logs/rsl_rl",
+  log_root: str | Path = "runs/rsl_rl",
   gpu_ids: list[int] | None = None,
 ) -> DistillationPlan:
   """Validate inputs and resolve the explicit distillation experiment."""

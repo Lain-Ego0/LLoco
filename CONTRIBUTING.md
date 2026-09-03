@@ -61,9 +61,11 @@ uv run --package lainloco --extra cpu ruff check .
 uv run --package lainloco --extra cpu ty check
 uv run --package lainloco --extra cpu pyright
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --package mjlab --extra cpu pytest -q \
-  tests/contracts tests/integration mjlab/tests/test_task_configs.py \
-  mjlab/tests/test_velocity_task.py mjlab/tests/test_velocity_rewards.py \
-  mjlab/tests/test_foot_height_sensor.py mjlab/tests/test_runner.py
+  tests/contracts tests/integration vendor/mjlab/tests/test_task_configs.py \
+  vendor/mjlab/tests/test_velocity_task.py \
+  vendor/mjlab/tests/test_velocity_rewards.py \
+  vendor/mjlab/tests/test_foot_height_sensor.py \
+  vendor/mjlab/tests/test_runner.py
 MJLAB_WARP_QUIET=1 uv run --package lainloco --extra cpu \
   lainloco validate contracts --device cpu
 uv build --package lainloco
@@ -76,7 +78,7 @@ reported as policy convergence.
 ## Documentation and provenance
 
 Update `PROJECT_PROGRESS.md` with reproducible evidence and add user-facing
-changes to `mjlab/docs/source/changelog.rst`. Record every incorporated code,
+changes to `vendor/mjlab/docs/source/changelog.rst`. Record every incorporated code,
 asset, or dataset source in `THIRD_PARTY_NOTICES.md` before committing it.
 
 The repository's top-level code license and the redistribution status of the

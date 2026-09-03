@@ -7,8 +7,8 @@ that an upstream source did not grant.
 ## mjlab
 
 - Upstream: <https://github.com/mujocolab/mjlab>
-- Local component: `mjlab/`
-- License in the local snapshot: Apache License 2.0 (`mjlab/LICENSE`)
+- Local component: `vendor/mjlab/`
+- License in the local snapshot: Apache License 2.0 (`vendor/mjlab/LICENSE`)
 - Use: simulation lifecycle, managers, assets framework, RSL-RL integration,
   training/play commands, and the base project modified by this repository.
 
@@ -21,7 +21,7 @@ component and its modifications.
 - Local source snapshot: `/home/lxy/下载/unitree_rl_mjlab-main`
 - License: Apache License 2.0 (`LICENCE` in the local/upstream repository).
 - Incorporated files: the Go2 MJCF and 16 OBJ meshes now under
-  `mjlab/src/mjlab/asset_zoo/robots/unitree_go2/xmls/` are byte-identical to
+  `vendor/mjlab/src/mjlab/asset_zoo/robots/unitree_go2/xmls/` are byte-identical to
   the local reference snapshot as of 2026-09-03.
 
 The snapshot uses the British filename `LICENCE`, which was missed by the

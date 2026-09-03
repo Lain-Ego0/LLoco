@@ -20,7 +20,7 @@
 目录组织采用“任务配置分层、实现集中复用”的方式，而不是复制 14 份平行环境：
 
 ```text
-mjlab/src/mjlab/tasks/velocity/
+vendor/mjlab/src/mjlab/tasks/velocity/
 ├── config/go2/          # 14 个入口的配置工厂与注册，按任务名调用
 ├── mdp/                 # 共享观测、奖励、命令、动作延迟和传感器逻辑
 └── rl/go2_algorithms/   # CTS/AMP/DreamWaQ/TS 的模型、算法、storage、runner
@@ -152,7 +152,7 @@ AMP-TS 是组合变体，TS student 使用 LSTM 蒸馏流程。
 建议目录：
 
 ```text
-mjlab/src/mjlab/asset_zoo/robots/unitree_go2/
+vendor/mjlab/src/mjlab/asset_zoo/robots/unitree_go2/
 ├── __init__.py
 ├── go2_constants.py
 └── xmls/
@@ -531,7 +531,7 @@ Isaac Gym checkpoint 不保证可以直接加载到当前 mjlab/RSL-RL。默认�
   避免从最终 MuJoCo gain 反推时把它们相乘混淆；TS 的 28 维 URDF link-mass block 按源槽位
   放置 12 个可表示的活动连杆，MuJoCo 中已折叠的固定连杆使用中性倍率 `1`。
 - 标准任务的命令重采样已接入源项目的全零/仅线速度归零概率和小速度阈值：Trot/Jump/Spring-Jump/Backflip 为 `0.05/0.05/0.1`，Handstand/Leggedstand 为 `0.20/0.10/0.1`；CTS 采用 `0.1`、其余 custom 采用 `0.2` 的线速度阈值；TS 四个变体另接入源回调中的 `0.05/0.05` 命令掩码。
-- 新增 `mjlab/scripts/run_go2_validation.sh`，按源任务顺序执行约 `1024` 环境、`1000`
+- 新增 `tools/run_go2_validation.sh`，按源任务顺序执行约 `1024` 环境、`1000`
   iteration 的训练验证；粗糙地形 custom 任务默认使用 `sap_segmented` broadphase
   与 35 contacts/world，避免 1024 环境初始化时的 Warp 数 GiB 碰撞缓冲分配。AMP 任务
   默认读取源 `datasets/mocap_motions_go2`，TS-Student 变体在统一验证日志目录中自动查找
@@ -578,8 +578,8 @@ Leggedstand 不再错误启用 Handstand 专属的 orientation/foot-height symme
 TS-Student）均以退出码 `0` 结束，并生成对应的 `model_999.pt`。student
 启动过程中发现的旧 teacher 别名选择和训练期 ONNX 导出显存峰值问题已修正；批量验证默认
 跳过训练期 ONNX 导出，独立 ONNX smoke 仍保留。状态明细记录在
-`mjlab/logs/go2_validation/validation_status.tsv`，完整运行输出在
-`mjlab/logs/go2_validation/batch_stdout.log`；状态文件中保留的早期失败记录均已被后续成功
+`runs/go2_validation/validation_status.tsv`，完整运行输出在
+`runs/go2_validation/batch_stdout.log`；状态文件中保留的早期失败记录均已被后续成功
 运行覆盖，不代表当前实现失败。源代码复核后，两个 student 已从 PPO+辅助 loss 改为源项目
 专用的纯递归行为蒸馏 runner；1024 环境、50 steps/env 的单迭代容量验证已通过。曾启动的
 student 定向长训在发现 teacher terrain 缩放不一致后主动停止，状态文件中的 `exit=130` 是该次

@@ -140,7 +140,7 @@ def _imported_modules(path: Path) -> set[str]:
 
 
 def test_generic_packages_do_not_depend_on_robot_domains() -> None:
-  package_root = Path(__file__).parents[2] / "packages/lainloco/src/lainloco"
+  package_root = Path(__file__).parents[2] / "src/lainloco"
   offenders: list[str] = []
   for package in ("core", "learning", "runtime"):
     for path in (package_root / package).rglob("*.py"):
@@ -153,7 +153,7 @@ def test_generic_packages_do_not_depend_on_robot_domains() -> None:
 
 
 def test_go2_deploy_does_not_depend_on_training_or_task_modules() -> None:
-  package_root = Path(__file__).parents[2] / "packages/lainloco/src/lainloco"
+  package_root = Path(__file__).parents[2] / "src/lainloco"
   deploy_root = package_root / "robots/unitree/go2/deploy"
   forbidden = (
     "lainloco.learning",

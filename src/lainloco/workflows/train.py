@@ -30,7 +30,7 @@ def build_training_plan(
   profile_id: str,
   iterations: int | None = None,
   num_envs: int = 4096,
-  log_root: str | Path = "logs/rsl_rl",
+  log_root: str | Path = "runs/rsl_rl",
   gpu_ids: list[int] | None = None,
 ) -> TrainingPlan:
   """Resolve a non-distillation experiment and validate launch dimensions."""

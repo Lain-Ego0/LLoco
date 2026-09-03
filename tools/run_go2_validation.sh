@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run the requested finite validation training for every migrated source task.
-# Usage: NUM_ENVS=1024 ITERATIONS=1000 ./scripts/run_go2_validation.sh
+# Usage: NUM_ENVS=1024 ITERATIONS=1000 ./tools/run_go2_validation.sh
 
 set -u
 
@@ -8,7 +8,7 @@ NUM_ENVS="${NUM_ENVS:-1024}"
 ITERATIONS="${ITERATIONS:-1000}"
 STEPS_PER_ENV="${STEPS_PER_ENV:-24}"
 STUDENT_STEPS_PER_ENV="${STUDENT_STEPS_PER_ENV:-50}"
-LOG_ROOT="${LOG_ROOT:-logs/go2_validation}"
+LOG_ROOT="${LOG_ROOT:-runs/go2_validation}"
 RUN_NAME="${RUN_NAME:-validation_${NUM_ENVS}x${ITERATIONS}}"
 MOTION_DIR="${GO2_MOTION_DIR:-/home/lxy/下载/My_unitree_go2_gym-main/datasets/mocap_motions_go2}"
 SKIP_ONNX_EXPORT="${GO2_SKIP_ONNX_EXPORT:-1}"

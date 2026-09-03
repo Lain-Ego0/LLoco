@@ -35,7 +35,7 @@ def _build_parser() -> argparse.ArgumentParser:
   train.add_argument("--profile", default="ppo")
   train.add_argument("--iterations", type=int)
   train.add_argument("--num-envs", type=int, default=4096)
-  train.add_argument("--log-root", default="logs/rsl_rl")
+  train.add_argument("--log-root", default="runs/rsl_rl")
   train.add_argument("--gpu-ids", default="0", help="comma-separated GPU ids, or 'cpu'")
   train.add_argument("--dry-run", action="store_true")
 
@@ -57,7 +57,7 @@ def _build_parser() -> argparse.ArgumentParser:
   distill.add_argument("--profile", default="ts-student")
   distill.add_argument("--iterations", type=int, default=20_000)
   distill.add_argument("--num-envs", type=int, default=1024)
-  distill.add_argument("--log-root", default="logs/rsl_rl")
+  distill.add_argument("--log-root", default="runs/rsl_rl")
   distill.add_argument(
     "--gpu-ids",
     default="0",
