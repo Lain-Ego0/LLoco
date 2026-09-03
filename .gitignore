@@ -1,0 +1,33 @@
+# Python bytecode and compiled extension caches.
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python environments and package build output.
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test, type-checker, and linter caches.
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.coverage
+.coverage.*
+htmlcov/
+
+# Native build-system output.
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+compile_commands.json
+
+# Generated training and experiment output.
+runs/
+logs/
+wandb/
