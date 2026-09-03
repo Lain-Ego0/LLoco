@@ -22,7 +22,7 @@ Lain's LocoLab 是一个建立在 [mjlab](https://github.com/mujocolab/mjlab) �
 
 ## 当前状态
 
-Go2 代码迁移与 A1–A5 架构重构已完成；A6 公开发布仍等待仓库名、项目许可证和无许可证算法来源的处理决定。
+Go2 代码迁移与 A1–A5 架构重构已完成；A6 公开发布仍等待仓库名和项目自身许可证的选择。
 
 - 已接入 Unitree Go2 MJCF、12 关节动作接口、接触与地形传感器。
 - 已注册原项目的 14 个 Go2 训练入口。
@@ -282,7 +282,7 @@ packages/lainloco/src/lainloco/
 
 mjlab 原始说明和开发文档见 [mjlab/README.md](mjlab/README.md)，贡献流程见
 [CONTRIBUTING.md](CONTRIBUTING.md)。底层组件的许可证见 [mjlab/LICENSE](mjlab/LICENSE)，
-已知来源与未解决的发布阻塞见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+第三方来源、使用方式和许可证说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 项目愿景
 

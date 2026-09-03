@@ -1,4 +1,4 @@
-# Third-party provenance and release blockers
+# Third-party provenance and release considerations
 
 This inventory records material incorporated into the current workspace. It is
 not a substitute for the corresponding license texts and does not grant rights
@@ -33,16 +33,19 @@ license text and attribution when redistributing the incorporated assets.
 
 - Canonical upstream: <https://github.com/yusongmin1/My_unitree_go2_gym>
 - Local source snapshot: `/home/lxy/下载/My_unitree_go2_gym-main`
-- Use: task/reward/observation semantics and reference implementations for
-  DreamWaQ, AMP, CTS, and teacher/student training.
+- Use: behavioral and interface reference for task/reward/observation semantics
+  and for DreamWaQ, AMP, CTS, and teacher/student training.
 - Its README attributes ETH `legged_gym`, RSL-RL, DreamWaQ and CTS research,
   and `fan-ziqi/rl_amp`.
-- License status: **unresolved**. The supplied snapshot contains no `LICENSE`,
-  `COPYING`, or `NOTICE` file.
+- License status: the supplied snapshot contains no `LICENSE`, `COPYING`, or
+  `NOTICE` file.
 
-Before public release, identify the snapshot's canonical upstream repository,
-review file-level provenance for migrated implementation code, and either
-obtain compatible permission or replace/reimplement affected material.
+The project owner confirms that no implementation files from this snapshot
+were copied into LainLoco. The LainLoco implementation was written for the
+mjlab APIs using the source project only as a behavioral and interface
+reference. The upstream repository is therefore recorded for technical
+provenance and acknowledgement, not as incorporated distribution material or
+as a release blocker.
 
 ## Runtime dependencies
 
@@ -56,8 +59,6 @@ license inventory.
 ## Project license status
 
 The owner has not yet selected a top-level license for the original LainLoco
-code. Apache-2.0 would align with both mjlab and Unitree RL Mjlab, but it cannot
-grant rights to material derived from the unlicensed `My_unitree_go2_gym`
-snapshot. This is an explicit release blocker, not an implicit “all rights
-granted” declaration. Add the selected `LICENSE` and package metadata only
-after that third-party review.
+code. Apache-2.0 would align with both mjlab and Unitree RL Mjlab. The choice of
+project license remains an owner decision and is independent from the
+behavior-only `My_unitree_go2_gym` reference described above.

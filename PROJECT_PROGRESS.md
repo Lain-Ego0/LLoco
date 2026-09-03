@@ -40,7 +40,7 @@
 | Task/Profile 分离 | ✅ | 技能 ID、8 个 TrainingSpec、learning 实现与显式 distill workflow 已分离 | 保持契约一致 |
 | Policy Bundle | ✅ | 六件套、SHA-256、语义/ONNX 校验与 runtime 已完成 | 真实训练产物长期回归 |
 | 品牌与仓库改名 | 🟡 | README 已使用 Lain's LocoLab | 仓库、包、CLI 正式改名 |
-| 项目级许可证与声明 | 🟡 | 已建来源清单；Unitree 参考为 Apache-2.0，算法源快照无许可证 | 解决算法来源权限并由所有者选许可证 |
+| 项目级许可证与声明 | 🟡 | 来源清单已完成；算法源仅作行为参考且未复制实现 | 由所有者选择项目许可证 |
 
 ## 3. 当前迁移验收
 
@@ -251,8 +251,8 @@ uv run --package lainloco --extra cpu lainloco validate contracts
 |---|---|---|
 | 仓库改名 | ⏸ | 用户调整为最终品牌名 |
 | Python distribution | ✅ | `uv build --package lainloco` 与 workspace 安装通过 |
-| 项目 LICENSE | ⏸ | 等待所有者选择，且需先解决算法源快照再分发权限 |
-| 第三方声明 | 🟡 | `THIRD_PARTY_NOTICES.md` 已建；算法源快照无许可证仍是发布阻塞 |
+| 项目 LICENSE | ⏸ | 等待所有者选择 |
+| 第三方声明 | ✅ | `THIRD_PARTY_NOTICES.md` 已记录已纳入资产及仅作行为参考的源码仓库 |
 | CI | ✅ | `.github/workflows/ci.yml` 覆盖 lint、type、contract、CPU smoke 和 build |
 | 贡献指南 | ✅ | `CONTRIBUTING.md` 固化新机器人、任务、算法、契约和验收流程 |
 | 架构决策记录 | ✅ | 0001–0005 ADR 已记录背景、决定、替代方案、后果和迁移影响 |
@@ -264,8 +264,8 @@ uv run --package lainloco --extra cpu lainloco validate contracts
   首次运行状态仍需在 push 后确认。
 - 第三方清单确认当前 16 个 Go2 OBJ 与两个 MJCF 文件逐字节来自本地
   `unitree_rl_mjlab-main` 快照；其 canonical upstream 与本地 `LICENCE` 均确认 Apache-2.0。
-  `My_unitree_go2_gym-main` 与公开上游 README 逐字节一致但仓库没有许可证，因而其迁移
-  实现公开发布前仍须取得授权或独立替换。
+  `My_unitree_go2_gym-main` 未提供许可证；项目所有者确认它仅用于行为和接口参考，未复制
+  其实现文件，因此作为技术来源致谢记录，不再列为 LainLoco 发布阻塞。
 - 未擅自选择项目许可证，也未执行会改变远端/本地路径的仓库改名；二者保留为所有者决策。
 - `docs/architecture/decisions/` 已落地机器人优先、Task/Profile 分离、mjlab 扩展边界、
   PolicyContract 版本化和旧 Task ID 兼容五项 ADR。
