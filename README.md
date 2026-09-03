@@ -1,141 +1,84 @@
-![Project banner](https://raw.githubusercontent.com/mujocolab/mjlab/main/docs/source/_static/mjlab-banner.jpg)
+# LLoco
 
-# mjlab
+LLoco 是基于 **mjlab 1.6.0** 的 Unitree 强化学习与部署项目。mjlab
+作为固定版本依赖使用，LLoco 只维护机器人资产、任务差异和部署代码，避免复制整个
+仿真框架。
 
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/mujocolab/mjlab/ci.yml?branch=main)](https://github.com/mujocolab/mjlab/actions/workflows/ci.yml?query=branch%3Amain)
-[![Documentation](https://github.com/mujocolab/mjlab/actions/workflows/docs.yml/badge.svg)](https://mujocolab.github.io/mjlab/)
-[![License](https://img.shields.io/github/license/mujocolab/mjlab)](https://github.com/mujocolab/mjlab/blob/main/LICENSE)
-[![MuJoCo Warp](https://img.shields.io/badge/MuJoCo_Warp-3.11.0-blue)](https://github.com/google-deepmind/mujoco_warp/releases/tag/v3.11.0)
-[![Nightly Benchmarks](https://img.shields.io/badge/Nightly-Benchmarks-blue)](https://mujocolab.github.io/mjlab/nightly/)
-[![PyPI](https://img.shields.io/pypi/v/mjlab)](https://pypi.org/project/mjlab/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/mjlab?color=blue)](https://pypistats.org/packages/mjlab)
+## 目录结构
 
-mjlab combines [Isaac Lab](https://github.com/isaac-sim/IsaacLab)'s manager-based API with [MuJoCo Warp](https://github.com/google-deepmind/mujoco_warp), a GPU-accelerated version of [MuJoCo](https://github.com/google-deepmind/mujoco).
-The framework provides composable building blocks for environment design,
-with minimal dependencies and direct access to native MuJoCo data structures.
+```text
+LLoco/
+├── src/lloco/
+│   ├── assets/          # Unitree MJCF、网格和示例动作
+│   ├── tasks/           # 基于 mjlab 1.6 的薄任务适配层
+│   └── cli.py           # train / play / list-envs 入口
+├── tests/               # LLoco 自身的兼容性测试
+├── deploy/              # 实机部署源码（不提交模型和预编译运行库）
+└── simulate/            # unitree_mujoco 桥接源码
+```
 
-## Getting Started
+分层原则：
 
-mjlab requires an NVIDIA GPU for training. macOS is supported for evaluation only.
+- `mjlab` 负责仿真、manager、通用 MDP、runner 和 viewer。
+- `lloco.assets` 负责本项目机器人描述。
+- `lloco.tasks` 只表达机器人名称、接触点、动作缩放等差异。
+- CLI 先注册 LLoco 任务，再复用 mjlab 1.6 的训练和回放实现。
 
-**Try it now:**
+## 安装
 
-Run the demo (no installation needed):
+需要 Python 3.10–3.13；训练需要 NVIDIA GPU。
 
 ```bash
-uvx --from mjlab --refresh demo
+uv sync --extra cu128
 ```
 
-Or try in [Google Colab](https://colab.research.google.com/github/mujocolab/mjlab/blob/main/notebooks/demo.ipynb) (no local setup required).
-
-**Install from source:**
+仅做 CPU 配置检查时：
 
 ```bash
-git clone https://github.com/mujocolab/mjlab.git && cd mjlab
-uv run demo
+uv sync --extra cpu
 ```
 
-For alternative installation methods (PyPI, Docker), see the [Installation Guide](https://mujocolab.github.io/mjlab/main/source/installation.html).
-
-## Training Examples
-
-### 1. Velocity Tracking
-
-Train a Unitree G1 humanoid to follow velocity commands on flat terrain:
+## 使用
 
 ```bash
-uv run train Mjlab-Velocity-Flat-Unitree-G1 --env.scene.num-envs 4096
+# 查看 Unitree 任务
+uv run list-envs --keyword Unitree
+
+# 训练
+uv run train Unitree-Go2-Flat --env.scene.num-envs 4096
+
+# 用随机动作做配置冒烟测试
+uv run play Unitree-Go2-Flat --agent random --num-envs 1
+
+# 回放本地策略
+uv run play Unitree-Go2-Flat --checkpoint-file logs/.../model_1000.pt
+
+# 把 G1 CSV 动作转换为 mjlab 跟踪格式
+uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
+  --output-name dance1-subject2
 ```
 
-**Multi-GPU Training:** Scale to multiple GPUs using `--gpu-ids`:
+任务命名为 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough`。速度任务支持
+A2、As2、Go2、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与
+G1-23Dof。
+
+## 开发
 
 ```bash
-uv run train Mjlab-Velocity-Flat-Unitree-G1 \
-  --gpu-ids "[0, 1]" \
-  --env.scene.num-envs 4096
+make format
+make check
 ```
 
-See the [Distributed Training guide](https://mujocolab.github.io/mjlab/main/source/training/distributed_training.html) for details.
+机器人差异集中在 `src/lloco/tasks/velocity.py` 的 `PROFILES`。新增同类机器人时，
+通常只需增加资产常量和一个 profile，无需复制整套 MDP。
 
-Evaluate a policy while training (fetches latest checkpoint from Weights & Biases):
+## 部署
 
-```bash
-uv run play Mjlab-Velocity-Flat-Unitree-G1 --wandb-run-path your-org/mjlab/run-id
-```
+`deploy/` 与 `simulate/` 保留参考项目中的源码，但不再内置 ONNX Runtime、MuJoCo
+二进制或训练好的策略。请按 [deploy/README.md](deploy/README.md) 配置系统依赖并把
+导出的策略放到对应机器人目录。
 
-### 2. Motion Imitation
+## 上游与许可
 
-Train a humanoid to mimic reference motions. See the [motion imitation guide](https://mujocolab.github.io/mjlab/main/source/training/motion_imitation.html) for preprocessing setup.
-
-```bash
-uv run train Mjlab-Tracking-Flat-Unitree-G1 --registry-name your-org/motions/motion-name --env.scene.num-envs 4096
-uv run play Mjlab-Tracking-Flat-Unitree-G1 --wandb-run-path your-org/mjlab/run-id
-```
-
-### 3. Sanity-check with Dummy Agents
-
-Use built-in agents to sanity check your MDP before training:
-
-```bash
-uv run play Mjlab-Your-Task-Id --agent zero  # Sends zero actions
-uv run play Mjlab-Your-Task-Id --agent random  # Sends uniform random actions
-```
-
-When running motion-tracking tasks, add `--registry-name your-org/motions/motion-name` to the command.
-
-
-## Documentation
-
-Full documentation is available at **[mujocolab.github.io/mjlab](https://mujocolab.github.io/mjlab/)**.
-
-## Development
-
-```bash
-make test          # Run all tests
-make test-fast     # Skip slow tests
-make format        # Format and lint
-make docs          # Build docs locally
-```
-
-For development setup: `uvx pre-commit install`
-
-## Citation
-
-mjlab is used in published research and open-source robotics projects. See the [Research](https://mujocolab.github.io/mjlab/main/source/research.html) page for publications and projects, or share your own in [Show and Tell](https://github.com/mujocolab/mjlab/discussions/categories/show-and-tell).
-
-If you use mjlab in your research, please consider citing:
-
-```bibtex
-@misc{zakka2026mjlablightweightframeworkgpuaccelerated,
-  title={mjlab: A Lightweight Framework for GPU-Accelerated Robot Learning},
-  author={Kevin Zakka and Qiayuan Liao and Brent Yi and Louis Le Lay and Koushil Sreenath and Pieter Abbeel},
-  year={2026},
-  eprint={2601.22074},
-  archivePrefix={arXiv},
-  primaryClass={cs.RO},
-  url={https://arxiv.org/abs/2601.22074},
-}
-```
-
-## License
-
-mjlab is licensed under the [Apache License, Version 2.0](LICENSE).
-
-### Third-Party Code
-
-Some portions of mjlab are forked from external projects:
-
-- **`src/mjlab/utils/lab_api/`** — Utilities forked from [NVIDIA Isaac
-  Lab](https://github.com/isaac-sim/IsaacLab) (BSD-3-Clause license, see file
-  headers)
-
-Forked components retain their original licenses. See file headers for details.
-
-## Acknowledgments
-
-mjlab wouldn't exist without the excellent work of the Isaac Lab team, whose API
-design and abstractions mjlab builds upon.
-
-Thanks to the MuJoCo Warp team — especially Erik Frey and Taylor Howell — for
-answering our questions, giving helpful feedback, and implementing features
-based on our requests countless times.
+本项目参考 `unitree_rl_mjlab` 的项目边界和部署代码，并基于 mjlab 1.6 API
+重新组织。代码使用 Apache-2.0 许可；第三方组件保留各自许可。
