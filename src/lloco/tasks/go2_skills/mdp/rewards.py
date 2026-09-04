@@ -9,6 +9,7 @@ from .observations import (
   joint_ids,
   jump_stance_mask,
   phase,
+  root_euler,
   source_contact,
   source_vertical_contact,
   stance_mask,
@@ -171,9 +172,10 @@ def feet_clearance(
   diagonal_b = height[:, (1, 2)]
   swing = 1.0 - stance_mask(env, cycle_time)
   target = (
-    torch.abs(torch.sin(2.0 * torch.pi * phase(env, cycle_time)))
-    * target_foot_height
-  ).unsqueeze(1).repeat(1, 2)
+    (torch.abs(torch.sin(2.0 * torch.pi * phase(env, cycle_time))) * target_foot_height)
+    .unsqueeze(1)
+    .repeat(1, 2)
+  )
   reward = torch.exp(
     -10.0 * (torch.abs(diagonal_a - target) * swing[:, 0:1]).sum(dim=1)
   )
@@ -186,30 +188,31 @@ def feet_clearance(
 # Jump uses a different family of reward equations despite sharing names with Trot.
 
 
-def jump_tracking_lin_vel(
-  env, command_name: str, sigma: float
-) -> torch.Tensor:
+def jump_tracking_lin_vel(env, command_name: str, sigma: float) -> torch.Tensor:
   robot: Entity = env.scene["robot"]
   cmd = command(env, command_name)
   is_moving = torch.linalg.vector_norm(cmd[:, :3], dim=1) > 0.1
   moving_error = torch.square(cmd[:, :2] - robot.data.root_link_lin_vel_b[:, :2]).sum(
     dim=1
   )
-  return torch.exp(-moving_error / sigma) * is_moving + torch.exp(
-    -torch.linalg.vector_norm(robot.data.root_link_lin_vel_b[:, :2], dim=1) / sigma
-  ) * ~is_moving
+  return (
+    torch.exp(-moving_error / sigma) * is_moving
+    + torch.exp(
+      -torch.linalg.vector_norm(robot.data.root_link_lin_vel_b[:, :2], dim=1) / sigma
+    )
+    * ~is_moving
+  )
 
 
-def jump_tracking_ang_vel(
-  env, command_name: str, sigma: float
-) -> torch.Tensor:
+def jump_tracking_ang_vel(env, command_name: str, sigma: float) -> torch.Tensor:
   robot: Entity = env.scene["robot"]
   cmd = command(env, command_name)
   is_moving = torch.linalg.vector_norm(cmd[:, :3], dim=1) > 0.1
   moving_error = torch.square(cmd[:, 2] - robot.data.root_link_ang_vel_b[:, 2])
-  return torch.exp(-moving_error / sigma) * is_moving + torch.exp(
-    -torch.abs(robot.data.root_link_ang_vel_b[:, 2]) / sigma
-  ) * ~is_moving
+  return (
+    torch.exp(-moving_error / sigma) * is_moving
+    + torch.exp(-torch.abs(robot.data.root_link_ang_vel_b[:, 2]) / sigma) * ~is_moving
+  )
 
 
 def jump_lin_vel_z(env) -> torch.Tensor:
@@ -231,9 +234,7 @@ def jump_orientation(env) -> torch.Tensor:
   )
 
 
-def jump_base_height(
-  env, command_name: str, target_height: float
-) -> torch.Tensor:
+def jump_base_height(env, command_name: str, target_height: float) -> torch.Tensor:
   robot: Entity = env.scene["robot"]
   return torch.exp(
     -10.0 * torch.abs(robot.data.root_link_pos_w[:, 2] - target_height)
@@ -300,6 +301,175 @@ def jump_default_hip_pos(env) -> torch.Tensor:
   return torch.exp(-4.0 * hip_error)
 
 
+# Rear Stand intentionally retains its source's positive exponential "penalties"
+# and scalar, batch-wide height gate.
+
+
+def rear_stand_gate(env) -> torch.Tensor:
+  return getattr(env, "_rear_stand_height_gate", torch.tensor(False, device=env.device))
+
+
+def rear_stand_tracking_lin_vel(env, command_name: str, sigma: float) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  cmd = command(env, command_name)
+  x_error = torch.square(cmd[:, 0] + robot.data.root_link_lin_vel_b[:, 2])
+  y_error = torch.square(cmd[:, 1] - robot.data.root_link_lin_vel_b[:, 1])
+  return torch.exp(-(x_error + y_error) / sigma) * rear_stand_gate(env)
+
+
+def rear_stand_tracking_ang_vel(env, command_name: str, sigma: float) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  error = torch.square(
+    command(env, command_name)[:, 2] - robot.data.root_link_ang_vel_b[:, 0]
+  )
+  return torch.exp(-error / sigma) * rear_stand_gate(env)
+
+
+def rear_stand_lin_vel_z(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  return torch.exp(-10.0 * torch.abs(robot.data.root_link_lin_vel_b[:, 0]))
+
+
+def rear_stand_ang_vel_xy(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  return torch.exp(
+    -torch.linalg.vector_norm(torch.abs(robot.data.root_link_ang_vel_b[:, 1:3]), dim=1)
+  )
+
+
+def rear_stand_orientation(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  target = torch.tensor((-1.0, 0.0, 0.0), device=env.device)
+  return torch.square(robot.data.projected_gravity_b - target).sum(dim=1)
+
+
+def rear_stand_base_height(env, target_height: float) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  reward = torch.exp(-5.0 * torch.abs(robot.data.root_link_pos_w[:, 2] - target_height))
+  env._rear_stand_height_gate = reward.mean() > 0.70
+  return reward
+
+
+def rear_stand_front_feet_air(env, sensor_name: str) -> torch.Tensor:
+  sensor: ContactSensor = env.scene[sensor_name]
+  contact = source_contact(sensor, 1.0)
+  return (~contact[:, :2]).float().prod(dim=1)
+
+
+def rear_stand_desired_joint_pos(env) -> torch.Tensor:
+  return torch.tensor(
+    (
+      0.0,
+      0.8,
+      -1.5,
+      0.0,
+      0.8,
+      -1.5,
+      0.0,
+      2.25,
+      -1.75,
+      0.0,
+      2.25,
+      -1.75,
+    ),
+    device=env.device,
+  )
+
+
+def rear_stand_default_pos(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  error = torch.abs(
+    robot.data.joint_pos[:, joint_ids(robot)] - rear_stand_desired_joint_pos(env)
+  )
+  return error.sum(dim=1)
+
+
+def rear_stand_default_pos_reward(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  error = torch.abs(
+    robot.data.joint_pos[:, joint_ids(robot)] - rear_stand_desired_joint_pos(env)
+  )
+  return torch.exp(-error[:, :6].sum(dim=1)) * rear_stand_gate(env)
+
+
+def rear_stand_default_hip_pos(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  pos = robot.data.joint_pos[:, joint_ids(robot)]
+  return torch.abs(pos[:, (0, 3, 6, 9)]).sum(dim=1)
+
+
+def rear_stand_feet_clearance(
+  env, cycle_time: float, target_foot_height: float
+) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  site_ids, names = robot.find_sites(("FL", "FR", "RL", "RR"), preserve_order=True)
+  if tuple(names) != ("FL", "FR", "RL", "RR"):
+    raise RuntimeError(f"Go2 foot site order mismatch: {names}")
+  rear_height = robot.data.site_pos_w[:, site_ids[2:4], 2] - 0.02
+  gait_phase = phase(env, cycle_time)
+  swing = 1.0 - stance_mask(env, cycle_time)
+  target = torch.abs(torch.sin(2.0 * torch.pi * gait_phase)) * target_foot_height
+  reward = torch.exp(-10.0 * torch.abs(rear_height[:, 0] - target)) * swing[:, 0]
+  reward += torch.exp(-10.0 * torch.abs(rear_height[:, 1] - target)) * swing[:, 1]
+  return reward * rear_stand_gate(env)
+
+
+def rear_stand_roll(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  return torch.abs(root_euler(robot)[:, 0]) * rear_stand_gate(env)
+
+
+def rear_stand_rear_contact(env, sensor_name: str) -> torch.Tensor:
+  sensor: ContactSensor = env.scene[sensor_name]
+  contact = source_vertical_contact(sensor, 1.0)[:, 2:4]
+  return (contact.sum(dim=1) == 1) * rear_stand_gate(env)
+
+
+def rear_stand_symmetric_joints(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  dof = robot.data.joint_pos[:, joint_ids(robot)].clone().view(env.num_envs, 4, 3)
+  dof[:, 1, 0] *= -1.0
+  dof[:, 3, 0] *= -1.0
+  error = torch.abs(dof[:, 0] - dof[:, 1]).sum(dim=1)
+  error += torch.abs(dof[:, 2] - dof[:, 3]).sum(dim=1)
+  return error * rear_stand_gate(env)
+
+
+def rear_stand_orientation_symmetry(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  return torch.square(robot.data.projected_gravity_b[:, 1])
+
+
+def rear_stand_feet_height_symmetry(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  site_ids, _ = robot.find_sites(("FL", "FR"), preserve_order=True)
+  return torch.abs(
+    robot.data.site_pos_w[:, site_ids[0], 2] - robot.data.site_pos_w[:, site_ids[1], 2]
+  )
+
+
+def rear_stand_front_feet_height_exp(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  site_ids, _ = robot.find_sites(("FL", "FR"), preserve_order=True)
+  error = torch.abs(robot.data.site_pos_w[:, site_ids, 2] - 0.67).sum(dim=1)
+  return torch.exp(-10.0 * error)
+
+
+def rear_stand_dof_pos_limits(env) -> torch.Tensor:
+  robot: Entity = env.scene["robot"]
+  ids = joint_ids(robot)
+  limits = robot.data.soft_joint_pos_limits
+  assert limits is not None
+  pos = robot.data.joint_pos[:, ids]
+  below = -(pos - limits[:, ids, 0]).clamp(max=0.0)
+  above = (pos - limits[:, ids, 1]).clamp(min=0.0)
+  return (below + above).sum(dim=1)
+
+
+def alive(env) -> torch.Tensor:
+  return torch.ones(env.num_envs, device=env.device)
+
+
 class FeetAirTime:
   """Source contact-filtered foot air-time state and first-contact reward."""
 
@@ -333,11 +503,14 @@ def feet_contact_forces(
   sensor: ContactSensor = env.scene[sensor_name]
   force = sensor.data.force
   assert force is not None
-  order = [sensor.primary_names.index(name) for name in (
-    "FL_foot_collision",
-    "FR_foot_collision",
-    "RL_foot_collision",
-    "RR_foot_collision",
-  )]
+  order = [
+    sensor.primary_names.index(name)
+    for name in (
+      "FL_foot_collision",
+      "FR_foot_collision",
+      "RL_foot_collision",
+      "RR_foot_collision",
+    )
+  ]
   magnitude = torch.linalg.vector_norm(force[:, order], dim=-1)
   return (magnitude - max_contact_force).clamp(min=0.0).sum(dim=1)

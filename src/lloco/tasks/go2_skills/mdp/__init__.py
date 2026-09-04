@@ -7,6 +7,7 @@ from . import (
   events,
   observations,
   rewards,
+  symmetry,
   terminations,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
   "events",
   "observations",
   "rewards",
+  "symmetry",
   "terminations",
 ]

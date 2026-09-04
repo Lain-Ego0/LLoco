@@ -3,17 +3,19 @@
 from mjlab.tasks.registry import list_tasks, load_env_cfg, load_rl_cfg
 
 import lloco.tasks  # noqa: F401
-from lloco.tasks.go2_skills.mdp.observations import single_frame_noise_bounds
+from lloco.tasks.go2_skills.mdp.observations import (
+  rear_stand_noise_bounds,
+  single_frame_noise_bounds,
+)
 
 
-def test_only_completed_trot_and_jump_are_registered() -> None:
+def test_only_completed_staged_skills_are_registered() -> None:
   tasks = set(list_tasks())
   assert "Unitree-Go2-Trot-Flat" in tasks
   assert "Unitree-Go2-Jump-Flat" in tasks
-  incomplete = {
-    "Unitree-Go2-Spring-Jump-Flat",
-    "Unitree-Go2-Handstand-Flat",
-  }
+  assert "Unitree-Go2-Rear-Stand-Flat" in tasks
+  assert "Unitree-Go2-Handstand-Flat" not in tasks
+  incomplete = {"Unitree-Go2-Spring-Jump-Flat"}
   assert tasks.isdisjoint(incomplete)
 
 
@@ -183,5 +185,104 @@ def test_jump_rewards_commands_events_and_ppo() -> None:
   assert rl.max_iterations == 15_000
   assert rl.num_steps_per_env == 24
   assert rl.algorithm.learning_rate == 1.0e-4
+  assert rl.actor.hidden_dims == (512, 256, 128)
+  assert rl.critic.hidden_dims == (512, 256, 128)
+
+
+def test_rear_stand_timing_initial_state_action_and_observations() -> None:
+  cfg = load_env_cfg("Unitree-Go2-Rear-Stand-Flat")
+  robot = cfg.scene.entities["robot"]
+  action = cfg.actions["joint_pos"]
+  actor = cfg.observations["actor"].terms["frame"]
+  critic = cfg.observations["critic"].terms["frame"]
+  assert cfg.scene.num_envs == 4096
+  assert cfg.episode_length_s == 20.0
+  assert cfg.sim.mujoco.timestep == 0.005
+  assert cfg.decimation == 4
+  assert robot.init_state.pos == (0.0, 0.0, 0.42)
+  assert robot.init_state.joint_pos["FL_hip_joint"] == 0.1
+  assert robot.init_state.joint_pos["FR_hip_joint"] == -0.1
+  assert robot.init_state.joint_pos["RL_thigh_joint"] == 1.0
+  assert action.scale == 0.25
+  assert action.delay_min_lag == 0
+  assert action.delay_max_lag == 3
+  assert action.delay_update_period == 4
+  assert actor.func.frame_dim == 45
+  assert actor.func.history_length == 1
+  assert critic.func.frame_dim == 86
+  assert critic.func.history_length == 1
+  assert actor.params["add_noise"] is True
+  assert len(rear_stand_noise_bounds()[1]) == 45
+
+
+def test_rear_stand_rewards_commands_events_and_ppo() -> None:
+  cfg = load_env_cfg("Unitree-Go2-Rear-Stand-Flat")
+  expected = {
+    "tracking_lin_vel": 2.5,
+    "tracking_ang_vel": 2.5,
+    "lin_vel_z": 0.2,
+    "ang_vel_xy": 0.2,
+    "rear_stand_orientation": -1.0,
+    "torques": -0.0002,
+    "dof_acc": -2.5e-7,
+    "base_height": 1.5,
+    "rear_stand_feet_on_air": 0.4,
+    "collision": -2.0,
+    "action_rate": -0.05,
+    "default_pos": -0.1,
+    "default_hip_pos": -0.1,
+    "feet_clearance": 0.4,
+    "ang_xz": -0.5,
+    "contact": 0.3,
+    "symmetric_joints": -0.1,
+    "orientation_symmetry": -0.5,
+    "feet_height_symmetry": -0.2,
+    "rear_stand_feet_height_exp": 5.0,
+    "default_pos_reward": 0.5,
+    "dof_pos_limits": -2.0,
+    "alive": 1.0,
+  }
+  assert {name: term.weight for name, term in cfg.rewards.items()} == expected
+  command = cfg.commands["twist"]
+  assert command.resampling_time_range == (10.0, 10.0)
+  assert command.heading_command
+  assert command.rel_heading_envs == 1.0
+  assert command.ranges.lin_vel_x == (-0.2, 0.6)
+  assert command.ranges.lin_vel_y == (-0.0, 0.0)
+  assert command.ranges.ang_vel_z == (-0.4, 0.4)
+  assert command.ranges.heading == (-3.14, 3.14)
+  assert cfg.events["push_robot"].interval_range_s == (8.0, 8.0)
+  assert cfg.events["reset_robot_joints"].params["scale_range"] == (0.5, 1.5)
+  assert cfg.events["friction"].params["ranges"] == (0.2, 1.2)
+  assert cfg.events["base_mass"].params["ranges"] == (-1.0, 2.0)
+  assert cfg.events["base_com"].params["ranges"][0] == (-0.05, 0.05)
+  assert cfg.events["joint_friction"].params["ranges"] == (0.01, 0.1)
+  assert cfg.events["joint_damping"].params["ranges"] == (0.0, 0.1)
+  assert cfg.events["joint_armature"].params["ranges"] == (0.003, 0.08)
+  assert cfg.rewards["collision"].params["sensor_name"] == (
+    "thigh_calf_ground_contact"
+  )
+  assert {sensor.name for sensor in cfg.scene.sensors} == {
+    "feet_ground_contact",
+    "thigh_calf_ground_contact",
+    "base_ground_contact",
+  }
+  assert cfg.curriculum == {}
+  rl = load_rl_cfg("Unitree-Go2-Rear-Stand-Flat")
+  assert rl.seed == 1
+  assert rl.max_iterations == 15_000
+  assert rl.num_steps_per_env == 24
+  assert rl.algorithm.learning_rate == 1.0e-3
+  assert rl.algorithm.class_name == (
+    "lloco.tasks.go2_skills.mdp.symmetry:SourceSymmetricPPO"
+  )
+  assert rl.algorithm.symmetry_cfg == {
+    "data_augmentation_func": (
+      "lloco.tasks.go2_skills.mdp.symmetry:rear_stand_symmetry"
+    ),
+    "use_data_augmentation": False,
+    "use_mirror_loss": True,
+    "mirror_loss_coeff": 1.0,
+  }
   assert rl.actor.hidden_dims == (512, 256, 128)
   assert rl.critic.hidden_dims == (512, 256, 128)

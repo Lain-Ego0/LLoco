@@ -17,7 +17,7 @@ class EpisodeDelayedJointPositionAction(JointPositionAction):
       batch_size=env.num_envs,
       device=env.device,
       per_env=True,
-      update_period=2**30,
+      update_period=cfg.delay_update_period,
       per_env_phase=False,
     )
 
@@ -38,6 +38,7 @@ class EpisodeDelayedJointPositionAction(JointPositionAction):
 class EpisodeDelayedJointPositionActionCfg(JointPositionActionCfg):
   delay_min_lag: int = 1
   delay_max_lag: int = 3
+  delay_update_period: int = 2**30
 
   def build(self, env) -> EpisodeDelayedJointPositionAction:
     return EpisodeDelayedJointPositionAction(self, env)

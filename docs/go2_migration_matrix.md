@@ -7,7 +7,7 @@ tasks; directory names and unregistered configs are not counted as tasks.
 |---|---|---|---|---|
 | `go2_trot` | `Unitree-Go2-Trot-Flat` | `Go2_MoB/Go2_Trot/Go2_Trot_Config.py` | `Go2_MoB/Go2_Trot/Go2_Trot.py` | stage-1 runnable; latency/symmetry gaps below |
 | `go2_jump` | `Unitree-Go2-Jump-Flat` | `Go2_MoB/Go2_Jump/Go2_Jump_Config.py` | `Go2_MoB/Go2_Jump/Go2_Jump.py` | stage-1 accepted; corrected-contact 2048 × 1000 training, checkpoint/ONNX validation and Viser inspection passed |
-| `go2_handstand` | `Unitree-Go2-Handstand-Flat` | `Go2_Stand/Go2_Handstand/Go2_Handstand_Config.py` | `Go2_Stand/Go2_Handstand/Go2_Handstand.py` | pending |
+| `go2_handstand` | `Unitree-Go2-Rear-Stand-Flat` | `Go2_Stand/Go2_Handstand/Go2_Handstand_Config.py` | `Go2_Stand/Go2_Handstand/Go2_Handstand.py` | accepted as Rear Stand; 4096 × 2000 training and Viser validation passed |
 | `go2_leggedstand` | `Unitree-Go2-Legged-Stand-Flat` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand_Config.py` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand.py` | pending |
 | `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | pending |
 | `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | pending |
@@ -68,3 +68,22 @@ Three source details are not silently claimed as exact:
 Jump retains the same three cross-backend limitations listed for Trot: the
 substep observation-latency hook and old-fork symmetry loss are not available,
 and mass edits do not yet reproduce Isaac Gym's `recomputeInertia=True` exactly.
+
+## Rear Stand parity table (Gym source: `go2_handstand`)
+
+| Concern | Isaac Gym source | mjlab implementation |
+|---|---|---|
+| Actor observation | angular velocity, projected gravity, scaled command, relative q, dq and action; 45 × 1 | identical 45-field order/scaling and uniform per-field noise |
+| Critic observation | body linear velocity + the already-noisy actor frame + 34 domain labels + 4 contacts; 86 × 1 | identical concatenation, including the duplicated restitution label |
+| Action/control | default pose + `0.25 * action`; 0–3 substep switch delay resampled each policy step; Kp 40/Kd 1 and 90% effort limits | same mapping, delay schedule, gains and effort limits |
+| Command | 10 s heading command, X in [-0.2, 0.6], Y zero; 20% all-zero and independent 10% XY-zero | custom sampler and source-specific heading controller with [-1, 1] yaw clipping |
+| Rewards | 23 nonzero terms and a persistent batch-mean height gate at 0.70 | same formulas, ordering, weights, gate state and dt scaling |
+| Reset/termination | q = default × U(0.5, 1.5), six root velocities in [-0.5, 0.5], base force > 1 N, 20 s timeout | matching reset events and termination threshold |
+| Randomization | friction/restitution, mass/COM, gains/encoder, joint friction/damping/armature, 8 s velocity overwrite | matching ranges and privileged labels; native MuJoCo fields where available |
+| PPO | seed 1, 24 steps, 15k iterations, LR 1e-3, 512/256/128 ELU; signed observation/action mirror loss with coefficient 1.0 and gradients through both branches | same settings/permutation through rsl_rl's symmetry extension plus a thin source-gradient adapter |
+
+Rear Stand's action latency and PPO mirror loss are implemented. It retains the
+mass-inertia limitation above. PhysX restitution has no one-to-one MuJoCo
+scalar; its source sample and both critic-label entries are preserved, but
+collision restitution dynamics cannot be claimed exact without a validated
+`solref`/`solimp` mapping.

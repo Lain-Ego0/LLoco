@@ -1,6 +1,16 @@
 """Shared RSL-RL configuration factories."""
 
+from dataclasses import dataclass
+from typing import Any
+
 from mjlab.rl import RslRlModelCfg, RslRlOnPolicyRunnerCfg, RslRlPpoAlgorithmCfg
+
+
+@dataclass
+class RslRlPpoWithSymmetryAlgorithmCfg(RslRlPpoAlgorithmCfg):
+  """Expose the symmetry extension supported by the installed RSL-RL PPO."""
+
+  symmetry_cfg: dict[str, Any] | None = None
 
 
 def make_ppo_runner_cfg(
@@ -9,6 +19,7 @@ def make_ppo_runner_cfg(
   max_iterations: int = 10_000,
   entropy_coef: float = 0.01,
   save_interval: int = 100,
+  symmetry_cfg: dict[str, Any] | None = None,
 ) -> RslRlOnPolicyRunnerCfg:
   """Create the common PPO setup used by LLoco locomotion tasks."""
   return RslRlOnPolicyRunnerCfg(
@@ -27,7 +38,7 @@ def make_ppo_runner_cfg(
       activation="elu",
       obs_normalization=True,
     ),
-    algorithm=RslRlPpoAlgorithmCfg(
+    algorithm=RslRlPpoWithSymmetryAlgorithmCfg(
       value_loss_coef=1.0,
       use_clipped_value_loss=True,
       clip_param=0.2,
@@ -40,6 +51,7 @@ def make_ppo_runner_cfg(
       lam=0.95,
       desired_kl=0.01,
       max_grad_norm=1.0,
+      symmetry_cfg=symmetry_cfg,
     ),
     experiment_name=experiment_name,
     save_interval=save_interval,
