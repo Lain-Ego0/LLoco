@@ -55,8 +55,12 @@ uv run play Unitree-Go2-Flat --checkpoint-file logs/.../model_1000.pt
 
 # 把 G1 CSV 动作转换为 mjlab 跟踪格式
 uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
-  --output-name dance1-subject2
+  --output-name dance1-subject2 --robot g1
 ```
+
+`csv-to-npz` 直接在本地生成 NPZ，不需要 Weights & Biases。`--output-name`
+只传文件名时，输出会保存到输入 CSV 的同一目录；也可传入完整路径。
+G1-23DoF 动作使用 `--robot g1_23dof`。
 
 任务命名为 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough`。速度任务支持
 A2、As2、Go2、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与

@@ -30,10 +30,10 @@ def list_envs() -> None:
 
 
 def csv_to_npz() -> None:
-  """Convert a G1 motion CSV using mjlab's maintained converter."""
-  import tyro
-  from mjlab.scripts.csv_to_npz import main
-
+  """Convert a G1 motion CSV to a local tracking NPZ."""
   import mjlab
+  import tyro
+
+  from lloco.motion_conversion import main
 
   tyro.cli(main, config=mjlab.TYRO_FLAGS)
