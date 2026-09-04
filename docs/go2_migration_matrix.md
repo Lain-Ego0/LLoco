@@ -6,7 +6,7 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | Source task | LLoco task | Source config | Source environment | Status |
 |---|---|---|---|---|
 | `go2_trot` | `Unitree-Go2-Trot-Flat` | `Go2_MoB/Go2_Trot/Go2_Trot_Config.py` | `Go2_MoB/Go2_Trot/Go2_Trot.py` | stage-1 runnable; latency/symmetry gaps below |
-| `go2_jump` | `Unitree-Go2-Jump-Flat` | `Go2_MoB/Go2_Jump/Go2_Jump_Config.py` | `Go2_MoB/Go2_Jump/Go2_Jump.py` | pending |
+| `go2_jump` | `Unitree-Go2-Jump-Flat` | `Go2_MoB/Go2_Jump/Go2_Jump_Config.py` | `Go2_MoB/Go2_Jump/Go2_Jump.py` | stage-1 accepted; corrected-contact 2048 × 1000 training, checkpoint/ONNX validation and Viser inspection passed |
 | `go2_handstand` | `Unitree-Go2-Handstand-Flat` | `Go2_Stand/Go2_Handstand/Go2_Handstand_Config.py` | `Go2_Stand/Go2_Handstand/Go2_Handstand.py` | pending |
 | `go2_leggedstand` | `Unitree-Go2-Legged-Stand-Flat` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand_Config.py` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand.py` | pending |
 | `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | pending |
@@ -50,3 +50,21 @@ Three source details are not silently claimed as exact:
    inertia, while the Isaac Gym source requests inertia recomputation after its
    mass edits. A native mjlab inertia-safe event is still needed for strict
    dynamic parity.
+
+## Jump parity table
+
+| Concern | Isaac Gym source | mjlab implementation |
+|---|---|---|
+| Actor observation | phase sin/cos, scaled command, delayed angular velocity/Euler, delayed q/dq and action; 47 × 10 | same field order and scaling in a frame-major 470-vector |
+| Critic observation | actor-independent state plus friction, a zero-valued `body_mass` buffer, two stance flags and four contacts; 70 × 3 | same 70-field order and source's intentionally zero mass label, 210 dimensions |
+| Phase | `episode_length * dt / 1.5`, not wrapped; stance before 0.6 and flight after 0.6 | same unwrapped phase and one-time stance transition |
+| Action/control | default pose + `0.25 * action`; episode-sampled 1–3 physics-substep lag; Kp 20/Kd 0.5 | same action mapping, lag range and gains |
+| Command | uniform XYZ velocity command every 5 s, 5% all-zero and independent 5% XY-zero | same custom command sampler |
+| Rewards | 18 nonzero source terms, including stateful filtered foot air time and gated jump/contact rewards | separate Jump equations and state variables; weights retain source dt scaling |
+| Reset/termination | fixed root state, joint offset ±0.1, base force > 1 N, 24 s timeout | same reset ranges and termination threshold |
+| Randomization | 256 friction buckets, mass/COM/gain/encoder perturbations, 4 s velocity overwrite | same bucket count/ranges and perturbation schedule |
+| PPO | seed 1, 24 steps, 15k iterations, LR 1e-4, 512/256/128 ELU | same supported rsl_rl 5.4.2 settings |
+
+Jump retains the same three cross-backend limitations listed for Trot: the
+substep observation-latency hook and old-fork symmetry loss are not available,
+and mass edits do not yet reproduce Isaac Gym's `recomputeInertia=True` exactly.

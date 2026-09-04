@@ -71,11 +71,14 @@ def source_contact(sensor: ContactSensor, threshold: float) -> torch.Tensor:
 def source_vertical_contact(
   sensor: ContactSensor, threshold: float
 ) -> torch.Tensor:
-  """Isaac Gym contact test using the world-frame vertical force component."""
+  """Isaac Gym-equivalent upward foot force from mjlab's opposite-signed wrench."""
   force = sensor.data.force
   assert force is not None
   order = [sensor.primary_names.index(name) for name in SOURCE_FOOT_GEOMS]
-  return force[:, order, 2] > threshold
+  # With the foot as primary and terrain as secondary, mjlab reports the
+  # primary-to-secondary wrench: supporting ground contact therefore has
+  # negative world Z. Isaac Gym's rigid-body force uses the opposite sign.
+  return -force[:, order, 2] > threshold
 
 
 def contact_observation(env, sensor_name: str, threshold: float = 5.0) -> torch.Tensor:

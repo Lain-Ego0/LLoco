@@ -1,4 +1,4 @@
-"""Exact Trot reward equations from the registered Isaac Gym task."""
+"""Reward equations translated from the registered Trot and Jump tasks."""
 
 import torch
 from mjlab.entity import Entity
@@ -6,8 +6,8 @@ from mjlab.managers import RewardTermCfg
 from mjlab.sensor import ContactSensor
 
 from .observations import (
-  jump_stance_mask,
   joint_ids,
+  jump_stance_mask,
   phase,
   source_contact,
   source_vertical_contact,
