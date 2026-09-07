@@ -9,7 +9,7 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | `go2_jump` | `Unitree-Go2-Jump-Flat` | `Go2_MoB/Go2_Jump/Go2_Jump_Config.py` | `Go2_MoB/Go2_Jump/Go2_Jump.py` | stage-1 accepted; corrected-contact 2048 × 1000 training, checkpoint/ONNX validation and Viser inspection passed |
 | `go2_handstand` | `Unitree-Go2-Rear-Stand-Flat` | `Go2_Stand/Go2_Handstand/Go2_Handstand_Config.py` | `Go2_Stand/Go2_Handstand/Go2_Handstand.py` | accepted as Rear Stand; 4096 × 2000 training and Viser validation passed |
 | `go2_leggedstand` | `Unitree-Go2-Handstand-Flat` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand_Config.py` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand.py` | accepted; 2048 x 800 zero-initialized training and deterministic playback passed |
-| `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | pending |
+| `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | stage-1 runnable; one-shot state-machine and source training assist migrated |
 | `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | pending |
 | `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | pending |
 | `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | pending |
@@ -68,6 +68,25 @@ Three source details are not silently claimed as exact:
 Jump retains the same three cross-backend limitations listed for Trot: the
 substep observation-latency hook and old-fork symmetry loss are not available,
 and mass edits do not yet reproduce Isaac Gym's `recomputeInertia=True` exactly.
+
+## Spring Jump parity table
+
+| Concern | Isaac Gym source | mjlab implementation |
+|---|---|---|
+| Observation | `zeros(2)`, target-X/Y/jump flag, delayed IMU, delayed q/dq and action: 47 × 10; privileged 65 × 3 | Same source order and frame-major zero-filled history; critic retains all four contacts and `has_jumped` despite the source's stale “2 contacts” comment |
+| Command/state | Target X ∈ [0.8, 1.2], fixed Y, a jump flag set on randomized policy frame 50–59 | Dedicated one-shot command term, with `was_in_flight`, `has_jumped`, first landing position and max-height state reset per environment |
+| Rewards | 20 nonzero reward scales, including flight/landing gates and root-frame foot-clearance | Source equations and weights, including body-frame foot rotation and source signed 47-field mirror mapping applied independently to each of 10 frames |
+| Reset/termination | fixed default joints/root state; base collision or z ≤ 0.15; 5 s timeout | Exact reset ranges and both termination conditions |
+| Randomization/assist | 64 friction buckets, mass/COM/PD/encoder variations, 4 s velocity overwrite; probabilistic one-shot upward assist fading after 9,600 policy steps | Same native events and a state-machine assist using the source probability schedule |
+| PPO | seed 1, 24 steps, 50k iterations, LR 1e-5, 512/256/128 ELU, source mirror loss | Same rsl_rl 5.4.2 settings and the existing gradient-compatible symmetry adapter |
+
+The registered source calls `self.cfg.rewards.stance_reward_sigma` after a
+landing, but neither its task config nor its inherited base config defines that
+attribute. The migration makes its repair explicit as
+`exp(-5 * abs(height - 0.35))`; this is the only Spring Jump formula that
+cannot be mechanically copied from the checked-in source. Like the other
+tasks, substep IMU/motor latency and Isaac-Gym inertia recomputation remain
+backend limitations.
 
 ## Rear Stand parity table (Gym source: `go2_handstand`)
 

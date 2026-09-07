@@ -14,8 +14,39 @@ def test_only_completed_staged_skills_are_registered() -> None:
   assert "Unitree-Go2-Jump-Flat" in tasks
   assert "Unitree-Go2-Rear-Stand-Flat" in tasks
   assert "Unitree-Go2-Handstand-Flat" in tasks
-  incomplete = {"Unitree-Go2-Spring-Jump-Flat"}
+  assert "Unitree-Go2-Spring-Jump-Flat" in tasks
+  incomplete = set()
   assert tasks.isdisjoint(incomplete)
+
+
+def test_spring_jump_source_configuration() -> None:
+  cfg = load_env_cfg("Unitree-Go2-Spring-Jump-Flat")
+  actor = cfg.observations["actor"].terms["history"]
+  critic = cfg.observations["critic"].terms["history"]
+  assert cfg.scene.num_envs == 4096
+  assert cfg.episode_length_s == 5.0
+  assert cfg.sim.mujoco.timestep == 0.005
+  assert cfg.decimation == 4
+  assert cfg.scene.entities["robot"].init_state.pos == (0.0, 0.0, 0.39)
+  assert actor.func.frame_dim == 47 and actor.func.history_length == 10
+  assert critic.func.frame_dim == 65 and critic.func.history_length == 3
+  assert cfg.actions["joint_pos"].delay_min_lag == 1
+  assert cfg.actions["joint_pos"].delay_max_lag == 3
+  assert cfg.commands["jump_target"].ranges.lin_vel_x == (0.8, 1.2)
+  assert cfg.events["friction"].params["num_buckets"] == 64
+  assert set(cfg.rewards) == {
+    "before_setting", "line_z", "flight", "base_height_flight",
+    "base_height_stance", "orientation", "dof_pos", "dof_hip_pos",
+    "ang_vel_xy", "torques", "dof_pos_limits", "dof_vel_limits",
+    "dof_vel", "collision", "action_rate", "land_pos", "tracking_lin_vel",
+    "line_vel_stance", "feet_contact_forces", "foot_clearance",
+  }
+  rl = load_rl_cfg("Unitree-Go2-Spring-Jump-Flat")
+  assert rl.max_iterations == 50_000
+  assert rl.algorithm.learning_rate == 1.0e-5
+  assert rl.algorithm.class_name == (
+    "lloco.tasks.go2_skills.spring_jump.mdp.symmetry:SourceSymmetricPPO"
+  )
 
 
 def test_trot_timing_initial_state_and_action() -> None:

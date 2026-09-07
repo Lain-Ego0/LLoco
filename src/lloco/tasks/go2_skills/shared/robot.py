@@ -93,6 +93,13 @@ def jump_robot_cfg():
   return cfg
 
 
+def spring_jump_robot_cfg():
+  """Gym spring-jump has Jump's asymmetric pose but starts at 0.39 m."""
+  cfg = jump_robot_cfg()
+  cfg.init_state.pos = (0.0, 0.0, 0.39)
+  return cfg
+
+
 def rear_stand_robot_cfg():
   cfg = deepcopy(get_go2_robot_cfg())
   cfg.init_state.pos = (0.0, 0.0, 0.42)
