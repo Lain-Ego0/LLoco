@@ -54,7 +54,10 @@ def make_amp_dreamwaq_env_cfg(*, play: bool = False):
   # terminal cost and happens not to fall into this basin under PhysX.  These
   # two backend-adaptation terms remove that early-termination optimum; they
   # do not alter the target pose, commands, observations, or AMP objective.
-  cfg.rewards["alive"] = RewardTermCfg(func=env_mdp.is_alive, weight=1.)
+  # Keep a small backend survival bridge: the terminal cost prevents the
+  # early-fall loophole, while a large per-step alive bonus creates a static
+  # policy that ignores velocity commands in MuJoCo.
+  cfg.rewards["alive"] = RewardTermCfg(func=env_mdp.is_alive, weight=.1)
   cfg.rewards["termination"] = RewardTermCfg(
     func=shared_rl.terminal_cost, weight=-5.
   )

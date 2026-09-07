@@ -19,7 +19,7 @@ def test_amp_source_configuration() -> None:
   command = cast(Any, env.commands["twist"])
   assert env.observations["actor"].terms["frame"].params["joint_position_noise"] == .01
   assert "amp_terminal_state" in env.recorders
-  assert env.rewards["alive"].weight == 1.0
+  assert env.rewards["alive"].weight == .1
   assert env.rewards["termination"].weight == -5.0
   assert command.ranges.lin_vel_y == (-.6, .6)
   assert runner.algorithm.amp_replay_buffer_size == 1_000_000

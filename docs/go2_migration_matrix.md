@@ -12,7 +12,7 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | stage-1 runnable; one-shot state-machine and source training assist migrated |
 | `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | incomplete; implementation retained outside registry: 2048×1000 verifies runtime only, not stable takeoff/landing |
 | `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | accepted; smoke, 2048 × 1000 from-zero validation, 1000-round continuation and Viser playback passed |
-| `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | accepted; corrected AMP pipeline, 2048 x 1000 from-zero training and 64-environment deterministic playback passed |
+| `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | corrected AMP pipeline; velocity-recovery continuation reached 2000 iterations, directional tracking improved; longer acceptance still pending |
 | `go2_cts` | `Unitree-Go2-CTS-Rough` | `Go2_Cts/Go2_Cts_Config.py` | `Go2_Cts/Go2_Cts.py` | pending |
 | `go2_amp_cts` | `Unitree-Go2-AMP-CTS-Rough` | `Go2_AMP_Cts/Go2_AMP_Cts_Config.py` | `Go2_AMP_Cts/Go2_AMP_Cts.py` | pending |
 | `go2_amp_ts` | `Unitree-Go2-AMP-TS-Teacher-Rough` | `Go2_AMP_Ts/Go2_AMP_Ts_Config.py` | `base/legged_robot_amp_ts.py` | pending |
@@ -66,6 +66,16 @@ disabled, 64 randomized environments were each run for 1,000 steps: 63 reached
 the time limit, only 2 non-timeout terminations occurred, and completed episode
 length averaged 982.85 steps. The accepted run is stored under
 `logs/rsl_rl/go2_amp_dreamwaq/2026-09-07_16-50-47_corrected_amp_survival_2048x1000`.
+
+The initial checkpoint was then continued from `model_999.pt` with the alive
+bridge reduced from `1.0` to `0.1` while retaining the `-5` terminal cost. The
+resulting `model_1999.pt` is stored under
+`logs/rsl_rl/go2_amp_dreamwaq/2026-09-07_18-16-24_velocity_recovery_alive01_to2000`.
+In a fixed-command 300-step steady-state test, it reached `+0.875 m/s` for a
+`+1.0 m/s` forward command, `-0.879 m/s` for `-1.0 m/s`, `+0.506 m/s` for
+`+0.6 m/s` lateral, and `+0.772 rad/s` for `+1.0 rad/s` yaw. This improves
+substantially over the first checkpoint, but residual tracking error remains,
+so the task is not yet marked fully Gym-equivalent.
 
 ## Trot parity table
 
