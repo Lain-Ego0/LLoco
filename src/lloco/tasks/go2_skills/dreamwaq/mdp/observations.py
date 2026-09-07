@@ -33,11 +33,11 @@ def _actor_frame(env, command_name: str) -> torch.Tensor:
   ), dim=1)
 
 
-def _noise(frame: torch.Tensor) -> torch.Tensor:
+def _noise(frame: torch.Tensor, joint_position_noise: float = 0.02) -> torch.Tensor:
   # Source noise vector: cmd/action 0; ang vel .2*.25; gravity .05;
-  # q .02; dq 1.5*.05.
+  # q is task-specific (.02 for DreamWaQ, .01 for AMP); dq 1.5*.05.
   amplitude = torch.tensor(
-    [0.0] * 3 + [0.05] * 3 + [0.05] * 3 + [0.02] * 12
+    [0.0] * 3 + [0.05] * 3 + [0.05] * 3 + [joint_position_noise] * 12
     + [0.075] * 12 + [0.0] * 12,
     device=frame.device,
     dtype=frame.dtype,
@@ -55,9 +55,17 @@ class DreamActor:
     # Share the source's previous actor frame through the environment instead.
     env._dreamwaq_actor_term = self
 
-  def __call__(self, env, command_name: str, add_noise: bool) -> torch.Tensor:
+  def __call__(
+    self,
+    env,
+    command_name: str,
+    add_noise: bool,
+    joint_position_noise: float = 0.02,
+  ) -> torch.Tensor:
     frame = _actor_frame(env, command_name)
-    self._current.copy_(_noise(frame) if add_noise else frame)
+    self._current.copy_(
+      _noise(frame, joint_position_noise) if add_noise else frame
+    )
     return self._current
 
   def reset(self, env_ids=None) -> None:
@@ -94,7 +102,7 @@ class DreamCriticHistory:
 
   def __call__(self, env, command_name: str, sensor_name: str) -> torch.Tensor:
     robot: Entity = env.scene["robot"]
-    ids = _joint_ids(robot)
+    _joint_ids(robot)
     scan = env.scene[sensor_name].data
     # ``height_scan`` is base Z minus terrain height.  The Gym value is
     # clip(base_z - .5 - terrain_height, -1, 1) * 5.

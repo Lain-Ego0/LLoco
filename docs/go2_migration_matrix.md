@@ -11,14 +11,61 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | `go2_leggedstand` | `Unitree-Go2-Handstand-Flat` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand_Config.py` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand.py` | accepted; 2048 x 800 zero-initialized training and deterministic playback passed |
 | `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | stage-1 runnable; one-shot state-machine and source training assist migrated |
 | `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | incomplete; implementation retained outside registry: 2048×1000 verifies runtime only, not stable takeoff/landing |
-| `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | in progress; source 45/261×3/225 observation and DreamWaQ VAE-PPO adapter implemented; validation pending |
-| `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | pending |
+| `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | accepted; smoke, 2048 × 1000 from-zero validation, 1000-round continuation and Viser playback passed |
+| `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | accepted; corrected AMP pipeline, 2048 x 1000 from-zero training and 64-environment deterministic playback passed |
 | `go2_cts` | `Unitree-Go2-CTS-Rough` | `Go2_Cts/Go2_Cts_Config.py` | `Go2_Cts/Go2_Cts.py` | pending |
 | `go2_amp_cts` | `Unitree-Go2-AMP-CTS-Rough` | `Go2_AMP_Cts/Go2_AMP_Cts_Config.py` | `Go2_AMP_Cts/Go2_AMP_Cts.py` | pending |
 | `go2_amp_ts` | `Unitree-Go2-AMP-TS-Teacher-Rough` | `Go2_AMP_Ts/Go2_AMP_Ts_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 | `go2_amp_ts_student` | `Unitree-Go2-AMP-TS-Student-Rough` | `Go2_AMP_Ts/Go2_AMP_Ts_Student_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 | `go2_ts` | `Unitree-Go2-TS-Teacher-Rough` | `Go2_TS/Go2_TS_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 | `go2_ts_student` | `Unitree-Go2-TS-Student-Rough` | `Go2_TS/Go2_TS_Student_Config.py` | `base/legged_robot_amp_ts.py` | pending |
+
+## AMP-DreamWaQ parity table
+
+| Concern | Isaac Gym source | mjlab implementation |
+|---|---|---|
+| Terminal transition | captures AMP state before reset and substitutes it for done environments | pre-reset recorder exports the same 31-field terminal state; reset observations only seed the next episode |
+| AMP normalization | shared RunningMeanStd for policy/expert states, clipped to [-10, 10] | checkpointed float64 running moments and identical clipping/update order |
+| Policy data | 1,000,000-transition ring replay sampled across iterations | fixed-size 1,000,000-transition device replay buffer |
+| Expert data | 2,000,000 transitions evaluated at continuous `t` and `t + 0.02 s`, using each motion file's `FrameDuration` | same weighted time sampling and linear interpolation of discriminator fields; no adjacent-frame assumption |
+| Optimization | PPO and discriminator share one Adam step; trunk/head decay 1e-4/1e-2 | same combined loss, optimizer groups, gradient penalty and decay |
+| Exploration | per-joint minimum std is 5% of the softened joint range | same vector floor applied after every combined optimizer step |
+| Observation noise | joint position amplitude 0.01 | AMP actor overrides DreamWaQ's 0.02 amplitude with 0.01 |
+| Command distribution | lateral range +/-0.6, earlier speed schedule, 5% standing and independent 5% turn-in-place | dedicated AMP command term with the same distribution |
+
+The exact source reward has a zero terminal cost. Under MuJoCo, a random AMP
+policy reaches base-contact termination after roughly 15 steps and learns to
+use termination to avoid the net-negative early shaping return; a corrected
+2048-environment diagnostic run remained at 18 steps through iteration 360.
+The runnable migration therefore adds a +1 alive term and a one-time -5
+terminal cost as an explicit backend adaptation. These terms address the
+termination loophole while leaving every Gym reward component, target motion,
+observation, command, AMP objective, and final policy interface unchanged.
+
+The source configuration declares `reference_state_initialization_prob=0.85`,
+but its `reset_idx()` never reads that probability and always performs the
+ordinary randomized reset. The migration therefore deliberately does not add
+motion-reference initialization. The old `model_100.pt` predates the corrected
+AMP transition pipeline and must not be resumed or used for acceptance.
+
+### AMP-DreamWaQ acceptance result
+
+The corrected run started from random network weights with 2,048 environments,
+the full 2,000,000-transition expert preload and 1,000,000-transition policy
+replay. It completed 1,000 iterations without a numerical failure. From the
+first to the final iteration, mean episode length rose from 16.82 to 936.35,
+mean reward from -5.50 to 26.79, and the base-contact termination metric fell
+from 50.54 to 0.41. Linear/angular tracking terms reached 0.380/0.315. AMP loss
+settled at 0.188 with policy/expert discriminator predictions -0.623/+0.623,
+rather than collapsing toward the near-zero loss seen in the rejected run.
+
+`model_999.pt` contains the actor, critic, discriminator, AMP running moments,
+joint PPO/discriminator optimizer and VAE optimizer, and all saved tensors are
+finite. In deterministic inference with play-mode observation noise and pushes
+disabled, 64 randomized environments were each run for 1,000 steps: 63 reached
+the time limit, only 2 non-timeout terminations occurred, and completed episode
+length averaged 982.85 steps. The accepted run is stored under
+`logs/rsl_rl/go2_amp_dreamwaq/2026-09-07_16-50-47_corrected_amp_survival_2048x1000`.
 
 ## Trot parity table
 
