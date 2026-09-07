@@ -61,19 +61,22 @@ def test_spring_jump_single_environment_reset_step() -> None:
     env.close()
 
 
-def test_backflip_single_environment_reset_step() -> None:
-  cfg = load_env_cfg("Unitree-Go2-Backflip-Flat", play=True)
+def test_dreamwaq_single_environment_reset_step() -> None:
+  cfg = load_env_cfg("Unitree-Go2-DreamWaQ-Rough", play=True)
   env = ManagerBasedRlEnv(cfg, device="cpu")
   try:
     observations, _ = env.reset()
-    assert observations["actor"].shape == (1, 470)
-    assert observations["critic"].shape == (1, 150)
+    assert observations["actor"].shape == (1, 45)
+    assert observations["critic"].shape == (1, 783)
+    assert observations["history"].shape == (1, 225)
+    assert observations["velocity"].shape == (1, 3)
     observations, reward, *_ = env.step(torch.zeros((1, 12)))
-    assert torch.isfinite(observations["actor"]).all()
-    assert torch.isfinite(observations["critic"]).all()
+    assert all(torch.isfinite(value).all() for value in observations.values())
     assert torch.isfinite(reward).all()
   finally:
     env.close()
+
+
 
 
 def test_jump_vertical_contact_sign_after_settling() -> None:

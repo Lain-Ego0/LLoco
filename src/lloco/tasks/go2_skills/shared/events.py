@@ -97,6 +97,22 @@ def sample_restitution_label(
   labels[ids].uniform_(low, high)
 
 
+def dreamwaq_pd_labels(
+  env,
+  env_ids,
+  low: float = 0.9,
+  high: float = 1.1,
+) -> None:
+  """Store the independently sampled source gain multipliers for the critic."""
+  ids = resolve_env_ids(env, env_ids)
+  for attribute in ("_dreamwaq_p_gain", "_dreamwaq_d_gain"):
+    values = getattr(env, attribute, None)
+    if values is None:
+      values = torch.ones((env.num_envs, 12), device=env.device)
+      setattr(env, attribute, values)
+    values[ids].uniform_(low, high)
+
+
 def _scale_joint_field_and_store_label(
   env,
   env_ids,

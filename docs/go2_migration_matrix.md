@@ -10,8 +10,8 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | `go2_handstand` | `Unitree-Go2-Rear-Stand-Flat` | `Go2_Stand/Go2_Handstand/Go2_Handstand_Config.py` | `Go2_Stand/Go2_Handstand/Go2_Handstand.py` | accepted as Rear Stand; 4096 × 2000 training and Viser validation passed |
 | `go2_leggedstand` | `Unitree-Go2-Handstand-Flat` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand_Config.py` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand.py` | accepted; 2048 x 800 zero-initialized training and deterministic playback passed |
 | `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | stage-1 runnable; one-shot state-machine and source training assist migrated |
-| `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | accepted; CPU smoke, 2048 × 1000 from-zero PPO, checkpoint and Viser startup passed |
-| `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | pending |
+| `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | incomplete; implementation retained outside registry: 2048×1000 verifies runtime only, not stable takeoff/landing |
+| `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | in progress; source 45/261×3/225 observation and DreamWaQ VAE-PPO adapter implemented; validation pending |
 | `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | pending |
 | `go2_cts` | `Unitree-Go2-CTS-Rough` | `Go2_Cts/Go2_Cts_Config.py` | `Go2_Cts/Go2_Cts.py` | pending |
 | `go2_amp_cts` | `Unitree-Go2-AMP-CTS-Rough` | `Go2_AMP_Cts/Go2_AMP_Cts_Config.py` | `Go2_AMP_Cts/Go2_AMP_Cts.py` | pending |
@@ -107,14 +107,16 @@ non-mechanical formula repair. The source's substep observation latency and
 Isaac Gym `recomputeInertia=True` behavior likewise have no exact public
 mjlab equivalent.
 
-### Backflip validation
+### Backflip runtime-validation result
 
-The acceptance run used seed 1, 2048 environments, a random initial policy and
-no resume/load option for 1,000 PPO iterations. It completed normally and
-saved `model_999.pt` under
-`logs/rsl_rl/go2_backflip/2026-09-07_13-48-20_validation_2048x1000`.
-The final checkpoint was then loaded into the registered play environment with
-one environment and Viser; the server successfully listened on port 8080.
+The seed-1, 2,048-environment, 1,000-iteration run completed without a
+numerical/runtime failure and saved `model_999.pt` under
+`logs/rsl_rl/go2_backflip/2026-09-07_13-48-20_validation_2048x1000`; Viser
+also started with that checkpoint. This is **not** an acceptance result: the
+policy does not yet make a stable takeoff and landing, and the source base
+contact termination resets some attempts during takeoff. Backflip is therefore
+deliberately unregistered and remains incomplete; its implementation is kept
+only for diagnosis and future source-faithful repair.
 
 ## Rear Stand parity table (Gym source: `go2_handstand`)
 

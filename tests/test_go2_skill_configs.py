@@ -15,7 +15,8 @@ def test_only_completed_staged_skills_are_registered() -> None:
   assert "Unitree-Go2-Rear-Stand-Flat" in tasks
   assert "Unitree-Go2-Handstand-Flat" in tasks
   assert "Unitree-Go2-Spring-Jump-Flat" in tasks
-  incomplete = set()
+  assert "Unitree-Go2-DreamWaQ-Rough" in tasks
+  incomplete = {"Unitree-Go2-Backflip-Flat"}
   assert tasks.isdisjoint(incomplete)
 
 
@@ -50,36 +51,31 @@ def test_spring_jump_source_configuration() -> None:
 
 
 def test_backflip_source_configuration() -> None:
-  cfg = load_env_cfg("Unitree-Go2-Backflip-Flat")
-  actor = cfg.observations["actor"].terms["history"]
-  critic = cfg.observations["critic"].terms["history"]
+  tasks = set(list_tasks())
+  assert "Unitree-Go2-Backflip-Flat" not in tasks
+
+
+def test_dreamwaq_source_configuration() -> None:
+  cfg = load_env_cfg("Unitree-Go2-DreamWaQ-Rough")
   assert cfg.scene.num_envs == 4096
-  assert cfg.episode_length_s == 4.0
+  assert cfg.episode_length_s == 20.0
   assert cfg.sim.mujoco.timestep == 0.005
   assert cfg.decimation == 4
-  assert actor.func.frame_dim == 47 and actor.func.history_length == 10
-  assert critic.func.frame_dim == 50 and critic.func.history_length == 3
-  assert cfg.actions["joint_pos"].delay_min_lag == 1
-  assert cfg.actions["joint_pos"].delay_max_lag == 3
-  assert cfg.commands["flip"].ranges.lin_vel_x == (0.0, 0.0)
-  assert cfg.events["friction"].params["num_buckets"] == 64
-  assert cfg.events["friction"].params["low"] == 0.2
-  assert cfg.events["friction"].params["high"] == 1.25
-  assert {name: term.weight for name, term in cfg.rewards.items()} == {
-    "before_setting": 5.0, "line_z": 25.0, "angle_y": 10.0,
-    "base_height_flight": 5.0, "base_height_stance": 10.0,
-    "orientation": 10.0, "orientation_before": 2.0, "dof_pos": -0.2,
-    "line_vel_stance": -1.0, "ang_vel_xy": -0.2, "torques": -0.0001,
-    "dof_pos_limits": -10.0, "dof_vel_limits": -2.0, "dof_vel": -0.001,
-    "collision": -10.0, "action_rate": -0.01, "feet_contact_forces": -0.1,
-    "land_pos": 1.0, "symmetric_joints": -0.3, "default_hip_pos": -0.5,
+  assert cfg.commands["twist"].resampling_time_range == (10.0, 10.0)
+  assert cfg.commands["twist"].heading_command
+  assert cfg.actions["joint_pos"].scale == 0.25
+  assert set(cfg.rewards) == {
+    "tracking_lin_vel", "tracking_ang_vel", "lin_vel_z", "ang_vel_xy",
+    "orientation", "base_height", "torques", "dof_acc", "collision",
+    "action_rate", "dof_pos_limits", "action_smoothness", "stumble",
+    "foot_clearance",
   }
-  rl = load_rl_cfg("Unitree-Go2-Backflip-Flat")
-  assert rl.seed == 1
-  assert rl.max_iterations == 50_000
-  assert rl.num_steps_per_env == 24
-  assert rl.algorithm.learning_rate == 1.0e-5
-  assert rl.algorithm.symmetry_cfg is None
+  assert cfg.events["friction"].params == {"low": .2, "high": 1.25, "num_buckets": 64}
+  rl = load_rl_cfg("Unitree-Go2-DreamWaQ-Rough")
+  assert rl.seed == 1 and rl.num_steps_per_env == 24
+  assert rl.max_iterations == 20_000 and rl.save_interval == 500
+  assert rl.actor.class_name == "lloco.tasks.go2_skills.dreamwaq.mdp.rl:DreamWaQActor"
+  assert rl.algorithm.class_name == "lloco.tasks.go2_skills.dreamwaq.mdp.rl:DreamWaQPPO"
 
 
 def test_trot_timing_initial_state_and_action() -> None:

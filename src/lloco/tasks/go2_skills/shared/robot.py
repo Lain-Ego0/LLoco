@@ -100,6 +100,11 @@ def spring_jump_robot_cfg():
   return cfg
 
 
+def dreamwaq_robot_cfg():
+  """DreamWaQ uses Jump's asymmetric nominal stance and 20/.5 PD gains."""
+  return jump_robot_cfg()
+
+
 def rear_stand_robot_cfg():
   cfg = deepcopy(get_go2_robot_cfg())
   cfg.init_state.pos = (0.0, 0.0, 0.42)

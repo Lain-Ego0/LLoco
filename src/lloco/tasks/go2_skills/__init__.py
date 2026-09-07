@@ -5,4 +5,4 @@ from .configs import jump as jump
 from .configs import rear_stand as rear_stand
 from .configs import trot as trot
 from .configs import spring_jump as spring_jump
-from .configs import backflip as backflip
+from .configs import dreamwaq as dreamwaq
