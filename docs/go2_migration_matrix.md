@@ -10,7 +10,7 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | `go2_handstand` | `Unitree-Go2-Rear-Stand-Flat` | `Go2_Stand/Go2_Handstand/Go2_Handstand_Config.py` | `Go2_Stand/Go2_Handstand/Go2_Handstand.py` | accepted as Rear Stand; 4096 × 2000 training and Viser validation passed |
 | `go2_leggedstand` | `Unitree-Go2-Handstand-Flat` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand_Config.py` | `Go2_Stand/Go2_Leggedstand/Go2_Leggedstand.py` | accepted; 2048 x 800 zero-initialized training and deterministic playback passed |
 | `go2_spring_jump` | `Unitree-Go2-Spring-Jump-Flat` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump_Config.py` | `Go2_Flip/Go2_Spring_Jump/Go2_Spring_Jump.py` | stage-1 runnable; one-shot state-machine and source training assist migrated |
-| `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | pending |
+| `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | accepted; CPU smoke, 2048 × 1000 from-zero PPO, checkpoint and Viser startup passed |
 | `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | pending |
 | `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | pending |
 | `go2_cts` | `Unitree-Go2-CTS-Rough` | `Go2_Cts/Go2_Cts_Config.py` | `Go2_Cts/Go2_Cts.py` | pending |
@@ -87,6 +87,34 @@ attribute. The migration makes its repair explicit as
 cannot be mechanically copied from the checked-in source. Like the other
 tasks, substep IMU/motor latency and Isaac-Gym inertia recomputation remain
 backend limitations.
+
+## Backflip parity table
+
+| Concern | Isaac Gym source | mjlab implementation |
+|---|---|---|
+| Actor/critic observation | `[zeros(2), one-shot command, delayed angular velocity/projected gravity, delayed q/dq, action]`: 47 × 10; critic has the 50-field state frame × 3 | Same field order, scales, frame-major zero reset and actor-only uniform noise; projected gravity is retained rather than replaced by Euler angles |
+| Command/state | Command begins `[0,0,0]`; the final flag turns to 1 at random policy frame 50–59; tracks filtered contact flight, first landing, and maximum absolute pitch rate | Dedicated no-velocity one-shot command and per-environment flight/landing/max-pitch state |
+| Rewards | 20 nonzero terms: upward velocity, positive pitch rate before/during flight, height, rotation-complete orientation, origin landing, symmetry and penalties | Same weights, gates and source state variables; no symmetry-loss PPO extension because source `sym_loss=False` |
+| Auxiliary force | On trigger, source gives an 80%-initially-probable upward velocity addition 2.0–3.5; after flight, gives an angular-Y addition 2.0–2.5; probability fades to zero after 9,600 reward steps | Same two one-shot state transitions and source probability schedule |
+| Reset/termination | Exact nominal q/root reset; base contact or z ≤ 0.1; 4 s timeout | Same reset range, height and contact termination rules |
+| Randomization | 64 friction buckets [0.2, 1.25], base/link mass, COM, gains, encoder offset and 4 s velocity overwrite | Same native events and parameter ranges |
+| PPO | seed 1, 24 steps, 50k iterations, LR 1e-5, 512/256/128 ELU | Same rsl_rl 5.4.2-supported configuration |
+
+As in the checked-in Spring Jump source, Backflip's post-landing term refers
+to an undefined `stance_reward_sigma`. The migration makes its compatibility
+repair explicit as `exp(-5 * abs(base_height - 0.35))`; it is the only
+non-mechanical formula repair. The source's substep observation latency and
+Isaac Gym `recomputeInertia=True` behavior likewise have no exact public
+mjlab equivalent.
+
+### Backflip validation
+
+The acceptance run used seed 1, 2048 environments, a random initial policy and
+no resume/load option for 1,000 PPO iterations. It completed normally and
+saved `model_999.pt` under
+`logs/rsl_rl/go2_backflip/2026-09-07_13-48-20_validation_2048x1000`.
+The final checkpoint was then loaded into the registered play environment with
+one environment and Viser; the server successfully listened on port 8080.
 
 ## Rear Stand parity table (Gym source: `go2_handstand`)
 

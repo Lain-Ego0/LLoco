@@ -49,6 +49,39 @@ def test_spring_jump_source_configuration() -> None:
   )
 
 
+def test_backflip_source_configuration() -> None:
+  cfg = load_env_cfg("Unitree-Go2-Backflip-Flat")
+  actor = cfg.observations["actor"].terms["history"]
+  critic = cfg.observations["critic"].terms["history"]
+  assert cfg.scene.num_envs == 4096
+  assert cfg.episode_length_s == 4.0
+  assert cfg.sim.mujoco.timestep == 0.005
+  assert cfg.decimation == 4
+  assert actor.func.frame_dim == 47 and actor.func.history_length == 10
+  assert critic.func.frame_dim == 50 and critic.func.history_length == 3
+  assert cfg.actions["joint_pos"].delay_min_lag == 1
+  assert cfg.actions["joint_pos"].delay_max_lag == 3
+  assert cfg.commands["flip"].ranges.lin_vel_x == (0.0, 0.0)
+  assert cfg.events["friction"].params["num_buckets"] == 64
+  assert cfg.events["friction"].params["low"] == 0.2
+  assert cfg.events["friction"].params["high"] == 1.25
+  assert {name: term.weight for name, term in cfg.rewards.items()} == {
+    "before_setting": 5.0, "line_z": 25.0, "angle_y": 10.0,
+    "base_height_flight": 5.0, "base_height_stance": 10.0,
+    "orientation": 10.0, "orientation_before": 2.0, "dof_pos": -0.2,
+    "line_vel_stance": -1.0, "ang_vel_xy": -0.2, "torques": -0.0001,
+    "dof_pos_limits": -10.0, "dof_vel_limits": -2.0, "dof_vel": -0.001,
+    "collision": -10.0, "action_rate": -0.01, "feet_contact_forces": -0.1,
+    "land_pos": 1.0, "symmetric_joints": -0.3, "default_hip_pos": -0.5,
+  }
+  rl = load_rl_cfg("Unitree-Go2-Backflip-Flat")
+  assert rl.seed == 1
+  assert rl.max_iterations == 50_000
+  assert rl.num_steps_per_env == 24
+  assert rl.algorithm.learning_rate == 1.0e-5
+  assert rl.algorithm.symmetry_cfg is None
+
+
 def test_trot_timing_initial_state_and_action() -> None:
   cfg = load_env_cfg("Unitree-Go2-Trot-Flat")
   robot = cfg.scene.entities["robot"]
