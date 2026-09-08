@@ -13,12 +13,49 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | `go2_backflip` | `Unitree-Go2-Backflip-Flat` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip_Config.py` | `Go2_Flip/Go2_BackFlip/Go2_BackFlip.py` | incomplete; implementation retained outside registry: 2048×1000 verifies runtime only, not stable takeoff/landing |
 | `go2_dreamwaq` | `Unitree-Go2-DreamWaQ-Rough` | `Go2_DreamWaQ/Go2_DreamWaQ_Config.py` | `Go2_DreamWaQ/Go2_DreamWaQ.py` | accepted; smoke, 2048 × 1000 from-zero validation, 1000-round continuation and Viser playback passed |
 | `go2_amp_dreamwaq` | `Unitree-Go2-AMP-DreamWaQ-Rough` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ_Config.py` | `Go2_AMP_DreamWaQ/Go2_AMP_DreamWaQ.py` | corrected AMP pipeline; velocity-recovery continuation reached 2000 iterations, directional tracking improved; longer acceptance still pending |
-| `go2_cts` | `Unitree-Go2-CTS-Rough` | `Go2_Cts/Go2_Cts_Config.py` | `Go2_Cts/Go2_Cts.py` | pending |
+| `go2_cts` | `Unitree-Go2-CTS-Rough` | `Go2_Cts/Go2_Cts_Config.py` | `Go2_Cts/Go2_Cts.py` | diagnostic; the earlier 1500 run survives but Viser/rollout exposes a folded-leg sitting policy; corrected-physics retraining is gated below |
 | `go2_amp_cts` | `Unitree-Go2-AMP-CTS-Rough` | `Go2_AMP_Cts/Go2_AMP_Cts_Config.py` | `Go2_AMP_Cts/Go2_AMP_Cts.py` | pending |
 | `go2_amp_ts` | `Unitree-Go2-AMP-TS-Teacher-Rough` | `Go2_AMP_Ts/Go2_AMP_Ts_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 | `go2_amp_ts_student` | `Unitree-Go2-AMP-TS-Student-Rough` | `Go2_AMP_Ts/Go2_AMP_Ts_Student_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 | `go2_ts` | `Unitree-Go2-TS-Teacher-Rough` | `Go2_TS/Go2_TS_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 | `go2_ts_student` | `Unitree-Go2-TS-Student-Rough` | `Go2_TS/Go2_TS_Student_Config.py` | `base/legged_robot_amp_ts.py` | pending |
+
+## CTS parity table
+
+| Concern | Isaac Gym source | mjlab implementation |
+|---|---|---|
+| Actor/student observation | noisy 45-field frame and five-frame history (225 fields) | `actor` 45, `history` 225 with source command/IMU/joint/action ordering |
+| Teacher observation | 233 privileged fields: domain labels, four contacts and 187 terrain heights | `teacher` 233 with the same field count and terrain/contact sources; base-COM labels now report the applied offset rather than zero |
+| Critic observation | 278 fields: clean actor frame plus privileged teacher state | `critic` 278, with clean actor frame concatenated to teacher state |
+| Concurrent training | 75% teacher environments, 25% student environments; latent alignment loss | CTS PPO uses the same modulo-4 split and a separate student encoder optimizer |
+| Policy | teacher encoder or history encoder → 32-D latent → shared actor; student encoder used at inference | `CtsStudentPolicy` preserves this deployment boundary; Viser/play uses only actor + history |
+| Robot/contact model | armature 0.00448, URDF collision primitives, cylinder-to-capsule conversion | CTS-specific model matches armature and all 27 source collision primitives; MuJoCo self-contact remains disabled because the direct bit-mask translation is not pairwise equivalent |
+| Base termination | contact on the URDF `base` rigid body (the chassis box) | contact on `base1_collision`; matching merged `base_link` was wrong because it also included both head collision geoms |
+| Stateful costs | prior velocity and two prior actions are cleared on reset | CTS reward classes clear their per-environment histories on reset |
+| Backend adaptation | source base-height scale -2, zero terminal reward | source scale and zero terminal reward retained; a squared barrier active only below 0.30 m penalizes MuJoCo's folded-leg equilibrium without changing normal-gait reward ratios |
+
+The earlier survival bridge is rejected: deterministic playback of its 1500
+checkpoint settles near 0.285 m, and a posture-weighted variant settles near
+0.184 m.  Both teacher and student choose the same pose, so this is not a
+distillation-only failure.  Auditing found that the shared MJCF's thigh box was
+almost twice the source length, omitted four lower-calf primitives, lacked the
+source armature, and treated the two merged head geoms as base-contact
+terminations.  The last item is the main early-collapse cause: a source-reward
+2048 x 100 gate using merged-base termination fell to 15--21 steps, whereas
+chassis-box-only termination reached 983.85 steps and 0.083 base contacts.
+That checkpoint still sat near 0.18 m, exposing a second backend-specific reward
+loophole.  Raising the global base-height scale from -2 to -10 recovered a
+0.333 m zero-command pose after 500 updates, but both teacher and student
+produced effectively zero velocity for a fixed +0.5 m/s command.  The global
+scale is rejected because it weakens velocity tracking by a factor of five
+relative to height.  A hard low-height termination is also rejected: it reset
+nearly all random-policy rollouts after about 10 steps.  The current localized
+barrier keeps the source -2 scale and is zero above 0.30 m; its staged 220-update
+diagnostic reached 0.288--0.290 m without early collapse, but teacher and student
+still produced only 0 to -0.006 m/s for +0.5 m/s.  The training-time tracking
+reward is therefore being supplied mainly by stochastic exploration (action
+std about 0.4), not the deterministic actor mean.  No CTS checkpoint is
+currently accepted for long training or deployment.
 
 ## AMP-DreamWaQ parity table
 

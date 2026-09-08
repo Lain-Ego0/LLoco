@@ -7,3 +7,4 @@ from .configs import trot as trot
 from .configs import spring_jump as spring_jump
 from .configs import dreamwaq as dreamwaq
 from .configs import amp_dreamwaq as amp_dreamwaq
+from .configs import cts as cts
