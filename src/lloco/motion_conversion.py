@@ -1,5 +1,6 @@
 """Local CSV-to-NPZ conversion for G1 motion-tracking tasks."""
 
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Literal
 
@@ -114,6 +115,7 @@ def convert_csv_to_npz(
   device: str = "cuda:0",
   render: bool = False,
   line_range: tuple[int, int] | None = None,
+  progress: Callable[[str, int, int], None] | None = None,
 ) -> Path:
   """Convert a motion CSV to a local tracking NPZ and return its path."""
   if device.startswith("cuda") and not torch.cuda.is_available():
@@ -171,7 +173,9 @@ def convert_csv_to_npz(
     renderer.initialize()
 
   scene.reset()
-  for _ in tqdm(
+  if progress:
+    progress("converting", 0, motion.output_frames)
+  for frame_index in tqdm(
     range(motion.output_frames),
     desc="Processing frames",
     unit="frame",
@@ -222,6 +226,13 @@ def convert_csv_to_npz(
       robot_entity.data.body_link_ang_vel_w[0].cpu().numpy().copy()
     )
 
+    if progress and (
+      (frame_index + 1) % 10 == 0 or frame_index + 1 == motion.output_frames
+    ):
+      progress("converting", frame_index + 1, motion.output_frames)
+
+  if progress:
+    progress("saving", motion.output_frames, motion.output_frames)
   for key in (
     "joint_pos",
     "joint_vel",

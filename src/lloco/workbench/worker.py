@@ -82,18 +82,88 @@ def main():
       if args.motion:
         sys.argv += ["--motion-file", args.motion]
       play()
+  elif action == "csv-convert":
+    parser.add_argument("--source", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--robot", choices=("g1", "g1_23dof"), required=True)
+    args = parser.parse_args()
+    from .motion_preview import Preview
+
+    preview = Preview()
+    preview.update(source=Path(args.source).name, output=args.output)
+    try:
+      from lloco.motion_conversion import convert_csv_to_npz
+
+      convert_csv_to_npz(
+        args.robot,
+        args.source,
+        args.output,
+        device="cpu",
+        progress=lambda stage, processed, total: preview.update(
+          stage=stage, processed=processed, total=total
+        ),
+      )
+      preview.update(stage="complete")
+    except Exception as error:
+      preview.update(stage="failed", error=str(error))
+      raise
   elif action in ("gmr-convert", "gmr-retarget"):
     parser.add_argument("--source", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
-    if action == "gmr-retarget":
-      from .retarget import retarget
+    from .motion_preview import Preview
 
-      retarget(Path(args.source), Path(args.output))
-    else:
-      from lloco.gmr_conversion import convert_gmr_to_npz
+    preview = Preview()
+    try:
+      if action == "gmr-retarget":
+        from .retarget import retarget
 
-      convert_gmr_to_npz(args.source, args.output, device="cpu")
+        retarget(Path(args.source), Path(args.output), preview)
+      else:
+        import pickle
+
+        import numpy as np
+
+        from lloco.gmr_conversion import convert_gmr_to_npz
+
+        with Path(args.source).open("rb") as stream:
+          motion = pickle.load(stream)
+        positions = np.asarray(motion["root_pos"])
+        rotations = np.asarray(motion["root_rot"])
+        joints = np.asarray(motion["dof_pos"])
+        fps = float(np.asarray(motion["fps"]).reshape(-1)[0])
+        if (
+          positions.ndim != 2
+          or positions.shape[1] != 3
+          or rotations.shape != (len(positions), 4)
+          or joints.shape != (len(positions), 29)
+          or not np.isfinite(fps)
+          or fps <= 0
+          or len(positions) < 2
+        ):
+          raise ValueError("GMR PKL 需要有效帧率和 G1 29-DoF 动作")
+        preview.update(
+          stage="converting",
+          total=len(positions),
+          fps=fps,
+          bones=[],
+          parents=[],
+          source=Path(args.source).name,
+          output=args.output,
+        )
+        for index in range(len(positions)):
+          if index % max(1, round(fps / 15)) == 0 or index == len(positions) - 1:
+            qpos = np.concatenate(
+              (positions[index], rotations[index, [3, 0, 1, 2]], joints[index])
+            )
+            preview.frame(index, fps, qpos)
+            preview.update(processed=index + 1)
+        convert_gmr_to_npz(args.source, args.output, device="cpu")
+      preview.update(stage="complete")
+    except Exception as error:
+      preview.update(stage="failed", error=str(error))
+      raise
+
   else:
     parser.error("Unknown worker action")
 

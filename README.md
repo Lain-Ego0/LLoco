@@ -85,7 +85,7 @@ uv run --extra workbench lloco-workbench
 浏览器打开 `http://127.0.0.1:7860`。工作台按固定顺序组织：
 
 1. **项目内 URDF/MJCF 查看器**：加载项目模型，或导入包含网格的目录；调节关节，显示坐标系、关节轴、碰撞体和惯量。
-2. **策略选择**：Velocity / Tracking 互斥展开；Tracking 内置 GMR 的 LAFAN1 BVH → G1 29-DoF 重定向，也支持已有 GMR PKL → NPZ。
+2. **策略选择**：Velocity / Tracking 互斥展开；Tracking 内置 GMR 的 LAFAN1 BVH → G1 29-DoF 重定向，从统一动作资产库选择输入，也支持已有 GMR PKL → NPZ；实时查看重定向进度、人体骨架与 G1 姿态，完成后通过时间轴回放。
 3. **算法选择**：Velocity / Tracking 分组；Go2 Skill 单独提供 DreamWaQ、AMP-DreamWaQ、CTS、TS Teacher 和动作模板。
 4. **训练**：设置迭代轮次、保存间隔、并行环境数；查看实时日志、停止任务，在内嵌 TensorBoard 中查看奖励和训练指标。
 5. **导出与验证**：浏览、选择、下载 checkpoint/ONNX，手动导出 ONNX，启动 CPU 单环境 Viser checkpoint 回放。
@@ -93,6 +93,8 @@ uv run --extra workbench lloco-workbench
 工作台源码在 `src/lloco/workbench/`，不改变 `tasks/` 中的训练算法与环境。
 查看器由 LLoco 自行实现：MuJoCo 解析模型，精简 Three.js 页面负责绘制；仅参考 `robot_viewer` 的功能思路，不复制其整套应用。查看器与 GMR 子集都在项目内运行。
 模型导入用于检查；训练仍使用已注册任务的机器人配置。GMR 当前限 LAFAN1 骨架和 G1 29-DoF，23-DoF 任务需使用对应 NPZ。Viser 当前回放 checkpoint，ONNX 是独立导出产物。
+
+动作集中在 `src/lloco/assets/motions/`。页面支持导入和选择文件，转换输出自动命名、入库，并选为训练动作。
 
 前端开发、模块边界和验证说明见 [工作台文档](docs/workbench.md)。
 

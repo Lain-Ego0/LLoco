@@ -42,6 +42,10 @@ class Handler(SimpleHTTPRequestHandler):
     self.root, self.jobs = root, jobs
     super().__init__(*args, directory=str(STATIC), **kwargs)
 
+  def end_headers(self):
+    self.send_header("Cache-Control", "no-store")
+    super().end_headers()
+
   def log_message(self, format, *args):
     pass
 
@@ -50,7 +54,6 @@ class Handler(SimpleHTTPRequestHandler):
     self.send_response(status)
     self.send_header("Content-Type", "application/json; charset=utf-8")
     self.send_header("Content-Length", str(len(data)))
-    self.send_header("Cache-Control", "no-store")
     self.end_headers()
     self.wfile.write(data)
 
@@ -75,25 +78,37 @@ class Handler(SimpleHTTPRequestHandler):
     query = parse_qs(url.query)
     try:
       if url.path == "/api/state":
-        motions = [
-          str(p.relative_to(self.root))
-          for base in (
-            self.root / "src/lloco/assets/motions",
-            self.root / ".lloco-workbench/motions",
-            self.root / "logs/motions",
-          )
-          for p in base.rglob("*.npz")
-          if p.is_file()
-        ]
+        from .motion_library import catalog
+
+        library = catalog(self.root)
+        motions = [entry["path"] for entry in library if entry["format"] == "npz"]
         self._json(
           dict(
             algorithms=ALGORITHMS,
             task_assets=TASK_ASSETS,
             motions=motions,
+            motion_library=library,
             artifacts=artifacts(self.root),
             jobs=self.jobs.list(),
           )
         )
+      elif url.path == "/api/motion-preview":
+        from .motion_preview import read_preview
+
+        identifier = query.get("id", [""])[0]
+        job = next((j for j in self.jobs.list() if j["id"] == identifier), None)
+        if not job or job["action"] not in (
+          "gmr-retarget",
+          "gmr-convert",
+          "csv-convert",
+        ):
+          raise ValueError("未找到重定向任务")
+        preview = read_preview(
+          self.jobs.directory / "previews" / identifier,
+          int(query.get("cursor", ["0"])[0]),
+        )
+        preview["job"] = job
+        self._json(preview)
       elif url.path == "/api/file":
         path = inside(self.root, query.get("path", [""])[0])
         allowed = {
@@ -138,7 +153,7 @@ class Handler(SimpleHTTPRequestHandler):
         < size
         <= (
           128 * 1024 * 1024
-          if urlparse(self.path).path == "/api/model-load"
+          if urlparse(self.path).path in ("/api/model-load", "/api/motion-import")
           else 1024 * 1024
         )
       ):
@@ -147,6 +162,19 @@ class Handler(SimpleHTTPRequestHandler):
       if not isinstance(body, dict):
         raise ValueError("请求必须是 JSON 对象")
       action = urlparse(self.path).path.removeprefix("/api/")
+      if action == "motion-import":
+        from .motion_library import import_file
+
+        self._json(import_file(self.root, body), 201)
+        return
+      if action == "motion-convert":
+        from .motion_library import conversion
+
+        action, body = conversion(self.root, body)
+      if action == "npz-preview":
+        from .npz_preview import load_motion
+        self._json(load_motion(self.root, body.get("path", "")))
+        return
       if action == "model-load":
         self._json(MODELS.load(self.root, body))
         return

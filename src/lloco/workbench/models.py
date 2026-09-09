@@ -113,6 +113,12 @@ class Models:
       model, data, initial = self.models[identifier]
       if request.get("reset"):
         data.qpos[:] = initial
+      elif "qpos" in request:
+        values = np.asarray(request["qpos"], dtype=float)
+        if values.shape != (model.nq,) or not np.isfinite(values).all():
+          raise ValueError("动作姿态维度或数值无效")
+        data.qpos[:] = values
+        mj.mj_normalizeQuat(model, data.qpos)
       elif "joint" in request:
         joint, value = int(request["joint"]), float(request["value"])
         if not 0 <= joint < model.njnt or not np.isfinite(value):

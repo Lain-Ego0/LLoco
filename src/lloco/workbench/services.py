@@ -78,14 +78,22 @@ def command(root: Path, action: str, body: dict) -> list[str]:
     if motion:
       result += ["--motion", *motion]
     return result
-  if action in ("gmr-convert", "gmr-retarget"):
+  if action in ("gmr-convert", "gmr-retarget", "csv-convert"):
     source = inside(
-      root, body.get("source", ""), ".pkl" if action == "gmr-convert" else ".bvh"
+      root,
+      body.get("source", ""),
+      {"gmr-convert": ".pkl", "gmr-retarget": ".bvh", "csv-convert": ".csv"}[action],
     )
     output = inside(root, body.get("output", ""))
     if output.suffix != ".npz" or output.exists():
       raise ValueError("输出必须是尚不存在的 .npz 路径")
-    return worker + [action, "--source", str(source), "--output", str(output)]
+    result = worker + [action, "--source", str(source), "--output", str(output)]
+    if action == "csv-convert":
+      robot = body.get("robot", "g1")
+      if robot not in ("g1", "g1_23dof"):
+        raise ValueError("无效目标机器人")
+      result += ["--robot", robot]
+    return result
   if action == "tensorboard":
     return [
       python,
@@ -136,7 +144,11 @@ class Jobs:
           stdout=log,
           stderr=subprocess.STDOUT,
           start_new_session=True,
-          env={**os.environ, "PYTHONUNBUFFERED": "1"},
+          env={
+            **os.environ,
+            "PYTHONUNBUFFERED": "1",
+            "LLOCO_PREVIEW_DIR": str(self.directory / "previews" / identifier),
+          },
         )
       record = dict(
         id=identifier,

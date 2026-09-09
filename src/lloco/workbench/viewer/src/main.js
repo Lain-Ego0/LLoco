@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const $ = (id) => document.getElementById(id);
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#101b27");
+scene.background = new THREE.Color("#edf0f3");
 const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
 camera.up.set(0, 0, 1);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -15,7 +15,7 @@ scene.add(new THREE.HemisphereLight(0xdcefff, 0x435265, 2.5));
 const light = new THREE.DirectionalLight(0xffffff, 3);
 light.position.set(3, -4, 6);
 scene.add(light);
-const grid = new THREE.GridHelper(10, 100, 0x426074, 0x243747);
+const grid = new THREE.GridHelper(10, 100, 0xaab7c3, 0xd5dde4);
 grid.rotation.x = Math.PI / 2;
 scene.add(grid);
 const layers = Object.fromEntries(
@@ -400,3 +400,8 @@ renderer.setAnimationLoop(() => {
   orbit.update();
   renderer.render(scene, camera);
 });
+
+export { model, api, show, update, scene, camera, orbit, layers, status };
+if (new URLSearchParams(location.search).has("motion")) {
+  import("./motion.js").then((module) => module.start());
+}
