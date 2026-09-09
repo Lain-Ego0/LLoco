@@ -124,14 +124,14 @@
           <geom class="visual" rgba="0.79216 0.81961 0.93333 1" mesh="RR_thigh" />
           <geom name="RR_thigh1_collision" class="collision" size="0.04 0.05" pos="0 0.03 0" quat="0.707035 0.707179 0 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1"/>
           <geom name="RR_thigh2_collision" class="collision" size="0.0225 0.015 0.07" pos="-0.02 0 -0.09" quat="0.99875 0 0.0499792 0" type="box" rgba="0.79216 0.81961 0.93333 1"/>
-          <geom name="RR_thigh3_collision" class="collision"size="0.005 0.0175 0.02" pos="-0.02 0 -0.21" quat="0.926798 0 -0.375559 0" type="box" rgba="0.79216 0.81961 0.93333 1"/>
+          <geom name="RR_thigh3_collision" class="collision" size="0.005 0.0175 0.02" pos="-0.02 0 -0.21" quat="0.926798 0 -0.375559 0" type="box" rgba="0.79216 0.81961 0.93333 1"/>
           <body name="RR_calf" pos="0 0 -0.212">
             <inertial pos="0.00621508 -6.48255e-05 -0.116143" quat="0.707354 -0.0114039 -0.0112421 0.706678" mass="0.265" diaginertia="0.00189025 0.00185663 7.2022e-05" />
             <joint name="RR_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7677 -0.8133"/>
             <geom class="visual" rgba="0.79216 0.81961 0.93333 1" mesh="RR_calf" />
             <geom name="RR_calf1_collision" class="collision" size="0.016 0.025" pos="0.01 0 -0.08" quat="0.991562 0 -0.129634 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1"/>
             <geom name="RR_calf2_collision" class="collision" size="0.012 0.03" pos="0.023 0 -0.13" quat="0.99875 0 -0.0499792 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1"/>
-            <geom name="RR_calf3_collision" class="collision"size="0.012 0.0275" pos="0.022 0 -0.185" quat="0.997189 0 0.0749297 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1"/>
+            <geom name="RR_calf3_collision" class="collision" size="0.012 0.0275" pos="0.022 0 -0.185" quat="0.997189 0 0.0749297 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1"/>
             <geom class="visual" pos="0 0 -0.21348" quat="1 0 0 0" rgba="0.79216 0.81961 0.93333 1" mesh="RR_foot" />
             <geom name="RR_foot_collision" class="collision" type="sphere" size="0.026" pos="0 0 -0.21348" rgba="0.698039 0.698039 0.698039 1"/>
             <site name="RR" pos="0 0 -0.21348" type="sphere" size="0.026"/>
