@@ -24,6 +24,10 @@ lloco-train = "lloco.cli:train"
 lloco-play = "lloco.cli:play"
 lloco-list-envs = "lloco.cli:list_envs"
 csv-to-npz = "lloco.cli:csv_to_npz"
+gmr-to-npz = "lloco.cli:gmr_to_npz"
+webui = "lloco.webui:main"
+lloco-webui = "lloco.webui:main"
+lloco-workbench = "lloco.workbench.server:main"
 
 [dependency-groups]
 dev = [
@@ -34,6 +38,7 @@ dev = [
 ]
 
 [project.optional-dependencies]
+workbench = ["mink>=0.0.13", "daqp>=0.6", "tensorboard>=2.16", "onnx>=1.16", "setuptools<81"]
 cu128 = ["torch>=2.7.0"]
 cpu = ["torch>=2.7.0"]
 
@@ -77,3 +82,7 @@ stubPath = "typings"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.uv.build-backend]
+source-exclude = ["src/lloco/workbench/viewer/node_modules/**"]
+wheel-exclude = ["lloco/workbench/viewer/node_modules/**"]

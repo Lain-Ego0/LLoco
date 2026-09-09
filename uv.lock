@@ -3,35 +3,35 @@ revision = 3
 requires-python = ">=3.10, <3.14"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version < '3.11' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version < '3.11' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
@@ -424,27 +424,27 @@ version = "1.3.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
@@ -559,6 +559,42 @@ wheels = [
 ]
 
 [[package]]
+name = "daqp"
+version = "0.9.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/a2/a4d93becb2fa45131a8d283643799b53ce95e659377e0dbe715243a439bc/daqp-0.9.1.tar.gz", hash = "sha256:5c25df894114bda14ad6db5179a3210fc6a3510e71b6196ef488dd809a139443", size = 51862, upload-time = "2026-08-16T14:59:46.227Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/ac/760bfd6b2b4f820b636ee0604c707fd392378acd65e088f0ff5540743d8c/daqp-0.9.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f504844f5bb9c64e34d269562bf34636328e56f88514e0bf336f14e515490b6a", size = 189850, upload-time = "2026-08-16T15:08:25.704Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/12/a6a36407ee2d59ea7856d95066afc44ab5be5f6203ee762fd9814f95db27/daqp-0.9.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4cb1e570c87b95c14d3af1681b192269c608b6af516ff85b02da7373955af610", size = 177655, upload-time = "2026-08-16T15:08:26.756Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/45/a071182ccd5874bb39e410917863f6b3f7c4343455cc662650bcf3dfb823/daqp-0.9.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:1be609abc216d9638df4d7c3fe628519f3207bd2757d019da536d4b90db67181", size = 864760, upload-time = "2026-08-16T15:06:52.471Z" },
+    { url = "https://files.pythonhosted.org/packages/09/7d/82b6678f13d2e74b186383ab0fc25b1be04fcd6477ac20c4f863f89e2ae4/daqp-0.9.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3a674970785467e839bc432acf0f0470d52f5909e5e2c4a1a5520c51b5f6860b", size = 897666, upload-time = "2026-08-16T14:59:36.371Z" },
+    { url = "https://files.pythonhosted.org/packages/61/ee/af559a177a00ee0471c9f94216a644c85c468b1ef786d04d886800ed320d/daqp-0.9.1-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:013f8896cfa652da2bd24712235a55047e34ebc4293be40c2c2349e16bfebd0a", size = 855045, upload-time = "2026-08-16T15:06:53.877Z" },
+    { url = "https://files.pythonhosted.org/packages/77/66/888559c5d1d986627da037f9bd7791ad0a1b0a51c4047da71a4516035b60/daqp-0.9.1-cp310-cp310-win32.whl", hash = "sha256:e11456c42b2cbf67220e9f9426e89bc82ee4d1d8b0e14927dab4516f6b41046c", size = 126748, upload-time = "2026-08-16T15:07:36.291Z" },
+    { url = "https://files.pythonhosted.org/packages/84/4f/4a6eecd036d773c73352d668e2c9acff107e485804800981cad0c538cae6/daqp-0.9.1-cp310-cp310-win_amd64.whl", hash = "sha256:a384b306642b228fc3d8f67d8ed7eb5823b02f282f1b5fa48039d16ad71c4194", size = 153958, upload-time = "2026-08-16T15:07:37.213Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/d7/7dfff9a938bf842a70db2d42bd66c7a97c9d4c623d7b62278761b34316ec/daqp-0.9.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:880720f1d092d010e621b7641b1b6075ac9d824858e757438540e414d90262c5", size = 187915, upload-time = "2026-08-16T15:08:27.66Z" },
+    { url = "https://files.pythonhosted.org/packages/97/bd/049d60e60771ea36ab80a91afed122296edfec5ba77018b16092da9e0ceb/daqp-0.9.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:7b224cf77b497a7c8121aa9985bcc39e4c2ff9838b19cc9b884ed7371efc51a8", size = 176659, upload-time = "2026-08-16T15:08:28.52Z" },
+    { url = "https://files.pythonhosted.org/packages/50/fa/ce0526d2b7526ee67c6949f8480f8ee4117f55b3329af52a8937e3dffd18/daqp-0.9.1-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:d0c3f5f8e160a9b39e2750c356d02c76055dd7cd32b50d923f0bd6838802490a", size = 898307, upload-time = "2026-08-16T15:06:55.068Z" },
+    { url = "https://files.pythonhosted.org/packages/1b/99/9e0e010252990d07a17fbed1b9932779255d0544915e0157ef24eeb74e59/daqp-0.9.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:f3f53463ac42826e0b94ac3ac0cbb4c33462e1ad1162468249055976f5c31101", size = 931266, upload-time = "2026-08-16T14:59:37.897Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/6c/e154f9f869c6460be23b67f7b80670d8275d5c42f022b37a4f75fa35a763/daqp-0.9.1-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:54f2404ec1797126215a5c823268c93573dd9000bc30ce993442ab309af96813", size = 889515, upload-time = "2026-08-16T15:06:56.094Z" },
+    { url = "https://files.pythonhosted.org/packages/33/e2/e964703a184bd984a8b3b0c26d683df2cbcf4b5d35b561410f1375262d26/daqp-0.9.1-cp311-cp311-win32.whl", hash = "sha256:695d8865b2cd7718f78110b80f54a10503099020cbdd09aafcc8a66a555b467e", size = 126293, upload-time = "2026-08-16T15:07:38.249Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/8d/e5fde9a1bb07d8e5dc99ce1877071a0cdca9a224aa2efeab174e6f8fd973/daqp-0.9.1-cp311-cp311-win_amd64.whl", hash = "sha256:fccbdeaf8ef229f339f5c0616b82379db7496f0cdf7d83dfebcf53bef74d6d5d", size = 153855, upload-time = "2026-08-16T15:07:39.062Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/a7/1840988ae8afcf7964228b7d6eee587ae4f94ccfdbc54c7fe4cd0f88e831/daqp-0.9.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:dbd72a33b2e7918527dad96989d94edf374b84fe8d9861a4b1199cd51c2d24af", size = 183567, upload-time = "2026-08-16T15:08:29.569Z" },
+    { url = "https://files.pythonhosted.org/packages/1b/14/3046f22fc41911e2bf96d792b768e3b0ce87f6a6496cdc8dadb98b790409/daqp-0.9.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:2fad646b9805c870d665351d605b2b6231fc890397f23522e4da74da78d11482", size = 173619, upload-time = "2026-08-16T15:08:30.505Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/b5/ce13fd4d262ce1f46f2243b317cc56d5b048a4bcb99c0e7dfa6a4281f2aa/daqp-0.9.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:56d23ac3f1b2868fe8d74e71f83a829c8de0dca1bb9f214aee7a8da67d269d38", size = 888002, upload-time = "2026-08-16T15:06:57.201Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/e4/637a60588badf9dc49dd007d48079da8b160bcd495214efdf0771745f497/daqp-0.9.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:fad0c8786cefa36c9697ab6d11ae46ea889a5c685ecfa2f93b05e855e05c9ed7", size = 931878, upload-time = "2026-08-16T14:59:39.125Z" },
+    { url = "https://files.pythonhosted.org/packages/78/3d/27be102666229d2d6bd808721c39f776b6dda725a7aa5185fb2e6fbd69ca/daqp-0.9.1-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:33c95b33bf55eceb276a0273d5b548b21345a8fba546fc582c800fd530b2c803", size = 872178, upload-time = "2026-08-16T15:06:58.436Z" },
+    { url = "https://files.pythonhosted.org/packages/91/6f/be729ccb37197105205091a4b40c4d7f216bf80ddee3e8b188dc52cf9bf9/daqp-0.9.1-cp312-cp312-win32.whl", hash = "sha256:161413ac84419cab2318b0be752b85e5fa2882ceb6f6791180b9096e11d8853e", size = 123367, upload-time = "2026-08-16T15:07:39.939Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/c6/0d61bcbfc84b11b00923d7163a0276d2abc0f72a3e71a2933622d7f5ae50/daqp-0.9.1-cp312-cp312-win_amd64.whl", hash = "sha256:01752c16d126e95fbbf02187d75990e01c8d5d79cd4261288e147ccffa741a23", size = 149694, upload-time = "2026-08-16T15:07:40.939Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/b0/fd9fa84f23fe571c9096ad5a2e89a38210f39163d86914bde2df0c86f2eb/daqp-0.9.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:921ae44187dbfdb4ff883b9b92de10cb9acf1e27388417dd8389fb8c660fcaac", size = 182795, upload-time = "2026-08-16T15:08:31.392Z" },
+    { url = "https://files.pythonhosted.org/packages/96/68/6a51e1dc47fa4fdb3e5d121834bd0b80634aca6de2fde309570fcd385602/daqp-0.9.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:c543f3fa82a3498f133ffe72db039b1e19a678e209509a2ba8e7d6737b4c77a7", size = 172871, upload-time = "2026-08-16T15:08:32.311Z" },
+    { url = "https://files.pythonhosted.org/packages/26/35/4004e5e74a1c4804210e829091782bdd3fbba06e8a21cea607e926793560/daqp-0.9.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:05f82bbde8f8e2a37cbcff782cf366171e46e72a1833cfceb574eda92e56b1a3", size = 883128, upload-time = "2026-08-16T15:06:59.693Z" },
+    { url = "https://files.pythonhosted.org/packages/89/c5/ceee175feb4957bdcb6395f8ddc370885a7c567cd7019f2453ced627b06d/daqp-0.9.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1c01a1608c943361f133bc78d3c13834111d8abe8a505e1f57db8582c0af9a8f", size = 927641, upload-time = "2026-08-16T14:59:40.4Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/f0/d4d8d88d0780c57daf1e7a932a01ad64e9fe4c4ebcb79f1d1dcf50c94679/daqp-0.9.1-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:b36fdb51edc530f5273d3421c4d166c6e7c89195abe35d5ee33d05afd63b26e0", size = 867901, upload-time = "2026-08-16T15:07:00.657Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/42/aac1b0f4bdeb74d52ccf6341db5a7be0433ab15921cf89d7a9a545359d6b/daqp-0.9.1-cp313-cp313-win32.whl", hash = "sha256:d4aab45452555ec0686aa79d740c163c2167f19fec187d56426a13b0d95bb2a3", size = 123163, upload-time = "2026-08-16T15:07:41.811Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/b6/af28ccd2e0a53a7cbcf44ed672f06fe4cf3b04bea4a4d3127e3a96074b8e/daqp-0.9.1-cp313-cp313-win_amd64.whl", hash = "sha256:6acac458fb9474b171e80c47cfff3e2e080c1edc97ae1a33fba57f6b4116622f", size = 149497, upload-time = "2026-08-16T15:07:42.74Z" },
+]
+
+[[package]]
 name = "decorator"
 version = "5.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -643,7 +679,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.12' or (python_full_version == '3.12.*' and extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128') or (python_full_version == '3.12.*' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128') or (python_full_version >= '3.13' and extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11' or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -1001,27 +1037,27 @@ version = "9.6.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
@@ -1205,6 +1241,13 @@ cu128 = [
     { name = "torch", version = "2.9.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'darwin' and extra == 'extra-5-lloco-cu128') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
     { name = "torch", version = "2.9.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(sys_platform != 'darwin' and extra == 'extra-5-lloco-cu128') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
 ]
+workbench = [
+    { name = "daqp" },
+    { name = "mink" },
+    { name = "onnx" },
+    { name = "setuptools" },
+    { name = "tensorboard" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -1216,13 +1259,18 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "daqp", marker = "extra == 'workbench'", specifier = ">=0.6" },
+    { name = "mink", marker = "extra == 'workbench'", specifier = ">=0.0.13" },
     { name = "mjlab", specifier = "==1.6.0" },
+    { name = "onnx", marker = "extra == 'workbench'", specifier = ">=1.16" },
+    { name = "setuptools", marker = "extra == 'workbench'", specifier = "<81" },
+    { name = "tensorboard", marker = "extra == 'workbench'", specifier = ">=2.16" },
     { name = "torch", marker = "sys_platform == 'darwin' and extra == 'cpu'", specifier = ">=2.7.0" },
     { name = "torch", marker = "sys_platform == 'darwin' and extra == 'cu128'", specifier = ">=2.7.0" },
     { name = "torch", marker = "sys_platform != 'darwin' and extra == 'cpu'", specifier = ">=2.7.0", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "lloco", extra = "cpu" } },
     { name = "torch", marker = "sys_platform != 'darwin' and extra == 'cu128'", specifier = ">=2.7.0", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "lloco", extra = "cu128" } },
 ]
-provides-extras = ["cu128", "cpu"]
+provides-extras = ["workbench", "cu128", "cpu"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1578,6 +1626,51 @@ wheels = [
 ]
 
 [[package]]
+name = "mink"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mujoco" },
+    { name = "qpsolvers", extra = ["daqp"] },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f8/1c/6725f3410890998f9e04f91426687d0da2b4750abcf032f100133b45b409/mink-1.3.0.tar.gz", hash = "sha256:e9d34c97e21cd6c48f6b4071e080dbd34a0b9184520067b56728aac51c008d2d", size = 63819, upload-time = "2026-08-18T00:11:50.374Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/35/17/0ed49d18a52de97ab2e04ce197b96cb30191342deee4e43ec47f8bad0f0e/mink-1.3.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c91472e728e963b4d0df8ef98f210468bc6b186f58f0437cbded895da4f759b8", size = 81769, upload-time = "2026-08-18T00:11:00.288Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/9a/f0a65228da25b214e52de83a0b9aa2dc5e85718fb95d6e0b9516b9485b12/mink-1.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:82d0a5ce4b70ae93a97f119bb4dbe21275caf5a4cfedf62f269c3b70e4528345", size = 80430, upload-time = "2026-08-18T00:11:01.475Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/9d/6690370bfc81a0c4bf910e012befd32d80d4539e01220acc7d51e66d4494/mink-1.3.0-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:dd78b8c1bf75aa6b62bbe3da3bfbdb8aaf6c0d67ac7d4c47ea99f2c6609ed8a8", size = 83171, upload-time = "2026-08-18T00:11:02.66Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/1b/2e4c40678036798452bf90616168a14e82a519d652778347098b33093d20/mink-1.3.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:13d7f139d740aad82ae86ad24059ffd8d38bb566c71fd74a3d15ea6f8a2c45fd", size = 82319, upload-time = "2026-08-18T00:11:03.656Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/7a/1cb1003f2af5b6e02c6fca909934649b459b11707cc9078ac7a4fb00f7c6/mink-1.3.0-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:3ce888adc66c58bff02d512a2f779b953c17ec68518b6f0c06ba6b6cbd22ad99", size = 82303, upload-time = "2026-08-18T00:11:04.854Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/73/c3830ff6dbed7f713d2e264b5109b0ccc43c6a10c5f7fc4201dd3d953e8a/mink-1.3.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:1fc5c0f63e9a30a97e267b16a58709174075c745971172e2cb76bcfbb30d4150", size = 83358, upload-time = "2026-08-18T00:11:05.856Z" },
+    { url = "https://files.pythonhosted.org/packages/63/c4/9518dca0378604d3617208bc4e4a4c7fb419dc5342dd0fd16560337e8a48/mink-1.3.0-cp310-cp310-win32.whl", hash = "sha256:15428f6e6760763c06dc7cc169cc8a6b3bc39eb3a9f1714417c6a6ab5e23f527", size = 83930, upload-time = "2026-08-18T00:11:06.901Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/20/998d3b89172da474bd767f874ae0cc184857ec51e7f4027afbe3542b6bfd/mink-1.3.0-cp310-cp310-win_amd64.whl", hash = "sha256:d736cf0a5b7a7ec3b971f868bf5617a77281dbaeeaca54a0b33598230b95b831", size = 84653, upload-time = "2026-08-18T00:11:07.852Z" },
+    { url = "https://files.pythonhosted.org/packages/93/0b/038c6aa43fef0580ed168732318af8c62f017107543268cfa088ab612176/mink-1.3.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:f4ff5c2e42fd904101799721c577e566398c3b160be8add563d5ef9c1b295df7", size = 81767, upload-time = "2026-08-18T00:11:08.97Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/4c/e4af7b32e4caa5fbef49faceedc4421f142e3ecf7bcd1c78a2fb16cb7b2e/mink-1.3.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:39ed3f29e4f38fbec4a1d9b39269061ef1a26d834533bdb628d96a2ba8caf87f", size = 80434, upload-time = "2026-08-18T00:11:10.061Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/46/105635a8c050e57551bcdb0977ad2e1ef9315ea10ccc78e4988ded7810a4/mink-1.3.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:bb7d7acebeaa117c4373a391f6587a88d018343493756bbbd7d51cced8628c25", size = 83169, upload-time = "2026-08-18T00:11:11.224Z" },
+    { url = "https://files.pythonhosted.org/packages/32/cc/04e1b8427c231aa580d5270c7d162953daa5a6afa89b85c466b21105a506/mink-1.3.0-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:61c70f7b07c4e98dc785ade54e01cdb2a80a43e78514a6256caa0de325779ac2", size = 82319, upload-time = "2026-08-18T00:11:12.225Z" },
+    { url = "https://files.pythonhosted.org/packages/28/0d/41a2a6b2b4ba80de9d6fdec16677ec6b6c6fac07fa6223af07c956c4663b/mink-1.3.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:f36764ee1da3f8ace2ac7d9abaa9560e691ccfa71af69e7c1c34b4795bcada52", size = 82307, upload-time = "2026-08-18T00:11:13.25Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/03/bf6e70acbe5491e854186cbcc80264f755b276dfd3f1619e160f4d68f138/mink-1.3.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:ebe99cac5c84fd250c94434fc1b248347fb0b119bd869b3386d1fd939a561d84", size = 83360, upload-time = "2026-08-18T00:11:14.204Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/7f/133204ef3c5d94e7aa1c5fb1a74a426b9fe7015883d4cebae14812d6c38e/mink-1.3.0-cp311-cp311-win32.whl", hash = "sha256:20b6776a749bd2f19a8e65a805422d5bc31263a217771a2290d5167d29142da1", size = 83933, upload-time = "2026-08-18T00:11:15.307Z" },
+    { url = "https://files.pythonhosted.org/packages/be/be/3edcbbfd1a572692d1be61ec66a517cb38258e57aa37c20baddf02685b13/mink-1.3.0-cp311-cp311-win_amd64.whl", hash = "sha256:5e0dd9c36881565076ba952f921d52a1c126f818bc8d06c1678b2f34af4732dd", size = 84651, upload-time = "2026-08-18T00:11:16.292Z" },
+    { url = "https://files.pythonhosted.org/packages/64/18/1affc9b62cd44fede1d5690a8bda32e9925cd1ea9dbbebaeed61e1e1511f/mink-1.3.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:9e159ee00864a4fd342f0e7763a7f9796d29a318f071f983fc21beaa9b4d379c", size = 81812, upload-time = "2026-08-18T00:11:17.334Z" },
+    { url = "https://files.pythonhosted.org/packages/05/6a/cc5cbd86389b129e29f62407e2d2f117848ae2725b7899c3029f498e65f3/mink-1.3.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:ab7ab077bcc78de7fca1f21bd1bc55afe81c7b77546a771e8007887b630150f2", size = 80457, upload-time = "2026-08-18T00:11:18.341Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/b9/308b82a8a5cc4d3c593bc68d43dfa0d797ea22ee8e9d6f1244c06044753c/mink-1.3.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:5c31a4e3a43eb7d544d7803a2af36ca703d8b933189251d3f37cc2117b23e1ff", size = 83203, upload-time = "2026-08-18T00:11:19.393Z" },
+    { url = "https://files.pythonhosted.org/packages/50/fc/9c4ff7a0fe538ff8d4de384bf8fdc5445c3f209c2d5c1709cdd630c02cb3/mink-1.3.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:8a7ef637655ec8dbc1b8110e999090c4e8abaa84172a0c2b60b8a4e447d50a4f", size = 82332, upload-time = "2026-08-18T00:11:20.347Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/19/f32d6fa3734d3bf12e7f0ae3a93ce0f833f36f874b38420cb2fd85ec43a1/mink-1.3.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:21aed1433e42380be132db3f8355a2b3dd18dcb7d2528ebad173e6b3b953d632", size = 82349, upload-time = "2026-08-18T00:11:21.508Z" },
+    { url = "https://files.pythonhosted.org/packages/18/7f/9883e9b2bbbe675f20fde48abd63d0474e95ea3df273fd532e32ba9ce05c/mink-1.3.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:46e0c5d687bac715ec7521047803086d28bfa95fc1a2562ab7777b1bd43a64f7", size = 83389, upload-time = "2026-08-18T00:11:22.492Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/24/380386486b87b0ca7920b9ee26abd141eef565a89e1970b51225b97afee0/mink-1.3.0-cp312-cp312-win32.whl", hash = "sha256:0eff0cecc08456a580e1709550e8d0a84ba1434a436e8f6a417413ddce7ae91f", size = 84026, upload-time = "2026-08-18T00:11:23.479Z" },
+    { url = "https://files.pythonhosted.org/packages/87/b7/960000ec5bae07bc9f22e070a42eec40aeea9cd48ea556268ddd9e9ec13f/mink-1.3.0-cp312-cp312-win_amd64.whl", hash = "sha256:a250fd64af44f309f668ccdec5cee20719b50bb75a82422f29134af6c1d84003", size = 84669, upload-time = "2026-08-18T00:11:24.611Z" },
+    { url = "https://files.pythonhosted.org/packages/aa/ce/69b4a7923a3ddc0221dcb2a728fcfea8533b9670853a45751ecee810c496/mink-1.3.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:be77d4d04cec0ded234a86f6d4965d263ad2653a6ff314902d9296319366569b", size = 81811, upload-time = "2026-08-18T00:11:25.588Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/f4/c429084eaa7718ae7e041546a56a26617be0d004a72a5ea0cfa33ddc5810/mink-1.3.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:973e40520b2aa674d2a722ea67639f5d9fb2557bca39b9b802e65245916b16cf", size = 80461, upload-time = "2026-08-18T00:11:26.766Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/94/fdabb32792a8672fcc8c4451098f72af57f85a13fca6647f611e30754146/mink-1.3.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:e0bcb7a128c7a1728e174aa713720b26cce7e0c3b569e430d52d358a8b13e165", size = 83198, upload-time = "2026-08-18T00:11:27.752Z" },
+    { url = "https://files.pythonhosted.org/packages/96/66/9d5136767718bd3f57e4993acf4d5af267ffda43366bbb138e754b765286/mink-1.3.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:197b764058026c5aa5626441b4b34cb46f9f9afb197ee9adc822f85bd07d50e4", size = 82331, upload-time = "2026-08-18T00:11:28.75Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/f7/0d122071dd1245bf5e39b8a44c95dcd77bcd8ea622b4ef4315d21e38b973/mink-1.3.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:a46d81268c70e86528605eed91b990c98dd3ceafbbe7633ed4d4c7cb2d9c0820", size = 82340, upload-time = "2026-08-18T00:11:29.729Z" },
+    { url = "https://files.pythonhosted.org/packages/89/29/33a0f771311c82c230b464a8020571954314e150d13abbda8b0b1feafc53/mink-1.3.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:455140e7a7f36cd96c0cdef5d475d1fb1e819aed71f0b35b5ac77bdfa78beba8", size = 83381, upload-time = "2026-08-18T00:11:30.779Z" },
+    { url = "https://files.pythonhosted.org/packages/af/ff/22796eb3f7d371f0ad2d89ed85085d7c2004c7ed477c194e9114370d5390/mink-1.3.0-cp313-cp313-win32.whl", hash = "sha256:aea9f3420c816d3fdc1e0b45ca33e35baa812a4085d059334d271d0139dd83a8", size = 84017, upload-time = "2026-08-18T00:11:31.736Z" },
+    { url = "https://files.pythonhosted.org/packages/08/e4/e3c2a50c2a5f8bdf2d8103941ded42da19686fdeac6bea036315e3ec0712/mink-1.3.0-cp313-cp313-win_amd64.whl", hash = "sha256:43e5fd9c68b2c467dc5180866c679dd4ac5b43710297fa8c5b62e2dfbd7da5a2", size = 84664, upload-time = "2026-08-18T00:11:32.809Z" },
+]
+
+[[package]]
 name = "mjlab"
 version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1789,27 +1882,27 @@ version = "3.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
@@ -1973,20 +2066,20 @@ version = "2.5.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/22/fd/89965aa4ac08c74998539fcbf24fa3540f3e15237fbeb6bcf9c908f4aade/numpy-2.5.1.tar.gz", hash = "sha256:a48a113e6afea91f5608793bafa7ef2ad481fefbda87ec5069f483de61cb9fa3", size = 20755553, upload-time = "2026-07-04T17:08:00.933Z" }
@@ -2060,7 +2153,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.10.2.21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(sys_platform != 'darwin' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128') or (extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128')" },
+    { name = "nvidia-cublas-cu12", marker = "(sys_platform == 'linux' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/41/e79269ce215c857c935fd86bcfe91a451a584dfc27f1e068f568b9ad1ab7/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8", size = 705026878, upload-time = "2025-06-06T21:52:51.348Z" },
@@ -2073,7 +2166,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.3.83"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128') or (extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform == 'linux' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/60/bc/7771846d3a0272026c416fbb7e5f4c1f146d6d80704534d0b187dd6f4800/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:848ef7224d6305cdb2a4df928759dca7b1201874787083b6e7550dd6765ce69a", size = 193109211, upload-time = "2025-03-07T01:44:56.873Z" },
@@ -2105,9 +2198,9 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.3.90"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(sys_platform != 'darwin' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128') or (extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128')" },
-    { name = "nvidia-cusparse-cu12", marker = "(sys_platform != 'darwin' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128') or (extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128') or (extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128')" },
+    { name = "nvidia-cublas-cu12", marker = "(sys_platform == 'linux' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+    { name = "nvidia-cusparse-cu12", marker = "(sys_platform == 'linux' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform == 'linux' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/32/f7cd6ce8a7690544d084ea21c26e910a97e077c9b7f07bf5de623ee19981/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:db9ed69dbef9715071232caa9b69c52ac7de3a95773c2db65bdba85916e4e5c0", size = 267229841, upload-time = "2025-03-07T01:46:54.356Z" },
@@ -2120,7 +2213,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.8.93"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128') or (extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform == 'linux' and extra != 'extra-5-lloco-cpu') or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bc/f7/cd777c4109681367721b00a106f491e0d0d15cfa1fd59672ce580ce42a97/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b6c161cb130be1a07a27ea6923df8141f3c295852f4b260c65f18f3e0a091dc", size = 288117129, upload-time = "2025-03-07T01:47:40.407Z" },
@@ -2798,6 +2891,27 @@ wheels = [
 ]
 
 [[package]]
+name = "qpsolvers"
+version = "4.13.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11' or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*' or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11' or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+    { name = "scipy", version = "1.16.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11' or (extra == 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d1/aa/4d60a7065de30f07d7ead935eed364cf94fb0ad5607ddf1461f2bdf7ba17/qpsolvers-4.13.0.tar.gz", hash = "sha256:e86c4c16bf7c16fdbb8e6c0e4050bc1bfef72a25755211be66a492ac4c939a1c", size = 77317, upload-time = "2026-07-19T07:46:03.087Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2f/d0/f234961cb3ffbe381c3d82cd9c40fc7e67200c9f6b62a0f60235e74134b3/qpsolvers-4.13.0-py3-none-any.whl", hash = "sha256:7f23759a3d8835fa14b2c9eb4ba971188fde0c1460589f45897b00a75776eef7", size = 107113, upload-time = "2026-07-19T07:46:01.321Z" },
+]
+
+[package.optional-dependencies]
+daqp = [
+    { name = "daqp" },
+]
+
+[[package]]
 name = "referencing"
 version = "0.37.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3082,27 +3196,27 @@ version = "1.16.2"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
@@ -3169,11 +3283,11 @@ wheels = [
 
 [[package]]
 name = "setuptools"
-version = "83.0.0"
+version = "80.10.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/34/26/f5d29e25ffdb535afef2d35cdb55b325298f96debd670da4c325e08d70f4/setuptools-83.0.0.tar.gz", hash = "sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef", size = 1154254, upload-time = "2026-07-04T15:31:22.699Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/95/faf61eb8363f26aa7e1d762267a8d602a1b26d4f3a1e758e92cb3cb8b054/setuptools-80.10.2.tar.gz", hash = "sha256:8b0e9d10c784bf7d262c4e5ec5d4ec94127ce206e8738f29a437945fbc219b70", size = 1200343, upload-time = "2026-01-25T22:38:17.252Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl", hash = "sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3", size = 1008090, upload-time = "2026-07-04T15:31:20.885Z" },
+    { url = "https://files.pythonhosted.org/packages/94/b8/f1f62a5e3c0ad2ff1d189590bfa4c46b4f3b6e49cef6f26c6ee4e575394d/setuptools-80.10.2-py3-none-any.whl", hash = "sha256:95b30ddfb717250edb492926c92b5221f7ef3fbcc2b07579bcd4a27da21d0173", size = 1064234, upload-time = "2026-01-25T22:38:15.216Z" },
 ]
 
 [[package]]
@@ -3402,19 +3516,19 @@ version = "2.9.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version < '3.11' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version < '3.11' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
@@ -3473,8 +3587,8 @@ version = "2.9.0+cu128"
 source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux'",
     "python_full_version == '3.11.*' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux'",
@@ -3531,8 +3645,8 @@ version = "2.10.0+cpu"
 source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux'",
     "python_full_version == '3.11.*' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux'",
@@ -3606,27 +3720,27 @@ version = "0.24.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version < '3.11' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version >= '3.13' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
-    "python_full_version == '3.12.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version == '3.11.*' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'darwin' and extra != 'extra-5-lloco-cpu' and extra == 'extra-5-lloco-cu128'",
+    "python_full_version < '3.11' and sys_platform == 'darwin' and extra == 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version < '3.11' and sys_platform == 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
     "python_full_version < '3.11' and sys_platform != 'linux' and extra != 'extra-5-lloco-cpu' and extra != 'extra-5-lloco-cu128'",
 ]
@@ -3667,8 +3781,8 @@ version = "0.25.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'linux'",
-    "python_full_version == '3.12.*' and sys_platform == 'linux'",
     "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux'",
+    "python_full_version == '3.12.*' and sys_platform == 'linux'",
     "python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'linux'",
     "python_full_version == '3.11.*' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux'",

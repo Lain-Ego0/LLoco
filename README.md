@@ -75,6 +75,27 @@ uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
   --output-name dance1-subject2 --robot g1
 ```
 
+### 独立工作台
+
+```bash
+# 在 LLoco 根目录启动（webui / lloco-webui 兼容入口仍可用）
+uv run --extra workbench lloco-workbench
+```
+
+浏览器打开 `http://127.0.0.1:7860`。工作台按固定顺序组织：
+
+1. **项目内 URDF/MJCF 查看器**：加载项目模型，或导入包含网格的目录；调节关节，显示坐标系、关节轴、碰撞体和惯量。
+2. **策略选择**：Velocity / Tracking 互斥展开；Tracking 内置 GMR 的 LAFAN1 BVH → G1 29-DoF 重定向，也支持已有 GMR PKL → NPZ。
+3. **算法选择**：Velocity / Tracking 分组；Go2 Skill 单独提供 DreamWaQ、AMP-DreamWaQ、CTS、TS Teacher 和动作模板。
+4. **训练**：设置迭代轮次、保存间隔、并行环境数；查看实时日志、停止任务，在内嵌 TensorBoard 中查看奖励和训练指标。
+5. **导出与验证**：浏览、选择、下载 checkpoint/ONNX，手动导出 ONNX，启动 CPU 单环境 Viser checkpoint 回放。
+
+工作台源码在 `src/lloco/workbench/`，不改变 `tasks/` 中的训练算法与环境。
+查看器由 LLoco 自行实现：MuJoCo 解析模型，精简 Three.js 页面负责绘制；仅参考 `robot_viewer` 的功能思路，不复制其整套应用。查看器与 GMR 子集都在项目内运行。
+模型导入用于检查；训练仍使用已注册任务的机器人配置。GMR 当前限 LAFAN1 骨架和 G1 29-DoF，23-DoF 任务需使用对应 NPZ。Viser 当前回放 checkpoint，ONNX 是独立导出产物。
+
+前端开发、模块边界和验证说明见 [工作台文档](docs/workbench.md)。
+
 `csv-to-npz` 直接在本地生成 NPZ，不需要 Weights & Biases。`--output-name` 只传文件名时，输出会保存到输入 CSV 的同一目录；也可传入完整路径。G1-23DoF 动作使用 `--robot g1_23dof`。
 
 任务命名为 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough`。速度任务支持 A2、As2、Go2、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与 G1-23Dof。

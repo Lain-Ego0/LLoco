@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LLoco 模型检查</title>
+    
+    <script type="module" crossorigin src="/viewer/assets/index-d6637763.js"></script>
+    <link rel="stylesheet" href="/viewer/assets/index-08d05e9d.css">
+  </head>
+  <body>
+    <header>
+      <strong>LLoco <span>模型检查</span></strong>
+      <div>
+        <button id="import">导入目录</button
+        ><button id="importFiles">导入文件</button
+        ><button id="fit">适配视角</button><button id="reset">重置关节</button>
+      </div>
+    </header>
+    <input id="folder" type="file" webkitdirectory multiple hidden /><input
+      id="files"
+      type="file"
+      multiple
+      hidden
+    />
+    <div class="toolbar">
+      <label><input id="visual" type="checkbox" checked />视觉模型</label
+      ><label><input id="collision" type="checkbox" />碰撞体</label
+      ><label><input id="frames" type="checkbox" />坐标系</label
+      ><label><input id="axes" type="checkbox" />关节轴</label
+      ><label><input id="inertia" type="checkbox" />惯量</label
+      ><select id="entry" aria-label="导入目录中的模型" hidden></select
+      ><button id="loadEntry" hidden>加载所选模型</button>
+    </div>
+    <div class="workspace">
+      <div id="canvas">
+        <div id="empty">
+          导入 URDF / MJCF 模型<br /><small
+            >也可从工作台上方加载项目机器人</small
+          >
+        </div>
+        <span class="help">左键旋转 · 滚轮缩放 · 右键平移</span>
+      </div>
+      <aside>
+        <h3 id="name">尚未加载</h3>
+        <p id="counts"></p>
+        <details open>
+          <summary>关节姿态</summary>
+          <div id="joints"></div>
+        </details>
+        <details open>
+          <summary>连杆惯量</summary>
+          <select id="body" aria-label="连杆"></select>
+          <pre id="properties">选择连杆查看质量与主惯量。</pre>
+          <p class="hint">
+            椭球表示等效惯量，坐标系为连杆局部坐标。数值来自 MuJoCo 编译结果。
+          </p>
+        </details>
+      </aside>
+    </div>
+    <div id="status" role="status">
+      支持 MuJoCo 可编译的 URDF / MJCF，网格支持
+      STL、OBJ。目录需包含引用的资源。
+    </div>
+    
+  </body>
+</html>

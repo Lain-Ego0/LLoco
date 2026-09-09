@@ -37,3 +37,13 @@ def csv_to_npz() -> None:
   from lloco.motion_conversion import main
 
   tyro.cli(main, config=mjlab.TYRO_FLAGS)
+
+
+def gmr_to_npz() -> None:
+  """Convert a GMR retargeting pickle to a local tracking NPZ."""
+  import mjlab
+  import tyro
+
+  from lloco.gmr_conversion import main
+
+  tyro.cli(main, config=mjlab.TYRO_FLAGS)
