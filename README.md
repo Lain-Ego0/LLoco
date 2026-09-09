@@ -1,21 +1,12 @@
 # LLoco V0.1
 
-**LainLoco（简称 LLoco）** 是一个面向多厂商机器人的强化学习、仿真验证与部署项目，
-基于 **mjlab 1.6.0** 构建。它不是宇树官方项目，也不是 `mjlab` 的替代或分叉；
-`mjlab` 是固定版本的通用基础依赖，LLoco 在其上维护机器人资产、任务差异、训练验证
-契约和部署适配，而不复制整个仿真框架。
+**LainLoco（简称 LLoco）** 是一个面向多厂商机器人的强化学习、仿真验证与部署项目，基于 **mjlab 1.6.0** 构建。`mjlab` 作为固定版本的通用基础依赖，LLoco 在其上维护机器人资产、任务差异、训练验证契约和部署适配，并由上游持续提供仿真框架能力。
 
-当前仓库首先包含 Unitree 资产与任务，是因为这些资产构成了可验证的起点，而不是项目
-边界。后续会加入 LLoco 自己设计的机器人以及其他厂商的机器人资产；新增资产应遵循
-同一套“资产 → profile/任务 → 验证 → 部署适配”的路径，而非把厂商假设写进框架层。
+当前仓库以 Unitree 资产与任务作为可验证的起点。项目边界覆盖 LLoco 自己设计的机器人以及其他厂商的机器人资产；新增资产遵循统一的“资产 → profile/任务 → 验证 → 部署适配”路径，保持框架层的厂商中立性。
 
 ### 名称与愿景
 
-**LainLoco** 由 **Lain** 与 **Loco（locomotion，运动）** 组成。Lain 的命名灵感来自
-《**玲音 / Serial Experiments Lain**》对连接、身份与现实/网络边界的思考；Loco 指向
-机器人把感知、策略和执行转化为真实、可重复行为的运动能力。项目希望连接不同机器人
-形态与同一套训练/验证节奏：保留每台机器人的物理与控制个性，同时让资产接入、技能
-训练和部署验证有统一、清晰的接口。项目与该作品及其权利方没有官方关联。
+**LainLoco** 由 **Lain** 与 **Loco（locomotion，运动）** 组成。Lain 的命名灵感来自《**玲音 / Serial Experiments Lain**》对连接、身份与现实/网络边界的思考；Loco 指向机器人把感知、策略和执行转化为真实、可重复行为的运动能力。项目希望连接不同机器人形态与同一套训练/验证节奏：保留每台机器人的物理与控制个性，同时让资产接入、技能训练和部署验证有统一、清晰的接口。项目与该作品及其权利方没有官方关联。
 
 ### 项目定位与差异
 
@@ -28,10 +19,7 @@
 | 可验证性 | 提供框架级能力 | 以训练/部署工作流为主 | 为资产、配置、观测/奖励契约和 CPU smoke 保留项目级测试，并公开记录已知限制 |
 | 动作数据 | 提供通用工具与接口 | 面向 Unitree 工作流准备动作数据 | 在本地将 CSV 转为 NPZ，并按目标机器人校验关节列与自由度，不依赖 W&B |
 
-LLoco 的价值不在于重写 `mjlab`，而在于把“接入一台机器人”从一次性工程改造成可复用的
-产品路径：资产有归属、任务差异有边界、训练接口一致、验证结果可复现、部署代码与模型
-产物分离。上述定位同样意味着：新厂商或自研机器人必须经过资产与控制参数审查、smoke
-测试和任务验证后，才会被标记为可用。
+LLoco 将“接入一台机器人”组织为可复用的产品路径：资产有归属、任务差异有边界、训练接口一致、验证结果可复现、部署代码与模型产物分离。新厂商或自研机器人经过资产与控制参数审查、smoke 测试和任务验证后，进入可用任务集合。
 
 ## 目录结构
 
@@ -87,27 +75,17 @@ uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
   --output-name dance1-subject2 --robot g1
 ```
 
-`csv-to-npz` 直接在本地生成 NPZ，不需要 Weights & Biases。`--output-name`
-只传文件名时，输出会保存到输入 CSV 的同一目录；也可传入完整路径。
-G1-23DoF 动作使用 `--robot g1_23dof`。
+`csv-to-npz` 直接在本地生成 NPZ，不需要 Weights & Biases。`--output-name` 只传文件名时，输出会保存到输入 CSV 的同一目录；也可传入完整路径。G1-23DoF 动作使用 `--robot g1_23dof`。
 
-任务命名为 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough`。速度任务支持
-A2、As2、Go2、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与
-G1-23Dof。
+任务命名为 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough`。速度任务支持 A2、As2、Go2、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与 G1-23Dof。
 
 ## 运行验证与已知限制
 
-截至 2026-09-09，项目的 CPU 单环境 smoke 验证覆盖了已注册任务的环境构建、
-`reset` 与一步零动作执行，并检查了观测和奖励是否为有限值。所有 Go2 任务（含
-Go2 skill）、基础速度任务、Cartpole、Yam 操作任务和 29-DoF G1 跟踪任务均已通过。
+截至 2026-09-09，项目的 CPU 单环境 smoke 验证覆盖了已注册任务的环境构建、`reset` 与一步零动作执行，并检查了观测和奖励是否为有限值。所有 Go2 任务（含 Go2 skill）、基础速度任务、Cartpole、Yam 操作任务和 29-DoF G1 跟踪任务均已通过。
 
-- 跟踪任务必须提供与机器人自由度匹配的 NPZ 动作文件。命令行训练/回放时请设置
-  `motion_file`；仓库本地的 29-DoF G1 示例不能用于 `G1-23Dof` 跟踪任务。
-- `Unitree-H2-Rough` 和 `Unitree-R1-Rough` 当前的 MuJoCo-Warp 接触缓冲容量不足：
-  分别至少需要 `nconmax=80` 和 `nconmax=141`。提高该配置值后，两项任务可完成
-  smoke；在修复默认配置前请勿直接用默认设置启动训练。
-- Smoke 只验证初始化和单步数值稳定性，不代表策略已经收敛，也不替代长时间训练、
-  checkpoint 回放或真机验收。
+- 跟踪任务必须提供与机器人自由度匹配的 NPZ 动作文件。命令行训练/回放时请设置 `motion_file`；仓库本地的 29-DoF G1 示例不能用于 `G1-23Dof` 跟踪任务。
+- `Unitree-H2-Rough` 和 `Unitree-R1-Rough` 当前的 MuJoCo-Warp 接触缓冲容量不足：分别至少需要 `nconmax=80` 和 `nconmax=141`。提高该配置值后，两项任务可完成 smoke；在修复默认配置前请勿直接用默认设置启动训练。
+- Smoke 只验证初始化和单步数值稳定性，不代表策略已经收敛，也不替代长时间训练、checkpoint 回放或真机验收。
 
 ## 开发
 
@@ -116,47 +94,27 @@ make format
 make check
 ```
 
-机器人差异集中在 `src/lloco/tasks/velocity.py` 的 `PROFILES`。新增同类机器人时，
-通常只需增加资产常量和一个 profile，无需复制整套 MDP。
+机器人差异集中在 `src/lloco/tasks/velocity.py` 的 `PROFILES`。新增同类机器人时，通常只需增加资产常量和一个 profile，无需复制整套 MDP。
 
 ## 部署
 
-`deploy/` 与 `simulate/` 保留参考项目中的源码，但不再内置 ONNX Runtime、MuJoCo
-二进制或训练好的策略。请按 [deploy/README.md](deploy/README.md) 配置系统依赖并把
-导出的策略放到对应机器人目录。
+`deploy/` 与 `simulate/` 保留参考项目中的源码，但不再内置 ONNX Runtime、MuJoCo 二进制或训练好的策略。请按 [deploy/README.md](deploy/README.md) 配置系统依赖并把导出的策略放到对应机器人目录。
 
 ## 上游与许可
 
-本项目参考 `unitree_rl_mjlab` 的项目边界和部署代码，并基于 mjlab 1.6 API
-重新组织。代码使用 Apache-2.0 许可；第三方组件保留各自许可。
+本项目参考 `unitree_rl_mjlab` 的项目边界和部署代码，并基于 mjlab 1.6 API 重新组织。代码使用 Apache-2.0 许可；第三方组件保留各自许可。
 
 ---
 
 # LainLoco / LLoco (English)
 
-**LainLoco (LLoco)** is a reinforcement-learning, simulation-validation, and
-deployment project for robots from multiple vendors, built on **mjlab 1.6.0**.
-It is neither an official Unitree project nor a replacement or fork of
-`mjlab`. mjlab remains a pinned, general-purpose dependency; LLoco owns robot
-assets, task-specific behavior, training-validation contracts, and deployment
-adapters without vendoring the simulation framework.
+**LainLoco (LLoco)** is a reinforcement-learning, simulation-validation, and deployment project for robots from multiple vendors, built on **mjlab 1.6.0**. `mjlab` remains the pinned, general-purpose dependency; LLoco owns robot assets, task-specific behavior, training-validation contracts, and deployment adapters, while upstream supplies the simulation framework.
 
-The repository currently starts with Unitree assets and tasks because they form
-a validated baseline, not because they define the project's boundary. LLoco
-will add its own robot designs and assets from other vendors. Every new asset
-should follow the same path—asset, profile/task, validation, and deployment
-adapter—rather than putting vendor assumptions into the framework layer.
+The repository currently uses Unitree assets and tasks as its validated baseline. LLoco will add its own robot designs and assets from other vendors. Every new asset follows the same path—asset, profile/task, validation, and deployment adapter—while the framework layer remains vendor-neutral.
 
 ### Name and intent
 
-**LainLoco** combines **Lain** and **Loco** (locomotion). The name Lain is
-inspired by *Serial Experiments Lain* (玲音), particularly its reflection on
-connection, identity, and the boundary between networked and physical reality.
-Loco points to the movement through which a robot turns perception, policy, and
-actuation into repeatable behavior. The project connects different robot
-morphologies to one training and validation cadence while preserving each
-robot's physical and control characteristics. It has no official affiliation
-with the work or its rights holders.
+**LainLoco** combines **Lain** and **Loco** (locomotion). The name Lain is inspired by *Serial Experiments Lain* (玲音), particularly its reflection on connection, identity, and the boundary between networked and physical reality. Loco points to the movement through which a robot turns perception, policy, and actuation into repeatable behavior. The project connects different robot morphologies to one training and validation cadence while preserving each robot's physical and control characteristics. It has no official affiliation with the work or its rights holders.
 
 ### Positioning and differentiators
 
@@ -169,13 +127,7 @@ with the work or its rights holders.
 | Verifiability | Framework-level capabilities | Training and deployment workflows | Project-level asset, configuration, observation/reward contract, and CPU-smoke tests; known limitations are documented |
 | Motion data | General tooling and interfaces | Motion preparation for Unitree workflows | CSV-to-NPZ conversion runs locally and validates joint columns and DoF for the target robot, without W&B |
 
-LLoco's value is not to rewrite `mjlab`; it is to turn robot onboarding from a
-one-off engineering effort into a repeatable product path: assets have clear
-ownership, task differences have boundaries, training interfaces stay
-consistent, validation outcomes are reproducible, and deployment code is kept
-separate from model artifacts. This also means a new vendor or self-designed
-robot is only marked usable after asset/control review, smoke testing, and task
-validation.
+LLoco turns robot onboarding into a repeatable product path: assets have clear ownership, task differences have boundaries, training interfaces stay consistent, validation outcomes are reproducible, and deployment code is kept separate from model artifacts. A new vendor or self-designed robot enters the usable task set after asset/control review, smoke testing, and task validation.
 
 ## Layout
 
@@ -194,8 +146,7 @@ Layering principles:
 
 - `mjlab` provides simulation, managers, common MDPs, runners, and viewers.
 - `lloco.assets` owns project-specific robot descriptions.
-- `lloco.tasks` expresses only task differences such as robot names, contacts,
-  and action scales.
+- `lloco.tasks` expresses only task differences such as robot names, contacts, and action scales.
 - The CLI registers LLoco tasks before reusing mjlab 1.6 training and playback.
 
 ## Installation
@@ -232,34 +183,17 @@ uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
   --output-name dance1-subject2 --robot g1
 ```
 
-`csv-to-npz` creates an NPZ locally and does not require Weights & Biases. If
-`--output-name` is only a filename, the output is written next to the input
-CSV; an absolute or relative output path may also be used. Use
-`--robot g1_23dof` for G1-23DoF motions.
+`csv-to-npz` creates an NPZ locally and does not require Weights & Biases. If `--output-name` is only a filename, the output is written next to the input CSV; an absolute or relative output path may also be used. Use `--robot g1_23dof` for G1-23DoF motions.
 
-Tasks follow the `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough` convention.
-Velocity tasks support A2, As2, Go2, G1, G1-23Dof, H1_2, H2, and R1. Motion
-tracking tasks support G1 and G1-23Dof.
+Tasks follow the `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough` convention. Velocity tasks support A2, As2, Go2, G1, G1-23Dof, H1_2, H2, and R1. Motion tracking tasks support G1 and G1-23Dof.
 
 ## Validation status and known limitations
 
-As of 2026-09-09, CPU single-environment smoke checks cover environment
-construction, `reset`, and one zero-action step for registered tasks, while
-checking that observations and rewards remain finite. All Go2 tasks (including
-Go2 skills), baseline velocity tasks, Cartpole, Yam manipulation tasks, and
-29-DoF G1 tracking tasks passed.
+As of 2026-09-09, CPU single-environment smoke checks cover environment construction, `reset`, and one zero-action step for registered tasks, while checking that observations and rewards remain finite. All Go2 tasks (including Go2 skills), baseline velocity tasks, Cartpole, Yam manipulation tasks, and 29-DoF G1 tracking tasks passed.
 
-- Tracking tasks need an NPZ motion file whose degrees of freedom match the
-  robot. Set `motion_file` for training or playback. The local 29-DoF G1
-  example cannot be used for `G1-23Dof` tracking.
-- The default MuJoCo-Warp contact-buffer capacity is currently insufficient for
-  `Unitree-H2-Rough` and `Unitree-R1-Rough`: they require at least
-  `nconmax=80` and `nconmax=141`, respectively. Both tasks pass smoke checks
-  after this temporary configuration adjustment; do not start training with
-  their defaults until the configuration is fixed.
-- Smoke tests validate initialization and single-step numerical stability only.
-  They do not demonstrate policy convergence and do not replace long training,
-  checkpoint playback, or real-robot validation.
+- Tracking tasks need an NPZ motion file whose degrees of freedom match the robot. Set `motion_file` for training or playback. The local 29-DoF G1 example cannot be used for `G1-23Dof` tracking.
+- The default MuJoCo-Warp contact-buffer capacity is currently insufficient for `Unitree-H2-Rough` and `Unitree-R1-Rough`: they require at least `nconmax=80` and `nconmax=141`, respectively. Both tasks pass smoke checks after this temporary configuration adjustment; do not start training with their defaults until the configuration is fixed.
+- Smoke tests validate initialization and single-step numerical stability only. They do not demonstrate policy convergence and do not replace long training, checkpoint playback, or real-robot validation.
 
 ## Development
 
@@ -268,19 +202,12 @@ make format
 make check
 ```
 
-Robot differences are centralized in `src/lloco/tasks/velocity.py` through
-`PROFILES`. Adding a similar robot typically requires only asset constants and
-a profile, rather than a duplicate MDP implementation.
+Robot differences are centralized in `src/lloco/tasks/velocity.py` through `PROFILES`. Adding a similar robot typically consists of asset constants and a profile on the shared MDP implementation.
 
 ## Deployment
 
-`deploy/` and `simulate/` retain source from the reference projects but do not
-bundle ONNX Runtime, MuJoCo binaries, or trained policies. Follow
-[deploy/README.md](deploy/README.md) to configure system dependencies, then
-place exported policies in the corresponding robot directory.
+`deploy/` and `simulate/` retain source from the reference projects but do not bundle ONNX Runtime, MuJoCo binaries, or trained policies. Follow [deploy/README.md](deploy/README.md) to configure system dependencies, then place exported policies in the corresponding robot directory.
 
 ## Upstream and license
 
-This project follows the project boundary and deployment source of
-`unitree_rl_mjlab`, reorganized around the mjlab 1.6 API. LLoco is licensed
-under Apache-2.0; third-party components retain their own licenses.
+This project follows the project boundary and deployment source of `unitree_rl_mjlab`, reorganized around the mjlab 1.6 API. LLoco is licensed under Apache-2.0; third-party components retain their own licenses.
