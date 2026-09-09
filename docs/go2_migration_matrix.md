@@ -17,7 +17,7 @@ tasks; directory names and unregistered configs are not counted as tasks.
 | `go2_amp_cts` | `Unitree-Go2-AMP-CTS-Rough` | `Go2_AMP_Cts/Go2_AMP_Cts_Config.py` | `Go2_AMP_Cts/Go2_AMP_Cts.py` | pending |
 | `go2_amp_ts` | `Unitree-Go2-AMP-TS-Teacher-Rough` | `Go2_AMP_Ts/Go2_AMP_Ts_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 | `go2_amp_ts_student` | `Unitree-Go2-AMP-TS-Student-Rough` | `Go2_AMP_Ts/Go2_AMP_Ts_Student_Config.py` | `base/legged_robot_amp_ts.py` | pending |
-| `go2_ts` | `Unitree-Go2-TS-Teacher-Rough` | `Go2_TS/Go2_TS_Config.py` | `base/legged_robot_amp_ts.py` | pending |
+| `go2_ts` | `Unitree-Go2-TS-Teacher-Rough` | `Go2_TS/Go2_TS_Config.py` | `base/legged_robot_amp_ts.py` | teacher port started: Gym 45/187/74/309 observation split, source rewards/command ranges and PPO encoders are implemented; CPU smoke passes; domain-label event parity and long training remain |
 | `go2_ts_student` | `Unitree-Go2-TS-Student-Rough` | `Go2_TS/Go2_TS_Student_Config.py` | `base/legged_robot_amp_ts.py` | pending |
 
 ## CTS parity table
