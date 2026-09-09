@@ -1,8 +1,37 @@
-# LLoco
+# LLoco V0.1
 
-LLoco 是基于 **mjlab 1.6.0** 的 Unitree 强化学习与部署项目。mjlab
-作为固定版本依赖使用，LLoco 只维护机器人资产、任务差异和部署代码，避免复制整个
-仿真框架。
+**LainLoco（简称 LLoco）** 是一个面向多厂商机器人的强化学习、仿真验证与部署项目，
+基于 **mjlab 1.6.0** 构建。它不是宇树官方项目，也不是 `mjlab` 的替代或分叉；
+`mjlab` 是固定版本的通用基础依赖，LLoco 在其上维护机器人资产、任务差异、训练验证
+契约和部署适配，而不复制整个仿真框架。
+
+当前仓库首先包含 Unitree 资产与任务，是因为这些资产构成了可验证的起点，而不是项目
+边界。后续会加入 LLoco 自己设计的机器人以及其他厂商的机器人资产；新增资产应遵循
+同一套“资产 → profile/任务 → 验证 → 部署适配”的路径，而非把厂商假设写进框架层。
+
+### 名称与愿景
+
+**LainLoco** 由 **Lain** 与 **Loco（locomotion，运动）** 组成。Lain 的命名灵感来自
+《**玲音 / Serial Experiments Lain**》对连接、身份与现实/网络边界的思考；Loco 指向
+机器人把感知、策略和执行转化为真实、可重复行为的运动能力。项目希望连接不同机器人
+形态与同一套训练/验证节奏：保留每台机器人的物理与控制个性，同时让资产接入、技能
+训练和部署验证有统一、清晰的接口。项目与该作品及其权利方没有官方关联。
+
+### 项目定位与差异
+
+| 维度 | 原版 `mjlab` | `unitree_rl_mjlab` 参考项目 | LainLoco |
+| --- | --- | --- | --- |
+| 角色 | 通用 MuJoCo/Warp 仿真与强化学习框架 | 面向 Unitree 机器人的训练与实机部署项目 | 建立在 `mjlab` 上的多厂商机器人资产、任务与部署层 |
+| 机器人范围 | 通用框架能力 | 以 Unitree 机型为中心 | 当前有 Unitree 起点；设计上预留自研与其他厂商资产接入 |
+| 框架维护 | 上游维护仿真、manager、MDP、runner 与 viewer | 项目同时承载机型任务和部署流程 | 固定依赖 `mjlab==1.6.0`，以薄适配层降低框架复制与升级成本 |
+| 任务组织 | 提供通用任务与扩展机制 | 速度跟踪、动作模仿和实机控制为主 | 用机器人 profile、独立资产和可注册任务表达差异；Go2 还提供来源可追溯的 skill 迁移 |
+| 可验证性 | 提供框架级能力 | 以训练/部署工作流为主 | 为资产、配置、观测/奖励契约和 CPU smoke 保留项目级测试，并公开记录已知限制 |
+| 动作数据 | 提供通用工具与接口 | 面向 Unitree 工作流准备动作数据 | 在本地将 CSV 转为 NPZ，并按目标机器人校验关节列与自由度，不依赖 W&B |
+
+LLoco 的价值不在于重写 `mjlab`，而在于把“接入一台机器人”从一次性工程改造成可复用的
+产品路径：资产有归属、任务差异有边界、训练接口一致、验证结果可复现、部署代码与模型
+产物分离。上述定位同样意味着：新厂商或自研机器人必须经过资产与控制参数审查、smoke
+测试和任务验证后，才会被标记为可用。
 
 ## 目录结构
 
@@ -103,12 +132,50 @@ make check
 
 ---
 
-# LLoco (English)
+# LainLoco / LLoco (English)
 
-LLoco is a Unitree reinforcement-learning and deployment project built on
-**mjlab 1.6.0**. mjlab is kept as a pinned dependency; LLoco maintains only
-robot assets, task-specific differences, and deployment code instead of
-vendoring the full simulation framework.
+**LainLoco (LLoco)** is a reinforcement-learning, simulation-validation, and
+deployment project for robots from multiple vendors, built on **mjlab 1.6.0**.
+It is neither an official Unitree project nor a replacement or fork of
+`mjlab`. mjlab remains a pinned, general-purpose dependency; LLoco owns robot
+assets, task-specific behavior, training-validation contracts, and deployment
+adapters without vendoring the simulation framework.
+
+The repository currently starts with Unitree assets and tasks because they form
+a validated baseline, not because they define the project's boundary. LLoco
+will add its own robot designs and assets from other vendors. Every new asset
+should follow the same path—asset, profile/task, validation, and deployment
+adapter—rather than putting vendor assumptions into the framework layer.
+
+### Name and intent
+
+**LainLoco** combines **Lain** and **Loco** (locomotion). The name Lain is
+inspired by *Serial Experiments Lain* (玲音), particularly its reflection on
+connection, identity, and the boundary between networked and physical reality.
+Loco points to the movement through which a robot turns perception, policy, and
+actuation into repeatable behavior. The project connects different robot
+morphologies to one training and validation cadence while preserving each
+robot's physical and control characteristics. It has no official affiliation
+with the work or its rights holders.
+
+### Positioning and differentiators
+
+| Dimension | Upstream `mjlab` | `unitree_rl_mjlab` reference project | LainLoco |
+| --- | --- | --- | --- |
+| Role | General MuJoCo/Warp simulation and RL framework | Training and real-robot deployment project centered on Unitree robots | Multi-vendor robot asset, task, and deployment layer built on `mjlab` |
+| Robot scope | General framework capabilities | Unitree-centered | Unitree is the current baseline; self-designed and other-vendor assets are planned by design |
+| Framework maintenance | Upstream owns simulation, managers, MDPs, runners, and viewers | The project carries robot tasks and deployment workflows | Pins `mjlab==1.6.0` and uses thin adapters to avoid framework duplication and reduce upgrade cost |
+| Task organization | General tasks and extension mechanisms | Primarily velocity tracking, motion imitation, and real-robot control | Robot profiles, isolated assets, and registrable tasks express differences; Go2 also includes source-traceable skill migrations |
+| Verifiability | Framework-level capabilities | Training and deployment workflows | Project-level asset, configuration, observation/reward contract, and CPU-smoke tests; known limitations are documented |
+| Motion data | General tooling and interfaces | Motion preparation for Unitree workflows | CSV-to-NPZ conversion runs locally and validates joint columns and DoF for the target robot, without W&B |
+
+LLoco's value is not to rewrite `mjlab`; it is to turn robot onboarding from a
+one-off engineering effort into a repeatable product path: assets have clear
+ownership, task differences have boundaries, training interfaces stay
+consistent, validation outcomes are reproducible, and deployment code is kept
+separate from model artifacts. This also means a new vendor or self-designed
+robot is only marked usable after asset/control review, smoke testing, and task
+validation.
 
 ## Layout
 
