@@ -1,4 +1,4 @@
-"""Native parsing and kinematics for the small LLoco model inspector."""
+"""Native parsing and kinematics for the small LainLab model inspector."""
 
 import base64
 from pathlib import Path

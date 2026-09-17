@@ -18,7 +18,7 @@ def inside(root: Path, value: str, suffix: str | None = None) -> Path:
     raise ValueError("请填写项目内文件路径")
   path = (root / Path(value).expanduser()).resolve()
   if not path.is_relative_to(root.resolve()):
-    raise ValueError("文件必须位于 LLoco 项目目录内")
+    raise ValueError("文件必须位于 LainLab 项目目录内")
   if suffix and (path.suffix.lower() != suffix or not path.is_file()):
     raise ValueError(f"需要已存在的 {suffix} 文件：{value}")
   return path

@@ -1,4 +1,4 @@
-"""Regression tests for LLoco-owned robot descriptions."""
+"""Regression tests for LainLab-owned robot descriptions."""
 
 from collections.abc import Callable
 from pathlib import Path

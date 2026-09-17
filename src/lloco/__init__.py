@@ -1,4 +1,4 @@
-"""LLoco: Unitree locomotion tasks built on top of mjlab."""
+"""LainLab: Unitree locomotion tasks built on top of mjlab."""
 
 from pathlib import Path
 

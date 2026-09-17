@@ -1,4 +1,4 @@
-"""Compatibility entrypoint for the independent LLoco workbench."""
+"""Compatibility entrypoint for the independent LainLab workbench."""
 
 from lloco.workbench.server import main
 

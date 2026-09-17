@@ -1,4 +1,4 @@
-"""Read the saved LLoco G1 tracking motion for direct pose playback."""
+"""Read the saved LainLab G1 tracking motion for direct pose playback."""
 
 from pathlib import Path
 
@@ -15,7 +15,7 @@ def load_motion(root: Path, value: str):
   with np.load(path, allow_pickle=False) as motion:
     required = {"fps", "joint_pos", "body_pos_w", "body_quat_w"}
     if not required.issubset(motion.files):
-      raise ValueError("需要 LLoco Tracking 格式的 NPZ")
+      raise ValueError("需要 LainLab Tracking 格式的 NPZ")
     joints = motion["joint_pos"]
     positions = motion["body_pos_w"]
     rotations = motion["body_quat_w"]
@@ -34,7 +34,7 @@ def load_motion(root: Path, value: str):
       or rotations.shape != (*positions.shape[:2], 4)
     ):
       raise ValueError("NPZ 根位置 / 四元数形状不匹配")
-    # LLoco converter writes native joint order; body 0 is the robot root.
+    # LainLab converter writes native joint order; body 0 is the robot root.
     qpos = np.concatenate((positions[:, 0], rotations[:, 0], joints), axis=1)
     if not np.isfinite(qpos).all() or np.any(
       np.linalg.norm(qpos[:, 3:7], axis=1) < 1e-8

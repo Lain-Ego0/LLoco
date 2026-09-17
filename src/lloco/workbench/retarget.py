@@ -1,4 +1,4 @@
-"""Project-local LAFAN1 BVH → GMR IK → LLoco NPZ pipeline."""
+"""Project-local LAFAN1 BVH → GMR IK → LainLab NPZ pipeline."""
 
 import re
 import tempfile
@@ -41,7 +41,7 @@ def retarget(source: Path, output: Path, preview=None):
     if solver.model.jnt_type[j] != mujoco.mjtJoint.mjJNT_FREE
   ]
   if tuple(names) != G1_JOINT_NAMES:
-    raise ValueError("GMR 模型关节顺序与 LLoco G1 不匹配")
+    raise ValueError("GMR 模型关节顺序与 LainLab G1 不匹配")
   poses = []
   for index, frame in enumerate(frames):
     poses.append(solver.retarget(frame).copy())
@@ -60,7 +60,7 @@ def retarget(source: Path, output: Path, preview=None):
   if preview:
     preview.update(stage="converting", processed=len(frames))
   qpos = np.asarray(poses)
-  # MuJoCo WXYZ → LLoco's CSV XYZW.
+  # MuJoCo WXYZ → LainLab's CSV XYZW.
   csv = np.concatenate((qpos[:, :3], qpos[:, [4, 5, 6, 3]], qpos[:, 7:]), axis=1)
   output.parent.mkdir(parents=True, exist_ok=True)
   with tempfile.TemporaryDirectory(prefix="lloco-gmr-") as temporary:
@@ -69,4 +69,4 @@ def retarget(source: Path, output: Path, preview=None):
     convert_csv_to_npz(
       "g1", str(path), str(output), input_fps=1 / float(match[1]), device="cpu"
     )
-  print(f"GMR → LLoco: {output}", flush=True)
+  print(f"GMR → LainLab: {output}", flush=True)

@@ -21,7 +21,7 @@ def make_ppo_runner_cfg(
   save_interval: int = 100,
   symmetry_cfg: dict[str, Any] | None = None,
 ) -> RslRlOnPolicyRunnerCfg:
-  """Create the common PPO setup used by LLoco locomotion tasks."""
+  """Create the common PPO setup used by LainLab locomotion tasks."""
   return RslRlOnPolicyRunnerCfg(
     actor=RslRlModelCfg(
       hidden_dims=(512, 256, 128),

@@ -4,7 +4,7 @@
 Run this only when refreshing the checked-in browser demo artifacts.  The
 runtime demo never needs PyTorch or the source Gym project; it consumes the
 resulting files in ``public/policies`` through ONNX Runtime Web.  The
-handstand artifact is copied from LLoco's own exported policy; the remaining
+handstand artifact is copied from LainLab's own exported policy; the remaining
 policies are converted from the reference Gym project.
 """
 
@@ -37,7 +37,7 @@ def main() -> None:
             / "logs/rsl_rl/go2_handstand/2026-09-07_12-05-41_migration_2048x1000"
             / "2026-09-07_12-05-41_migration_2048x1000.onnx"
         ),
-        help="LLoco handstand ONNX export",
+        help="LainLab handstand ONNX export",
     )
     parser.add_argument("--output", type=Path, default=Path(__file__).parents[1] / "public" / "policies")
     args = parser.parse_args()
@@ -47,7 +47,7 @@ def main() -> None:
     if not args.handstand.is_file():
         raise FileNotFoundError(args.handstand)
     handstand_target.write_bytes(args.handstand.read_bytes())
-    print(f"copied {handstand_target.name}: LLoco handstand 48 -> 12")
+    print(f"copied {handstand_target.name}: LainLab handstand 48 -> 12")
 
     for output_name, (relative_source, input_size) in POLICIES.items():
         source = args.source / "logs" / relative_source

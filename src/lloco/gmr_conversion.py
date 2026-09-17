@@ -1,4 +1,4 @@
-"""Convert General Motion Retargeting (GMR) output into LLoco motion data."""
+"""Convert General Motion Retargeting (GMR) output into LainLab motion data."""
 
 import pickle
 from pathlib import Path
@@ -14,7 +14,7 @@ def convert_gmr_to_npz(
   """Turn a Unitree G1 GMR pickle into the NPZ used by tracking tasks.
 
   GMR stores root quaternions as XYZW, exactly the CSV convention consumed by
-  LLoco's established converter.  Its Unitree-G1 model has 29 actuated DoFs,
+  LainLab's established converter.  Its Unitree-G1 model has 29 actuated DoFs,
   so the bridge deliberately rejects other robot variants instead of silently
   producing a policy with mismatched joint ordering.
   """

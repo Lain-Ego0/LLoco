@@ -1,14 +1,14 @@
-# LLoco 独立工作台
+# LainLab 独立工作台
 
 工作台位于 `src/lloco/workbench/`。主训练包 `lloco.tasks` 和原有 train/play CLI 保持独立；HTTP 服务不导入 torch、mjlab 或训练环境，耗时工作全部在子进程中运行。
 
 ## 启动
 
 ```bash
-cd /path/to/LLoco
+cd /path/to/LainLab
 uv run --extra workbench lloco-workbench
 # 或指定项目、端口，不自动打开浏览器
-uv run --extra workbench lloco-workbench --project /path/to/LLoco --port 7861 --no-browser
+uv run --extra workbench lloco-workbench --project /path/to/LainLab --port 7861 --no-browser
 ```
 
 `webui`、`lloco-webui` 和 `python -m lloco.webui` 指向同一新工作台。
@@ -17,7 +17,7 @@ uv run --extra workbench lloco-workbench --project /path/to/LLoco --port 7861 --
 
 ## 五步流程
 
-1. 精简查看器由 LLoco 自行编写，使用 MuJoCo 原生编译 URDF/MJCF，通过 Three.js 显示模型。支持项目路径、目录或多文件导入，STL/OBJ 网格和基本几何体；提供视角适配、关节调节、重置、坐标系、关节轴、碰撞线框、惯量椭球和连杆质量/主惯量数值。URDF 保留固定连杆和视觉几何。输入必须可由 MuJoCo 编译；当前不显示纹理、高度场，不包含 USD、代码或动画编辑器、测量或仿真。项目路径支持模型同目录及内置 `xmls/`、`urdf/` 的父目录资源。模型只在内存中缓存，不创建训练配置。
+1. 精简查看器由 LainLab 自行编写，使用 MuJoCo 原生编译 URDF/MJCF，通过 Three.js 显示模型。支持项目路径、目录或多文件导入，STL/OBJ 网格和基本几何体；提供视角适配、关节调节、重置、坐标系、关节轴、碰撞线框、惯量椭球和连杆质量/主惯量数值。URDF 保留固定连杆和视觉几何。输入必须可由 MuJoCo 编译；当前不显示纹理、高度场，不包含 USD、代码或动画编辑器、测量或仿真。项目路径支持模型同目录及内置 `xmls/`、`urdf/` 的父目录资源。模型只在内存中缓存，不创建训练配置。
 2. Velocity 和 Tracking 二选一，未选择分支折叠。Tracking 的 GMR 支持 LAFAN1 骨架 BVH：读取原始 Frame Time，项目内 GMR 求解 IK，校验 G1 关节顺序，转换为 50 Hz NPZ。也可输入已有 GMR PKL，或直接选择已有 NPZ。输出由工作台生成唯一文件名，避免覆盖已有动作。当前重定向限定 G1 29-DoF，23-DoF 使用独立转换的 NPZ；不宣称任意 BVH、SMPL-X 或视频已支持。
 3. Velocity / Tracking 中选择真实注册任务的 PPO 配置；Go2 Skill 作为 Velocity 下的独立四足入口，提供 DreamWaQ、AMP-DreamWaQ、CTS、TS Teacher 和五种动作模板。算法不会跨任务任意拼接。
 4. 输入正整数的迭代轮次、保存间隔和环境数。工作台强制使用 TensorBoard logger，保留各任务其他默认参数。GPU 选择遵循既有训练 CLI。TensorBoard 监听本机 6006，在训练页面内显示现有 logs 下的奖励、损失及性能曲线。
@@ -35,7 +35,7 @@ uv run --extra workbench lloco-workbench --project /path/to/LLoco --port 7861 --
 | `worker.py` | 调用原有训练、回放和任务 runner 导出 |
 | `retarget.py`、`gmr/` | 项目内 GMR BVH 重定向及带许可证的上游子集 |
 | `static/` | 五步工作台页面和查看器构建产物 |
-| `viewer/` | LLoco 自编精简 Three.js 查看器 |
+| `viewer/` | LainLab 自编精简 Three.js 查看器 |
 | `models.py` | MuJoCo 模型编译、几何提取和正向运动学；不导入训练环境 |
 
 GMR 第三方归属见 `gmr/NOTICE.md`、`gmr/LICENSE` 及 LAFAN loader 许可证。查看器未沿用 robot_viewer 应用源码；Three.js 的 MIT 许可证见 `viewer/public/THREE_LICENSE.txt`。
@@ -95,4 +95,4 @@ CSV 转换在按钮下方显示实际进度：初始化、逐帧转换（已处�
 
 ## 查看 CSV 转换后的效果
 
-CSV 完成后点击进度条旁的“播放转换结果”；也可从“训练动作 · NPZ”选择资产，再点击“播放所选动作”。打开后点击播放器的“播放”，或拖动时间轴逐帧检查，支持倍速和固定根位置。此入口直接读取实际保存的 LLoco G1 29/23-DoF NPZ（根姿态与原生顺序的关节角），无需重定向或训练。
+CSV 完成后点击进度条旁的“播放转换结果”；也可从“训练动作 · NPZ”选择资产，再点击“播放所选动作”。打开后点击播放器的“播放”，或拖动时间轴逐帧检查，支持倍速和固定根位置。此入口直接读取实际保存的 LainLab G1 29/23-DoF NPZ（根姿态与原生顺序的关节角），无需重定向或训练。

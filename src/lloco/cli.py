@@ -1,4 +1,4 @@
-"""Thin CLI adapters that register LLoco tasks before delegating to mjlab."""
+"""Thin CLI adapters that register LainLab tasks before delegating to mjlab."""
 
 
 def _register_tasks() -> None:
@@ -6,7 +6,7 @@ def _register_tasks() -> None:
 
 
 def train() -> None:
-  """Train an LLoco or built-in mjlab task."""
+  """Train an LainLab or built-in mjlab task."""
   _register_tasks()
   from mjlab.scripts.train import main
 
@@ -14,7 +14,7 @@ def train() -> None:
 
 
 def play() -> None:
-  """Evaluate an LLoco or built-in mjlab task."""
+  """Evaluate an LainLab or built-in mjlab task."""
   _register_tasks()
   from mjlab.scripts.play import main
 
@@ -22,7 +22,7 @@ def play() -> None:
 
 
 def list_envs() -> None:
-  """List all registered LLoco and built-in mjlab tasks."""
+  """List all registered LainLab and built-in mjlab tasks."""
   _register_tasks()
   from mjlab.scripts.list_envs import main
 

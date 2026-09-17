@@ -5,16 +5,16 @@ build-backend = "uv_build"
 [project]
 name = "lloco"
 version = "0.1.0"
-description = "Unitree locomotion tasks and deployment tools for mjlab 1.6"
+description = "LainLab: multi-vendor robot learning, simulation validation, and deployment tools for mjlab 1.6"
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = "Apache-2.0"
-authors = [{ name = "The LLoco Developers" }]
+authors = [{ name = "The LainLab Developers" }]
 keywords = ["unitree", "mujoco", "mjlab", "reinforcement-learning", "robotics"]
 dependencies = ["mjlab==1.6.0"]
 
 [project.urls]
-Repository = "https://github.com/Lain-Ego0/LLoco"
+Repository = "https://github.com/Lain-Ego0/LainLab"
 
 [project.scripts]
 train = "lloco.cli:train"

@@ -1,16 +1,18 @@
-# LLoco V0.1
+# LainLab V0.1
 
-**LainLoco（简称 LLoco）** 是一个面向多厂商机器人的强化学习、仿真验证与部署项目，基于 **mjlab 1.6.0** 构建。`mjlab` 作为固定版本的通用基础依赖，LLoco 在其上维护机器人资产、任务差异、训练验证契约和部署适配，并由上游持续提供仿真框架能力。
+**LainLab** 是一个面向多厂商机器人的强化学习、仿真验证与部署项目，基于 **mjlab 1.6.0** 构建。`mjlab` 作为固定版本的通用基础依赖，LainLab 在其上维护机器人资产、任务差异、训练验证契约和部署适配，并由上游持续提供仿真框架能力。
 
-当前仓库以 Unitree 资产与任务作为可验证的起点。项目边界覆盖 LLoco 自己设计的机器人以及其他厂商的机器人资产；新增资产遵循统一的“资产 → profile/任务 → 验证 → 部署适配”路径，保持框架层的厂商中立性。
+当前仓库以 Unitree 资产与任务作为可验证的起点。项目边界覆盖 LainLab 自己设计的机器人以及其他厂商的机器人资产；新增资产遵循统一的“资产 → profile/任务 → 验证 → 部署适配”路径，保持框架层的厂商中立性。
+
+> 说明：仓库与项目名称为 **LainLab**；Python 发行包、模块路径和已有 CLI 入口仍沿用 `lloco` 前缀，以保持兼容。
 
 ### 名称与愿景
 
-**LainLoco** 由 **Lain** 与 **Loco（locomotion，运动）** 组成。Lain 的命名灵感来自《**玲音 / Serial Experiments Lain**》对连接、身份与现实/网络边界的思考；Loco 指向机器人把感知、策略和执行转化为真实、可重复行为的运动能力。项目希望连接不同机器人形态与同一套训练/验证节奏：保留每台机器人的物理与控制个性，同时让资产接入、技能训练和部署验证有统一、清晰的接口。项目与该作品及其权利方没有官方关联。
+**LainLab** 由 **Lain** 与 **Lab（实验室）** 组成。Lain 的命名灵感来自《**玲音 / Serial Experiments Lain**》对连接、身份与现实/网络边界的思考；Lab 代表一个开放的机器人实验平台：把不同形态的机器人、动作数据、训练策略和部署验证放进同一套可重复的实验流程。项目希望连接不同机器人形态与同一套训练/验证节奏：保留每台机器人的物理与控制个性，同时让资产接入、技能训练和部署验证有统一、清晰的接口。项目与该作品及其权利方没有官方关联。
 
 ### 项目定位与差异
 
-| 维度 | 原版 `mjlab` | `unitree_rl_mjlab` 参考项目 | LainLoco |
+| 维度 | 原版 `mjlab` | `unitree_rl_mjlab` 参考项目 | LainLab |
 | --- | --- | --- | --- |
 | 角色 | 通用 MuJoCo/Warp 仿真与强化学习框架 | 面向 Unitree 机器人的训练与实机部署项目 | 建立在 `mjlab` 上的多厂商机器人资产、任务与部署层 |
 | 机器人范围 | 通用框架能力 | 以 Unitree 机型为中心 | 当前有 Unitree 起点；设计上预留自研与其他厂商资产接入 |
@@ -19,17 +21,17 @@
 | 可验证性 | 提供框架级能力 | 以训练/部署工作流为主 | 为资产、配置、观测/奖励契约和 CPU smoke 保留项目级测试，并公开记录已知限制 |
 | 动作数据 | 提供通用工具与接口 | 面向 Unitree 工作流准备动作数据 | 在本地将 CSV 转为 NPZ，并按目标机器人校验关节列与自由度，不依赖 W&B |
 
-LLoco 将“接入一台机器人”组织为可复用的产品路径：资产有归属、任务差异有边界、训练接口一致、验证结果可复现、部署代码与模型产物分离。新厂商或自研机器人经过资产与控制参数审查、smoke 测试和任务验证后，进入可用任务集合。
+LainLab 将“接入一台机器人”组织为可复用的产品路径：资产有归属、任务差异有边界、训练接口一致、验证结果可复现、部署代码与模型产物分离。新厂商或自研机器人经过资产与控制参数审查、smoke 测试和任务验证后，进入可用任务集合。
 
 ## 目录结构
 
 ```text
-LLoco/
+LainLab/
 ├── src/lloco/
 │   ├── assets/          # Unitree MJCF、网格和示例动作
 │   ├── tasks/           # 基于 mjlab 1.6 的薄任务适配层
 │   └── cli.py           # train / play / list-envs 入口
-├── tests/               # LLoco 自身的兼容性测试
+├── tests/               # LainLab 自身的兼容性测试
 ├── deploy/              # 实机部署源码（不提交模型和预编译运行库）
 └── simulate/            # unitree_mujoco 桥接源码
 ```
@@ -39,7 +41,7 @@ LLoco/
 - `mjlab` 负责仿真、manager、通用 MDP、runner 和 viewer。
 - `lloco.assets` 负责本项目机器人描述。
 - `lloco.tasks` 只表达机器人名称、接触点、动作缩放等差异。
-- CLI 先注册 LLoco 任务，再复用 mjlab 1.6 的训练和回放实现。
+- CLI 先注册 LainLab 任务，再复用 mjlab 1.6 的训练和回放实现。
 
 ## 安装
 
@@ -78,7 +80,7 @@ uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
 ### 独立工作台
 
 ```bash
-# 在 LLoco 根目录启动（webui / lloco-webui 兼容入口仍可用）
+# 在 LainLab 根目录启动（webui / lloco-webui 兼容入口仍可用）
 uv run --extra workbench lloco-workbench
 ```
 
@@ -91,7 +93,7 @@ uv run --extra workbench lloco-workbench
 5. **导出与验证**：浏览、选择、下载 checkpoint/ONNX，手动导出 ONNX，启动 CPU 单环境 Viser checkpoint 回放。
 
 工作台源码在 `src/lloco/workbench/`，不改变 `tasks/` 中的训练算法与环境。
-查看器由 LLoco 自行实现：MuJoCo 解析模型，精简 Three.js 页面负责绘制；仅参考 `robot_viewer` 的功能思路，不复制其整套应用。查看器与 GMR 子集都在项目内运行。
+查看器由 LainLab 自行实现：MuJoCo 解析模型，精简 Three.js 页面负责绘制；仅参考 `robot_viewer` 的功能思路，不复制其整套应用。查看器与 GMR 子集都在项目内运行。
 模型导入用于检查；训练仍使用已注册任务的机器人配置。GMR 当前限 LAFAN1 骨架和 G1 29-DoF，23-DoF 任务需使用对应 NPZ。Viser 当前回放 checkpoint，ONNX 是独立导出产物。
 
 动作集中在 `src/lloco/assets/motions/`。页面支持导入和选择文件，转换输出自动命名、入库，并选为训练动作。
@@ -141,19 +143,21 @@ make check
 
 ---
 
-# LainLoco / LLoco (English)
+# LainLab (English)
 
-**LainLoco (LLoco)** is a reinforcement-learning, simulation-validation, and deployment project for robots from multiple vendors, built on **mjlab 1.6.0**. `mjlab` remains the pinned, general-purpose dependency; LLoco owns robot assets, task-specific behavior, training-validation contracts, and deployment adapters, while upstream supplies the simulation framework.
+**LainLab** is a reinforcement-learning, simulation-validation, and deployment project for robots from multiple vendors, built on **mjlab 1.6.0**. `mjlab` remains the pinned, general-purpose dependency; LainLab owns robot assets, task-specific behavior, training-validation contracts, and deployment adapters, while upstream supplies the simulation framework.
 
-The repository currently uses Unitree assets and tasks as its validated baseline. LLoco will add its own robot designs and assets from other vendors. Every new asset follows the same path—asset, profile/task, validation, and deployment adapter—while the framework layer remains vendor-neutral.
+The repository currently uses Unitree assets and tasks as its validated baseline. LainLab will add its own robot designs and assets from other vendors. Every new asset follows the same path—asset, profile/task, validation, and deployment adapter—while the framework layer remains vendor-neutral.
+
+> Note: the project is named **LainLab**; the Python distribution, module paths, and existing CLI entry points keep the `lloco` prefix for compatibility.
 
 ### Name and intent
 
-**LainLoco** combines **Lain** and **Loco** (locomotion). The name Lain is inspired by *Serial Experiments Lain* (玲音), particularly its reflection on connection, identity, and the boundary between networked and physical reality. Loco points to the movement through which a robot turns perception, policy, and actuation into repeatable behavior. The project connects different robot morphologies to one training and validation cadence while preserving each robot's physical and control characteristics. It has no official affiliation with the work or its rights holders.
+**LainLab** combines **Lain** and **Lab**. The name Lain is inspired by *Serial Experiments Lain* (玲音), particularly its reflection on connection, identity, and the boundary between networked and physical reality. Lab represents an open robotics experimentation platform that brings different robot morphologies, motion data, training policies, and deployment validation into one repeatable process. The project connects different robot morphologies to one training and validation cadence while preserving each robot's physical and control characteristics. It has no official affiliation with the work or its rights holders.
 
 ### Positioning and differentiators
 
-| Dimension | Upstream `mjlab` | `unitree_rl_mjlab` reference project | LainLoco |
+| Dimension | Upstream `mjlab` | `unitree_rl_mjlab` reference project | LainLab |
 | --- | --- | --- | --- |
 | Role | General MuJoCo/Warp simulation and RL framework | Training and real-robot deployment project centered on Unitree robots | Multi-vendor robot asset, task, and deployment layer built on `mjlab` |
 | Robot scope | General framework capabilities | Unitree-centered | Unitree is the current baseline; self-designed and other-vendor assets are planned by design |
@@ -162,17 +166,17 @@ The repository currently uses Unitree assets and tasks as its validated baseline
 | Verifiability | Framework-level capabilities | Training and deployment workflows | Project-level asset, configuration, observation/reward contract, and CPU-smoke tests; known limitations are documented |
 | Motion data | General tooling and interfaces | Motion preparation for Unitree workflows | CSV-to-NPZ conversion runs locally and validates joint columns and DoF for the target robot, without W&B |
 
-LLoco turns robot onboarding into a repeatable product path: assets have clear ownership, task differences have boundaries, training interfaces stay consistent, validation outcomes are reproducible, and deployment code is kept separate from model artifacts. A new vendor or self-designed robot enters the usable task set after asset/control review, smoke testing, and task validation.
+LainLab turns robot onboarding into a repeatable product path: assets have clear ownership, task differences have boundaries, training interfaces stay consistent, validation outcomes are reproducible, and deployment code is kept separate from model artifacts. A new vendor or self-designed robot enters the usable task set after asset/control review, smoke testing, and task validation.
 
 ## Layout
 
 ```text
-LLoco/
+LainLab/
 ├── src/lloco/
 │   ├── assets/          # Unitree MJCF files, meshes, and example motions
 │   ├── tasks/           # Thin task adapters built on mjlab 1.6
 │   └── cli.py           # train / play / list-envs entry points
-├── tests/               # LLoco compatibility tests
+├── tests/               # LainLab compatibility tests
 ├── deploy/              # Real-robot deployment source (no models or bundled runtimes)
 └── simulate/            # unitree_mujoco bridge source
 ```
@@ -182,7 +186,7 @@ Layering principles:
 - `mjlab` provides simulation, managers, common MDPs, runners, and viewers.
 - `lloco.assets` owns project-specific robot descriptions.
 - `lloco.tasks` expresses only task differences such as robot names, contacts, and action scales.
-- The CLI registers LLoco tasks before reusing mjlab 1.6 training and playback.
+- The CLI registers LainLab tasks before reusing mjlab 1.6 training and playback.
 
 ## Installation
 
@@ -245,4 +249,4 @@ Robot differences are centralized in `src/lloco/tasks/velocity.py` through `PROF
 
 ## Upstream and license
 
-This project follows the project boundary and deployment source of `unitree_rl_mjlab`, reorganized around the mjlab 1.6 API. LLoco is licensed under Apache-2.0; third-party components retain their own licenses.
+This project follows the project boundary and deployment source of `unitree_rl_mjlab`, reorganized around the mjlab 1.6 API. LainLab is licensed under Apache-2.0; third-party components retain their own licenses.

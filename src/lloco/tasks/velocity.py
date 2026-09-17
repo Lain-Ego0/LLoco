@@ -1,4 +1,4 @@
-"""Velocity-task adapters for LLoco's Unitree robots and mjlab 1.6."""
+"""Velocity-task adapters for LainLab's Unitree robots and mjlab 1.6."""
 
 from collections.abc import Callable
 from dataclasses import dataclass

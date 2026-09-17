@@ -1,6 +1,6 @@
-# LLoco Playground
+# LainLab Playground
 
-Standalone browser demos for selected, verified LLoco policies.  This project
+Standalone browser demos for selected, verified LainLab policies.  This project
 does not import the workbench, run Python, or communicate with the training
 workflow at runtime.
 
@@ -27,7 +27,7 @@ library into `public/robot/`. Policy ONNX files are versioned in
 - DreamWaQ terrain gait (270-D / 6-frame history)
 - AMP-CTS gait (270-D / 6-frame history)
 
-The handstand artifact is LLoco's own exported policy from
+The handstand artifact is LainLab's own exported policy from
 `logs/rsl_rl/go2_handstand/`, while the other artifacts are converted from the
 corresponding TorchScript policies in
 `/home/lxy/下载/My_unitree_go2_gym-main`. They are never fetched by the
@@ -39,7 +39,7 @@ PyTorch and ONNX installed:
   --source /home/lxy/下载/My_unitree_go2_gym-main
 ```
 
-The script copies the selected LLoco handstand export and converts the six
+The script copies the selected LainLab handstand export and converts the six
 remaining Gym models whose input/output contracts are implemented by this
 browser demo. It does not run as part of the normal build.
 

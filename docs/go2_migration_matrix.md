@@ -3,7 +3,7 @@
 The registry in `legged_gym/envs/__init__.py` is authoritative. It contains 14
 tasks; directory names and unregistered configs are not counted as tasks.
 
-| Source task | LLoco task | Source config | Source environment | Status |
+| Source task | LainLab task | Source config | Source environment | Status |
 |---|---|---|---|---|
 | `go2_trot` | `Unitree-Go2-Trot-Flat` | `Go2_MoB/Go2_Trot/Go2_Trot_Config.py` | `Go2_MoB/Go2_Trot/Go2_Trot.py` | stage-1 runnable; latency/symmetry gaps below |
 | `go2_jump` | `Unitree-Go2-Jump-Flat` | `Go2_MoB/Go2_Jump/Go2_Jump_Config.py` | `Go2_MoB/Go2_Jump/Go2_Jump.py` | stage-1 accepted; corrected-contact 2048 × 1000 training, checkpoint/ONNX validation and Viser inspection passed |

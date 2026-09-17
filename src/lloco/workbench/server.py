@@ -202,7 +202,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
-  parser = argparse.ArgumentParser(description="LLoco independent five-step workbench")
+  parser = argparse.ArgumentParser(description="LainLab independent five-step workbench")
   parser.add_argument("--host", default="127.0.0.1")
   parser.add_argument("--port", type=int, default=7860)
   parser.add_argument("--project", type=Path, default=Path.cwd())
@@ -210,7 +210,7 @@ def main():
   args = parser.parse_args()
   root = args.project.expanduser().resolve()
   if not (root / "src/lloco").is_dir():
-    parser.error("--project 必须指向 LLoco 项目根目录")
+    parser.error("--project 必须指向 LainLab 项目根目录")
 
   def interrupt(signum, frame):
     raise KeyboardInterrupt
@@ -220,7 +220,7 @@ def main():
   server = ThreadingHTTPServer(
     (args.host, args.port), functools.partial(Handler, root=root, jobs=jobs)
   )
-  print(f"LLoco Workbench: http://{args.host}:{args.port}", flush=True)
+  print(f"LainLab Workbench: http://{args.host}:{args.port}", flush=True)
   if not args.no_browser:
     webbrowser.open(f"http://{args.host}:{args.port}")
   try:
