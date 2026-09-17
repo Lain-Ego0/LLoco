@@ -63,7 +63,7 @@ const policies = {
     inputSize: 470,
     mode: "spring",
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandRanges: { vx: [0.8, 1.2], vy: [0, 0], yaw: [0, 0] },
+    commandRanges: { vx: [0, 1], vy: [0, 0], yaw: [0, 0] },
     note: "来自 Gym 工程的弹簧跳跃策略；vx 前进指令会作为起跳输入。",
   },
   arenaWalk: {
@@ -543,8 +543,9 @@ function gaitObservation() {
   const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]).applyQuaternion(inverse);
   const euler = new THREE.Euler().setFromQuaternion(quaternion, "XYZ");
   const frame = activePolicy.mode === "spring"
-    // Source spring-jump frame: zeros(2), then the raw [vx, vy, yaw] command.
-    ? [0, 0, simulation.command[0], simulation.command[1], simulation.command[2], angularVelocity.x * 0.25, angularVelocity.y * 0.25, angularVelocity.z * 0.25, euler.x, euler.y, euler.z]
+    // The exported 470-D checkpoint predates the 45-D mjlab migration:
+    // legacy frame = zeros(2) + [0.7, 0, vx] + ang_vel + euler + q/dq/action.
+    ? [0, 0, 0.7, 0, simulation.command[0], angularVelocity.x * 0.25, angularVelocity.y * 0.25, angularVelocity.z * 0.25, euler.x, euler.y, euler.z]
     : (() => {
       const phase = simulation.elapsed / activePolicy.cycleTime;
       return [
@@ -627,13 +628,12 @@ function configureCommandControls() {
   ];
   controls.forEach(([id, [min, max]], index) => {
     const input = $(id);
-    const minSpeed = min > 0 ? min : 0;
     const maxSpeed = Math.max(Math.abs(min), Math.abs(max));
-    input.min = String(minSpeed);
+    input.min = "0";
     input.max = String(maxSpeed || 1);
     input.value = String(maxSpeed);
     input.disabled = maxSpeed === 0;
-    input.setAttribute("aria-valuetext", `${minSpeed} 到 ${maxSpeed}`);
+    input.setAttribute("aria-valuetext", `0 到 ${maxSpeed}`);
     controllerState.commandSpeed[index] = maxSpeed;
   });
 }
@@ -661,28 +661,12 @@ function inputAxis(index) {
   return -controllerState.joystick.right.x;
 }
 
-function commandFromInput(input, speed, min, max) {
-  const value = input * speed;
-  // A policy whose command range does not cross zero has no trained meaning
-  // for the opposite direction. Treat that input as neutral instead of
-  // snapping it to the nearest bound, which would keep issuing a command
-  // after the user releases or reverses the control.
-  if (value === 0) return 0;
-  if (min > 0 && value < 0) return 0;
-  if (max < 0 && value > 0) return 0;
-  return THREE.MathUtils.clamp(value, min, max);
-}
-
 function recomputeCommand() {
   if (!activePolicy) return;
   ["vx", "vy", "yaw"].forEach((key, index) => {
     const [min, max] = activePolicy.commandRanges[key];
-    simulation.command[index] = commandFromInput(
-      inputAxis(index),
-      controllerState.commandSpeed[index],
-      min,
-      max,
-    );
+    const value = inputAxis(index) * controllerState.commandSpeed[index];
+    simulation.command[index] = THREE.MathUtils.clamp(value, min, max);
   });
   updateControls();
 }
