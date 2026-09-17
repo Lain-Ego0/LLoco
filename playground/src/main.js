@@ -113,6 +113,7 @@ const meshFiles = [
 ];
 
 const $ = (id) => document.getElementById(id);
+const publicAsset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 const engineState = $("engineState");
 const notice = $("notice");
 const simulation = { running: false, elapsed: 0, action: new Float32Array(12), actionHistory: [], command: [0, 0, 0], history: [] };
@@ -229,8 +230,8 @@ function localTransform(node, element) {
 
 async function buildRobot() {
   const [xml, ...objects] = await Promise.all([
-    fetch("/robot/scene_go2.xml").then((response) => response.text()),
-    ...meshFiles.map((file) => new OBJLoader().loadAsync(`/robot/assets/${file}`)),
+    fetch(publicAsset("robot/scene_go2.xml")).then((response) => response.text()),
+    ...meshFiles.map((file) => new OBJLoader().loadAsync(publicAsset(`robot/assets/${file}`))),
   ]);
   const meshes = new Map(meshFiles.map((file, index) => [file.replace(".obj", ""), objects[index]]));
   const document = new DOMParser().parseFromString(xml, "text/xml");
@@ -273,8 +274,8 @@ async function initializeMujoco() {
     locateFile: (file) => (file === "mujoco.wasm" ? mujocoWasmUrl : file),
   });
   const [xml, binaries] = await Promise.all([
-    fetch("/robot/scene_go2.xml").then((response) => response.text()),
-    Promise.all(meshFiles.map(async (file) => [file, new Uint8Array(await (await fetch(`/robot/assets/${file}`)).arrayBuffer())])),
+    fetch(publicAsset("robot/scene_go2.xml")).then((response) => response.text()),
+    Promise.all(meshFiles.map(async (file) => [file, new Uint8Array(await (await fetch(publicAsset(`robot/assets/${file}`))).arrayBuffer())])),
   ]);
   baseSceneXml = xml;
   robotAssets = binaries;
@@ -448,7 +449,7 @@ async function loadPolicy(key) {
   configureCommandControls();
   updateControls();
   setNotice(`正在加载「${activePolicy.name}」ONNX 策略…`);
-  policySession = await ort.InferenceSession.create(activePolicy.file, { executionProviders: ["wasm"] });
+  policySession = await ort.InferenceSession.create(publicAsset(activePolicy.file), { executionProviders: ["wasm"] });
   reset();
   setNotice(`${activePolicy.note} 点击“开始试玩”后，物理和策略均在此浏览器内运行。`);
 }
