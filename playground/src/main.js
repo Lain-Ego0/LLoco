@@ -25,7 +25,7 @@ const policies = {
     inputSize: 48,
     mode: "stand",
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-0.4, 0.4],
+    commandRanges: { vx: [-0.4, 0.4], vy: [0, 0], yaw: [-0.4, 0.4] },
     note: "静止起步；可用前进和转向控制调整指令。",
   },
   rearStand: {
@@ -34,7 +34,7 @@ const policies = {
     inputSize: 45,
     mode: "stand",
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-0.2, 0.6],
+    commandRanges: { vx: [-0.2, 0.6], vy: [0, 0], yaw: [-0.4, 0.4] },
     note: "前脚离地、后脚支撑的策略展示。",
   },
   trot: {
@@ -44,7 +44,7 @@ const policies = {
     mode: "gait",
     cycleTime: 0.5,
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-1, 1],
+    commandRanges: { vx: [-1, 1], vy: [-1, 1], yaw: [-1, 1] },
     note: "已通过迁移回放验证的小跑策略；从低速指令开始体验。",
   },
   jump: {
@@ -54,7 +54,7 @@ const policies = {
     mode: "gait",
     cycleTime: 1.5,
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-1, 1],
+    commandRanges: { vx: [-1, 1], vy: [-1, 1], yaw: [-1, 1] },
     note: "已通过接触修正验证的跳跃策略；启动后会按自身节律执行。",
   },
   springJump: {
@@ -63,7 +63,7 @@ const policies = {
     inputSize: 470,
     mode: "spring",
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-1, 1],
+    commandRanges: { vx: [-1, 1], vy: [-1, 1], yaw: [-1, 1] },
     note: "来自 Gym 工程的弹簧跳跃策略；前进指令会作为起跳输入。",
   },
   arenaWalk: {
@@ -72,7 +72,7 @@ const policies = {
     inputSize: 270,
     mode: "arenaHistory",
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-1, 1],
+    commandRanges: { vx: [-1, 1], vy: [-1, 1], yaw: [-1, 1] },
     note: "ArenaX 参考工程的 6 帧历史平地行走策略。",
   },
   dreamwaq: {
@@ -81,7 +81,7 @@ const policies = {
     inputSize: 270,
     mode: "arenaHistory",
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-1, 1],
+    commandRanges: { vx: [-1, 1], vy: [-1, 1], yaw: [-1, 1] },
     note: "DreamWaQ 发布导出的 6 帧历史越野步态策略。",
   },
   ampCts: {
@@ -90,7 +90,7 @@ const policies = {
     inputSize: 270,
     mode: "arenaHistory",
     defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
-    commandLimit: [-1, 1],
+    commandRanges: { vx: [-1, 1], vy: [-1, 1], yaw: [-1, 1] },
     note: "AMP-CTS 发布导出的 6 帧历史行走策略。",
   },
 };
@@ -116,10 +116,12 @@ const $ = (id) => document.getElementById(id);
 const engineState = $("engineState");
 const notice = $("notice");
 const simulation = { running: false, elapsed: 0, action: new Float32Array(12), actionHistory: [], command: [0, 0, 0], history: [] };
+const POLICY_DT = 0.02;
 const terrainState = { kind: "flat", seed: 7, height: 0.28, tool: "platform", elements: [], selected: null };
 const TERRAIN_AREA = { x: 10, y: 8 };
 const TERRAIN_SLOT_COUNT = 96;
 let mujoco, model, data, policySession, activePolicy, jointAddresses, actuatorAddresses, baseSceneXml, robotAssets, robotVfs, terrainSlotIds, terrainSlotSet;
+let physicsStepsPerPolicy = 10;
 
 function setStatus(text, kind = "") {
   engineState.textContent = text;
@@ -286,6 +288,7 @@ function createMujocoModel(xml, terrainCount) {
   model?.delete?.();
   model = mujoco.MjModel.from_xml_string(xml, robotVfs);
   data = new mujoco.MjData(model);
+  physicsStepsPerPolicy = Math.max(1, Math.round(POLICY_DT / model.opt.timestep));
   jointAddresses = jointNames.map((name) => ({
     qpos: model.jnt(name).qposadr,
     dof: model.jnt(name).dofadr,
@@ -376,6 +379,20 @@ function terrainXml() {
   const document = new DOMParser().parseFromString(baseSceneXml, "text/xml");
   const worldbodies = document.querySelectorAll("worldbody");
   const worldbody = worldbodies[worldbodies.length - 1];
+  // scene_go2.xml already contains an infinite plane. Keep one explicit box
+  // floor for the editor's bounded playground, but remove the original plane
+  // so coincident contacts do not make the foot solver fight two surfaces.
+  worldbody.querySelector('geom[name="floor"]')?.remove();
+  // The visual foot mesh extends about 26 mm below its attachment point,
+  // while the source collision sphere is only 22 mm and uses a soft contact
+  // response. Slightly enlarge and stiffen the four foot geoms so the visible
+  // sole is covered by collision and does not repeatedly pass below z=0.
+  ["FL", "FR", "RL", "RR"].forEach((name) => {
+    const foot = document.querySelector(`geom[name="${name}"]`);
+    foot?.setAttribute("size", "0.026");
+    foot?.setAttribute("solref", "0.005 1");
+    foot?.setAttribute("solimp", "0.95 0.99 0.001");
+  });
   const definitions = terrainBoxes();
   if (definitions.length > TERRAIN_SLOT_COUNT) throw new Error(`地形最多支持 ${TERRAIN_SLOT_COUNT} 个碰撞组件。`);
   definitions.forEach((definition, index) => {
@@ -387,8 +404,10 @@ function terrainXml() {
     geom.setAttribute("euler", `0 ${definition.ry} 0`);
     geom.setAttribute("rgba", "0 0 0 0");
     geom.setAttribute("friction", "0.9 0.1 0.1");
-    geom.setAttribute("solref", "-200 -1");
-    geom.setAttribute("solimp", "0.95 0.99 0.002");
+    // Match MuJoCo's stable default contact response instead of the very
+    // lightly damped direct-format values that previously allowed foot sink.
+    geom.setAttribute("solref", "0.02 1");
+    geom.setAttribute("solimp", "0.9 0.95 0.001");
     geom.setAttribute("contype", index < definitions.length ? "1" : "0");
     geom.setAttribute("conaffinity", index < definitions.length ? "1" : "0");
     worldbody.append(geom);
@@ -426,6 +445,7 @@ async function loadPolicy(key) {
   $("policyName").textContent = activePolicy.name;
   $("policyMeta").textContent = `${activePolicy.inputSize} 维策略输入 · 12 个关节动作`;
   simulation.command.fill(0);
+  configureCommandControls();
   updateControls();
   setNotice(`正在加载「${activePolicy.name}」ONNX 策略…`);
   policySession = await ort.InferenceSession.create(activePolicy.file, { executionProviders: ["wasm"] });
@@ -566,6 +586,22 @@ function updateControls() {
   $("commandYawValue").textContent = `${simulation.command[2].toFixed(2)} rad/s`;
 }
 
+function configureCommandControls() {
+  if (!activePolicy) return;
+  const controls = [
+    ["commandVx", activePolicy.commandRanges.vx],
+    ["commandVy", activePolicy.commandRanges.vy],
+    ["commandYaw", activePolicy.commandRanges.yaw],
+  ];
+  controls.forEach(([id, [min, max]]) => {
+    const input = $(id);
+    input.min = String(min);
+    input.max = String(max);
+    input.disabled = min === max;
+    input.setAttribute("aria-valuetext", `${min} 到 ${max}`);
+  });
+}
+
 function drawActionChart() {
   const canvas = $("actionChart");
   const context = canvas.getContext("2d");
@@ -687,11 +723,11 @@ async function tick() {
     pendingStep = true;
     try {
       await policyStep();
-      for (let index = 0; index < 4; index += 1) {
+      for (let index = 0; index < physicsStepsPerPolicy; index += 1) {
         applyControl();
         mujoco.mj_step(model, data);
       }
-      simulation.elapsed += 0.02;
+      simulation.elapsed += physicsStepsPerPolicy * model.opt.timestep;
       if (data.qpos[2] < -0.2) {
         reset();
         setNotice("机器人离开场地，已自动重置。");
@@ -914,33 +950,12 @@ $("terrainImport").onchange = (event) => {
 };
 [["commandVx", 0], ["commandVy", 1], ["commandYaw", 2]].forEach(([id, index]) => {
   $(id).oninput = (event) => {
-    const [min, max] = index === 0 ? activePolicy.commandLimit : [-1, 1];
+    const keys = ["vx", "vy", "yaw"];
+    const [min, max] = activePolicy.commandRanges[keys[index]];
     simulation.command[index] = THREE.MathUtils.clamp(Number(event.target.value), min, max);
     updateControls();
   };
 });
-const pressed = new Set();
-const movementKeys = ["KeyQ", "KeyW", "KeyE", "KeyA", "KeyS", "KeyD"];
-window.addEventListener("keydown", (event) => {
-  if (!movementKeys.includes(event.code)) return;
-  event.preventDefault();
-  pressed.add(event.code);
-});
-window.addEventListener("keyup", (event) => {
-  if (!movementKeys.includes(event.code)) return;
-  pressed.delete(event.code);
-});
-setInterval(() => {
-  if (!pressed.size) return;
-  const forward = (pressed.has("KeyW") ? 0.05 : 0) - (pressed.has("KeyS") ? 0.05 : 0);
-  const side = (pressed.has("KeyA") ? 0.05 : 0) - (pressed.has("KeyD") ? 0.05 : 0);
-  const turn = (pressed.has("KeyQ") ? 0.05 : 0) - (pressed.has("KeyE") ? 0.05 : 0);
-  const [min, max] = activePolicy.commandLimit;
-  simulation.command[0] = THREE.MathUtils.clamp(simulation.command[0] + forward, min, max);
-  simulation.command[1] = THREE.MathUtils.clamp(simulation.command[1] + side, -1, 1);
-  simulation.command[2] = THREE.MathUtils.clamp(simulation.command[2] + turn, -1, 1);
-  updateControls();
-}, 80);
 
 setBootStage("加载机器人场景…", 8);
 const robotTask = buildRobot().then(() => setBootStage("机器人场景已就绪…", 38));
