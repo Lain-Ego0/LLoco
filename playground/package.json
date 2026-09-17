@@ -1,0 +1,20 @@
+{
+  "name": "lloco-playground",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "prepare-assets": "node scripts/prepare-assets.mjs",
+    "dev": "npm run prepare-assets && vite",
+    "build": "npm run prepare-assets && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mujoco/mujoco": "^3.11.0",
+    "onnxruntime-web": "^1.23.2",
+    "three": "^0.163.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.19"
+  }
+}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#edf0f3" />
+    <title>LLoco 策略试玩区</title>
+  </head>
+  <body>
+    <main id="scene" aria-label="Go2 MuJoCo 策略试玩画面">
+      <div id="bootScreen" class="boot-screen" role="status">
+        <div class="boot-mark">LLOCO / PLAYGROUND</div>
+        <div class="boot-spinner" aria-hidden="true"></div>
+        <strong>正在准备策略试玩区</strong>
+        <span id="bootStage">初始化场景…</span>
+        <div class="boot-progress" aria-label="加载进度"><i id="bootProgress"></i></div>
+        <output id="bootPercent">0%</output>
+      </div>
+
+      <header class="top-bar">
+        <a class="brand" href="/" aria-label="LLoco 策略试玩区首页">LLOCO <span>/</span> PLAYGROUND</a>
+        <div class="policy-context">
+          <strong id="policyName">策略试玩区</strong>
+          <span id="policyMeta">浏览器内 MuJoCo WASM</span>
+        </div>
+        <div class="top-actions">
+          <select id="policy" aria-label="选择策略"></select>
+          <button id="start" class="primary" disabled>开始</button>
+          <button id="reset" disabled>重置</button>
+        </div>
+        <output id="command" class="command-output">vx 0.00 · vy 0.00 · ω 0.00</output>
+        <output id="clock" class="clock">0.00 s</output>
+        <span id="engineState" class="pill">正在加载…</span>
+      </header>
+
+      <p id="notice" class="scene-notice">加载资源后即可开始。</p>
+      <p class="key-guide"><kbd>W</kbd><kbd>S</kbd> 前后　<kbd>A</kbd><kbd>D</kbd> 横移　<kbd>Q</kbd><kbd>E</kbd> 转向</p>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

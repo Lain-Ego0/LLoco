@@ -98,6 +98,18 @@ uv run --extra workbench lloco-workbench
 
 前端开发、模块边界和验证说明见 [工作台文档](docs/workbench.md)。
 
+### 独立试玩区
+
+`playground/` 是与工作台和训练流程隔离的静态浏览器应用：MuJoCo WASM 在浏览器内运行物理，ONNX Runtime Web 执行已挑选策略。它仅用于交互展示，不作为训练验收工具，也不会连接工作台端口或读取训练日志。
+
+```bash
+cd playground
+npm install
+npm run dev
+```
+
+当前包含 Go2 前倒立和后立试玩策略。构建生产静态站点使用 `npm run build`；详细的资产准备方式见 [`playground/README.md`](playground/README.md)。
+
 `csv-to-npz` 直接在本地生成 NPZ，不需要 Weights & Biases。`--output-name` 只传文件名时，输出会保存到输入 CSV 的同一目录；也可传入完整路径。G1-23DoF 动作使用 `--robot g1_23dof`。
 
 任务命名为 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough`。速度任务支持 A2、As2、Go2、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与 G1-23Dof。
