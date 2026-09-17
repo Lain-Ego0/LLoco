@@ -116,8 +116,17 @@ const $ = (id) => document.getElementById(id);
 const publicAsset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 const engineState = $("engineState");
 const notice = $("notice");
-const simulation = { running: false, elapsed: 0, action: new Float32Array(12), actionHistory: [], command: [0, 0, 0], history: [] };
+const simulation = {
+  running: false,
+  elapsed: 0,
+  realTimeAccumulator: 0,
+  action: new Float32Array(12),
+  actionHistory: [],
+  command: [0, 0, 0],
+  history: [],
+};
 const POLICY_DT = 0.02;
+const MAX_POLICY_STEPS_PER_FRAME = 4;
 const terrainState = { kind: "flat", seed: 7, height: 0.28, tool: "platform", elements: [], selected: null };
 const TERRAIN_AREA = { x: 10, y: 8 };
 const TERRAIN_SLOT_COUNT = 96;
@@ -469,6 +478,7 @@ function reset() {
   simulation.actionHistory = [];
   simulation.history = [];
   simulation.elapsed = 0;
+  simulation.realTimeAccumulator = 0;
   mujoco.mj_forward(model, data);
   updateRobot();
 }
@@ -719,19 +729,44 @@ function installRobotDrag() {
 }
 
 let pendingStep = false;
-async function tick() {
+let lastFrameTime = null;
+async function tick(timestamp) {
+  const now = Number.isFinite(timestamp) ? timestamp : performance.now();
+  if (lastFrameTime === null) lastFrameTime = now;
+  const frameDelta = Math.min(0.1, Math.max(0, (now - lastFrameTime) / 1000));
+  lastFrameTime = now;
+
+  if (simulation.running) simulation.realTimeAccumulator += frameDelta;
+  else simulation.realTimeAccumulator = 0;
+
   if (simulation.running && !pendingStep) {
     pendingStep = true;
     try {
-      await policyStep();
-      for (let index = 0; index < physicsStepsPerPolicy; index += 1) {
-        applyControl();
-        mujoco.mj_step(model, data);
+      let policySteps = 0;
+      while (
+        simulation.realTimeAccumulator >= POLICY_DT &&
+        policySteps < MAX_POLICY_STEPS_PER_FRAME
+      ) {
+        await policyStep();
+        for (let index = 0; index < physicsStepsPerPolicy; index += 1) {
+          applyControl();
+          mujoco.mj_step(model, data);
+        }
+        simulation.elapsed += physicsStepsPerPolicy * model.opt.timestep;
+        simulation.realTimeAccumulator -= POLICY_DT;
+        policySteps += 1;
+
+        if (data.qpos[2] < -0.2) {
+          reset();
+          setNotice("机器人离开场地，已自动重置。");
+          break;
+        }
       }
-      simulation.elapsed += physicsStepsPerPolicy * model.opt.timestep;
-      if (data.qpos[2] < -0.2) {
-        reset();
-        setNotice("机器人离开场地，已自动重置。");
+
+      // A slow tab or a temporarily busy device must not create an unbounded
+      // catch-up burst when the page becomes visible again.
+      if (policySteps === MAX_POLICY_STEPS_PER_FRAME) {
+        simulation.realTimeAccumulator = Math.min(simulation.realTimeAccumulator, POLICY_DT);
       }
     } catch (error) {
       simulation.running = false;
