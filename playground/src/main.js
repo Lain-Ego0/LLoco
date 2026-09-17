@@ -125,13 +125,20 @@ const simulation = {
   command: [0, 0, 0],
   history: [],
 };
-const POLICY_DT = 0.02;
-const MAX_POLICY_STEPS_PER_FRAME = 4;
+const MUJOCO_TIMESTEP = 0.002;
+const POLICY_PHYSICS_STEPS = 10;
+const POLICY_DT = MUJOCO_TIMESTEP * POLICY_PHYSICS_STEPS;
 const terrainState = { kind: "flat", seed: 7, height: 0.28, tool: "platform", elements: [], selected: null };
 const TERRAIN_AREA = { x: 10, y: 8 };
 const TERRAIN_SLOT_COUNT = 96;
 let mujoco, model, data, policySession, activePolicy, jointAddresses, actuatorAddresses, baseSceneXml, robotAssets, robotVfs, terrainSlotIds, terrainSlotSet;
-let physicsStepsPerPolicy = 10;
+let physicsStepsPerPolicy = POLICY_PHYSICS_STEPS;
+let actualPolicyDt = POLICY_DT;
+const controllerState = {
+  commandSpeed: [1, 1, 1],
+  keyboardKeys: new Set(),
+  joystick: { left: { x: 0, y: 0 }, right: { x: 0, y: 0 } },
+};
 
 function setStatus(text, kind = "") {
   engineState.textContent = text;
@@ -298,7 +305,12 @@ function createMujocoModel(xml, terrainCount) {
   model?.delete?.();
   model = mujoco.MjModel.from_xml_string(xml, robotVfs);
   data = new mujoco.MjData(model);
-  physicsStepsPerPolicy = Math.max(1, Math.round(POLICY_DT / model.opt.timestep));
+  const policyStepRatio = POLICY_DT / model.opt.timestep;
+  if (Math.abs(model.opt.timestep - MUJOCO_TIMESTEP) > 1e-9 || !Number.isInteger(policyStepRatio) || policyStepRatio !== POLICY_PHYSICS_STEPS) {
+    throw new Error(`MuJoCo timestep 必须为 ${MUJOCO_TIMESTEP}s，且策略周期必须由 ${POLICY_PHYSICS_STEPS} 个物理步组成。`);
+  }
+  physicsStepsPerPolicy = policyStepRatio;
+  actualPolicyDt = physicsStepsPerPolicy * model.opt.timestep;
   jointAddresses = jointNames.map((name) => ({
     qpos: model.jnt(name).qposadr,
     dof: model.jnt(name).dofadr,
@@ -456,6 +468,7 @@ async function loadPolicy(key) {
   $("policyMeta").textContent = `${activePolicy.inputSize} 维策略输入 · 12 个关节动作`;
   simulation.command.fill(0);
   configureCommandControls();
+  recomputeCommand();
   updateControls();
   setNotice(`正在加载「${activePolicy.name}」ONNX 策略…`);
   policySession = await ort.InferenceSession.create(publicAsset(activePolicy.file), { executionProviders: ["wasm"] });
@@ -588,29 +601,72 @@ function updateRobot() {
 }
 
 function updateControls() {
-  $("command").textContent = `vx ${simulation.command[0].toFixed(2)} · vy ${simulation.command[1].toFixed(2)} · ω ${simulation.command[2].toFixed(2)}`;
-  $("commandVx").value = simulation.command[0];
-  $("commandVy").value = simulation.command[1];
-  $("commandYaw").value = simulation.command[2];
-  $("commandVxValue").textContent = `${simulation.command[0].toFixed(2)} m/s`;
-  $("commandVyValue").textContent = `${simulation.command[1].toFixed(2)} m/s`;
-  $("commandYawValue").textContent = `${simulation.command[2].toFixed(2)} rad/s`;
+  const [vx, vy, yaw] = simulation.command;
+  $("command").textContent = `vx ${vx.toFixed(2)} · vy ${vy.toFixed(2)} · ω ${yaw.toFixed(2)}`;
+  $("commandVxValue").textContent = `${vx.toFixed(2)} m/s`;
+  $("commandVyValue").textContent = `${vy.toFixed(2)} m/s`;
+  $("commandYawValue").textContent = `${yaw.toFixed(2)} rad/s`;
+  ["commandSpeedVxValue", "commandSpeedVyValue", "commandSpeedYawValue"].forEach((id, index) => {
+    const unit = index === 2 ? "rad/s" : "m/s";
+    $(id).textContent = `${controllerState.commandSpeed[index].toFixed(2)} ${unit}`;
+  });
+  const keyboardActive = controllerState.keyboardKeys.size > 0;
+  const joystickActive = Math.abs(controllerState.joystick.left.x) > .001 || Math.abs(controllerState.joystick.left.y) > .001 || Math.abs(controllerState.joystick.right.x) > .001;
+  $("controlSource").textContent = keyboardActive ? "键盘 · 满幅" : joystickActive ? "摇杆 · 线性" : "待命";
+  $("leftJoystickValue").textContent = `vx ${vx.toFixed(2)} · vy ${vy.toFixed(2)}`;
+  $("rightJoystickValue").textContent = `ω ${yaw.toFixed(2)}`;
 }
 
 function configureCommandControls() {
   if (!activePolicy) return;
   const controls = [
-    ["commandVx", activePolicy.commandRanges.vx],
-    ["commandVy", activePolicy.commandRanges.vy],
-    ["commandYaw", activePolicy.commandRanges.yaw],
+    ["commandSpeedVx", activePolicy.commandRanges.vx],
+    ["commandSpeedVy", activePolicy.commandRanges.vy],
+    ["commandSpeedYaw", activePolicy.commandRanges.yaw],
   ];
-  controls.forEach(([id, [min, max]]) => {
+  controls.forEach(([id, [min, max]], index) => {
     const input = $(id);
-    input.min = String(min);
-    input.max = String(max);
-    input.disabled = min === max;
-    input.setAttribute("aria-valuetext", `${min} 到 ${max}`);
+    const maxSpeed = Math.max(Math.abs(min), Math.abs(max));
+    input.min = "0";
+    input.max = String(maxSpeed || 1);
+    input.value = String(maxSpeed);
+    input.disabled = maxSpeed === 0;
+    input.setAttribute("aria-valuetext", `0 到 ${maxSpeed}`);
+    controllerState.commandSpeed[index] = maxSpeed;
   });
+}
+
+function keyboardAxis(index) {
+  const keys = controllerState.keyboardKeys;
+  if (index === 0) {
+    if (keys.has("w")) return 1;
+    if (keys.has("s")) return -1;
+  } else if (index === 1) {
+    if (keys.has("a")) return 1;
+    if (keys.has("d")) return -1;
+  } else {
+    if (keys.has("q")) return 1;
+    if (keys.has("e")) return -1;
+  }
+  return null;
+}
+
+function inputAxis(index) {
+  const keyboard = keyboardAxis(index);
+  if (keyboard !== null) return keyboard;
+  if (index === 0) return -controllerState.joystick.left.y;
+  if (index === 1) return -controllerState.joystick.left.x;
+  return -controllerState.joystick.right.x;
+}
+
+function recomputeCommand() {
+  if (!activePolicy) return;
+  ["vx", "vy", "yaw"].forEach((key, index) => {
+    const [min, max] = activePolicy.commandRanges[key];
+    const value = inputAxis(index) * controllerState.commandSpeed[index];
+    simulation.command[index] = THREE.MathUtils.clamp(value, min, max);
+  });
+  updateControls();
 }
 
 function drawActionChart() {
@@ -733,7 +789,7 @@ let lastFrameTime = null;
 async function tick(timestamp) {
   const now = Number.isFinite(timestamp) ? timestamp : performance.now();
   if (lastFrameTime === null) lastFrameTime = now;
-  const frameDelta = Math.min(0.1, Math.max(0, (now - lastFrameTime) / 1000));
+  const frameDelta = Math.max(0, (now - lastFrameTime) / 1000);
   lastFrameTime = now;
 
   if (simulation.running) simulation.realTimeAccumulator += frameDelta;
@@ -742,19 +798,14 @@ async function tick(timestamp) {
   if (simulation.running && !pendingStep) {
     pendingStep = true;
     try {
-      let policySteps = 0;
-      while (
-        simulation.realTimeAccumulator >= POLICY_DT &&
-        policySteps < MAX_POLICY_STEPS_PER_FRAME
-      ) {
+      while (simulation.realTimeAccumulator >= actualPolicyDt) {
         await policyStep();
         for (let index = 0; index < physicsStepsPerPolicy; index += 1) {
           applyControl();
           mujoco.mj_step(model, data);
         }
-        simulation.elapsed += physicsStepsPerPolicy * model.opt.timestep;
-        simulation.realTimeAccumulator -= POLICY_DT;
-        policySteps += 1;
+        simulation.elapsed = data.time;
+        simulation.realTimeAccumulator -= actualPolicyDt;
 
         if (data.qpos[2] < -0.2) {
           reset();
@@ -763,11 +814,6 @@ async function tick(timestamp) {
         }
       }
 
-      // A slow tab or a temporarily busy device must not create an unbounded
-      // catch-up burst when the page becomes visible again.
-      if (policySteps === MAX_POLICY_STEPS_PER_FRAME) {
-        simulation.realTimeAccumulator = Math.min(simulation.realTimeAccumulator, POLICY_DT);
-      }
     } catch (error) {
       simulation.running = false;
       $("start").textContent = "开始";
@@ -783,12 +829,6 @@ async function tick(timestamp) {
 }
 
 const terrainLabels = { platform: "高台", stairs: "台阶", ramp: "斜坡", stones: "梅花桩", wall: "矮墙" };
-
-function updateTerrainHeight() {
-  terrainState.height = Number($("terrainHeight").value);
-  $("terrainHeightValue").textContent = `${terrainState.height.toFixed(2)} m`;
-  repaintTerrainEditor();
-}
 
 function terrainCanvasPosition(event) {
   const canvas = $("terrainMap");
@@ -912,8 +952,6 @@ function importTerrainScene(file) {
       terrainState.selected = null;
       $("terrainKind").value = terrainState.kind;
       $("terrainSeed").value = terrainState.seed;
-      $("terrainHeight").value = terrainState.height;
-      updateTerrainHeight();
       setNotice("地形已导入预览；点击“应用到场景”后写入浏览器内 MuJoCo 物理模型。");
     } catch (error) { setNotice(error.message || String(error), true); }
   };
@@ -930,6 +968,92 @@ function exportTerrainScene() {
   URL.revokeObjectURL(url);
 }
 
+function installJoystick(id, stickKey) {
+  const mount = $(id);
+  const base = mount.querySelector(".joystick-base");
+  const knob = mount.querySelector(".joystick-knob");
+  let pointerId = null;
+
+  const setPosition = (event) => {
+    const bounds = base.getBoundingClientRect();
+    const radius = Math.max(1, bounds.width / 2 - knob.offsetWidth / 2 - 3);
+    let x = event.clientX - (bounds.left + bounds.width / 2);
+    let y = event.clientY - (bounds.top + bounds.height / 2);
+    const length = Math.hypot(x, y);
+    if (length > radius) {
+      x = x / length * radius;
+      y = y / length * radius;
+    }
+    const state = controllerState.joystick[stickKey];
+    state.x = x / radius;
+    state.y = y / radius;
+    knob.style.left = "calc(50% + " + x + "px)";
+    knob.style.top = "calc(50% + " + y + "px)";
+    recomputeCommand();
+  };
+
+  const release = (event) => {
+    if (pointerId !== event.pointerId) return;
+    pointerId = null;
+    controllerState.joystick[stickKey].x = 0;
+    controllerState.joystick[stickKey].y = 0;
+    knob.style.left = "50%";
+    knob.style.top = "50%";
+    if (mount.hasPointerCapture(event.pointerId)) mount.releasePointerCapture(event.pointerId);
+    recomputeCommand();
+  };
+
+  mount.addEventListener("pointerdown", (event) => {
+    if (pointerId !== null) return;
+    pointerId = event.pointerId;
+    mount.setPointerCapture(pointerId);
+    setPosition(event);
+    event.preventDefault();
+  });
+  mount.addEventListener("pointermove", (event) => {
+    if (pointerId !== event.pointerId) return;
+    setPosition(event);
+    event.preventDefault();
+  });
+  mount.addEventListener("pointerup", release);
+  mount.addEventListener("pointercancel", release);
+}
+
+function resetJoysticks() {
+  for (const [key, stick] of Object.entries(controllerState.joystick)) {
+    stick.x = 0;
+    stick.y = 0;
+    const mount = $(key === "left" ? "leftJoystick" : "rightJoystick");
+    const knob = mount.querySelector(".joystick-knob");
+    knob.style.left = "50%";
+    knob.style.top = "50%";
+  }
+}
+
+function installKeyboardControl() {
+  const supportedKeys = new Set(["q", "w", "e", "a", "s", "d"]);
+  const isTyping = (target) => ["INPUT", "SELECT", "TEXTAREA"].includes(target?.tagName) || target?.isContentEditable;
+  window.addEventListener("keydown", (event) => {
+    const key = event.key.toLowerCase();
+    if (!supportedKeys.has(key) || isTyping(event.target)) return;
+    controllerState.keyboardKeys.add(key);
+    event.preventDefault();
+    recomputeCommand();
+  });
+  window.addEventListener("keyup", (event) => {
+    const key = event.key.toLowerCase();
+    if (!supportedKeys.has(key)) return;
+    controllerState.keyboardKeys.delete(key);
+    event.preventDefault();
+    recomputeCommand();
+  });
+  window.addEventListener("blur", () => {
+    if (!controllerState.keyboardKeys.size) return;
+    controllerState.keyboardKeys.clear();
+    recomputeCommand();
+  });
+}
+
 for (const [key, config] of Object.entries(policies)) $("policy").add(new Option(config.name, key));
 $("policy").onchange = () => loadPolicy($("policy").value).catch((error) => setNotice(error.message, true));
 $("start").onclick = () => {
@@ -937,6 +1061,11 @@ $("start").onclick = () => {
   $("start").textContent = simulation.running ? "暂停" : "继续";
 };
 $("reset").onclick = () => reset();
+$("cmdToggle").onclick = () => {
+  const panel = $("cmdPanel");
+  panel.hidden = !panel.hidden;
+};
+$("cmdClose").onclick = () => { $("cmdPanel").hidden = true; };
 $("monitorToggle").onclick = () => {
   const panel = $("monitorPanel");
   panel.hidden = !panel.hidden;
@@ -951,7 +1080,6 @@ $("terrainToggle").onclick = () => {
 $("terrainClose").onclick = () => { $("terrainPanel").hidden = true; };
 $("terrainKind").onchange = (event) => { terrainState.kind = event.target.value; repaintTerrainEditor(); };
 $("terrainSeed").oninput = (event) => { terrainState.seed = Number(event.target.value) || 0; repaintTerrainEditor(); };
-$("terrainHeight").oninput = updateTerrainHeight;
 function editSelectedTerrain(key, value) {
   const element = terrainState.elements[terrainState.selected];
   if (!element || !Number.isFinite(value)) return;
@@ -984,14 +1112,20 @@ $("terrainImport").onchange = (event) => {
   if (file) importTerrainScene(file);
   event.target.value = "";
 };
-[["commandVx", 0], ["commandVy", 1], ["commandYaw", 2]].forEach(([id, index]) => {
+[["commandSpeedVx", 0], ["commandSpeedVy", 1], ["commandSpeedYaw", 2]].forEach(([id, index]) => {
   $(id).oninput = (event) => {
-    const keys = ["vx", "vy", "yaw"];
-    const [min, max] = activePolicy.commandRanges[keys[index]];
-    simulation.command[index] = THREE.MathUtils.clamp(Number(event.target.value), min, max);
-    updateControls();
+    controllerState.commandSpeed[index] = Number(event.target.value);
+    recomputeCommand();
   };
 });
+$("commandStop").onclick = () => {
+  controllerState.keyboardKeys.clear();
+  resetJoysticks();
+  recomputeCommand();
+};
+installJoystick("leftJoystick", "left");
+installJoystick("rightJoystick", "right");
+installKeyboardControl();
 
 setBootStage("加载机器人场景…", 8);
 const robotTask = buildRobot().then(() => setBootStage("机器人场景已就绪…", 38));
@@ -1005,6 +1139,7 @@ Promise.all([robotTask, engineTask])
   .then(() => {
     $("start").disabled = false;
     $("reset").disabled = false;
+    $("cmdToggle").disabled = false;
     $("monitorToggle").disabled = false;
     $("terrainToggle").disabled = false;
     installRobotDrag();

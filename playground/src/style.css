@@ -38,7 +38,10 @@ button.primary:hover:not(:disabled) { background: #104b7b; }
 .key-guide { border-radius: 7px; bottom: 15px; right: 16px; white-space: nowrap; }
 kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; border-radius: 4px; color: #48545f; font-size: .67rem; margin-right: .13rem; padding: .06rem .21rem; }
 
-.monitor-panel { background: #f9fbfdec; border: 1px solid #cbd6df; border-radius: 8px; box-shadow: 0 8px 28px #22354422; display: grid; gap: 9px; left: 14px; padding: 11px; position: absolute; top: 55px; width: min(330px, calc(100vw - 28px)); z-index: 3; backdrop-filter: blur(12px); }
+.cmd-panel, .monitor-panel { background: #f9fbfdec; border: 1px solid #cbd6df; border-radius: 8px; box-shadow: 0 8px 28px #22354422; display: grid; gap: 9px; padding: 11px; position: absolute; top: 55px; z-index: 3; backdrop-filter: blur(12px); }
+.cmd-panel { left: 14px; width: min(350px, calc(100vw - 28px)); }
+.monitor-panel { left: 378px; width: min(330px, calc(100vw - 392px)); }
+.cmd-panel[hidden],
 .monitor-panel[hidden] { display: none; }
 .telemetry-summary { color: #60707c; display: flex; font-size: .63rem; justify-content: space-between; }
 .telemetry-summary output { color: #1f3f57; font-variant-numeric: tabular-nums; }
@@ -46,11 +49,31 @@ kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; bor
 .action-values { display: grid; font-variant-numeric: tabular-nums; gap: 3px 5px; grid-template-columns: repeat(4, 1fr); }
 .action-values span { background: #f0f4f7; border-radius: 3px; color: #50616d; font-size: .56rem; padding: .17rem .22rem; }
 .action-values b { color: #195886; font-weight: 680; }
-.command-editor { border-top: 1px solid #d8e1e6; display: grid; gap: 6px; padding-top: 8px; }
-.command-editor strong { font-size: .68rem; }
-.command-editor label { align-items: center; color: #4c5d68; display: grid; font-size: .62rem; gap: 6px; grid-template-columns: 20px 1fr 68px; }
-.command-editor input { accent-color: #185a91; min-width: 0; }
-.command-editor output { color: #21608c; text-align: right; }
+.controller-status { align-items: center; background: #edf4f7; border: 1px solid #d5e1e7; border-radius: 5px; color: #627580; display: flex; font-size: .63rem; justify-content: space-between; padding: .38rem .5rem; }
+.controller-status output { color: #185a91; font-weight: 700; }
+.command-settings { border-top: 1px solid #d8e1e6; display: grid; gap: 8px; padding-top: 8px; }
+.command-settings label { align-items: center; color: #4c5d68; display: grid; font-size: .63rem; gap: 6px; grid-template-columns: 58px 1fr 78px; }
+.command-settings input { accent-color: #185a91; min-width: 0; }
+.command-settings output { color: #21608c; font-variant-numeric: tabular-nums; text-align: right; }
+.command-live { display: grid; gap: 5px; grid-template-columns: repeat(3, 1fr); }
+.command-live strong { color: #263b49; font-size: .66rem; grid-column: 1 / -1; }
+.command-live div { background: #edf2f5; border-radius: 4px; display: grid; gap: 2px; padding: .35rem .4rem; }
+.command-live span { color: #70808c; font-size: .57rem; }
+.command-live output { color: #195886; font-size: .62rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stop-command { background: #fff4f1; border-color: #e6b5a8; color: #9c4432; font-size: .65rem; }
+
+.virtual-joystick { bottom: 17px; color: #345466; display: grid; gap: 4px; justify-items: center; pointer-events: auto; position: absolute; touch-action: none; user-select: none; z-index: 2; }
+.joystick-left { left: 18px; }
+.joystick-right { right: 18px; }
+.joystick-label { align-items: baseline; display: flex; gap: 7px; text-shadow: 0 1px 2px #fff; }
+.joystick-label strong { font-size: .7rem; }
+.joystick-label span { color: #607985; font-size: .58rem; }
+.joystick-base { background: #dbe8eea8; border: 1px solid #7694a4b8; border-radius: 50%; box-shadow: inset 0 0 0 6px #eef5f880, 0 4px 13px #233b481c; height: 126px; position: relative; width: 126px; }
+.joystick-cross { background: #6d8c9b55; display: block; left: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); }
+.joystick-cross.horizontal { height: 1px; width: 76%; }
+.joystick-cross.vertical { height: 76%; width: 1px; }
+.joystick-knob { background: #185a91cf; border: 2px solid #ffffffcc; border-radius: 50%; box-shadow: 0 3px 9px #183e522e; height: 44px; left: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 44px; }
+.virtual-joystick output { color: #496978; font-size: .58rem; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px #fff; }
 
 .terrain-panel { background: #f9fbfdec; border-left: 1px solid #cbd6df; box-shadow: -10px 0 32px #2235441f; display: flex; flex-direction: column; gap: 10px; max-width: min(390px, 100vw); overflow: auto; padding: 14px; position: absolute; right: 0; top: 43px; bottom: 0; width: 390px; z-index: 3; backdrop-filter: blur(12px); }
 .terrain-panel[hidden] { display: none; }
@@ -99,6 +122,7 @@ kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; bor
   .top-actions { margin-left: 0; order: 3; }
   .command-output { margin-left: auto; }
   .scene-notice { max-width: calc(100% - 32px); }
+  .monitor-panel { left: 14px; top: 315px; width: min(330px, calc(100vw - 28px)); }
 }
 
 @media (max-width: 560px) {
@@ -108,4 +132,12 @@ kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; bor
   .top-actions select { max-width: 120px; }
   .key-guide { bottom: 12px; right: 12px; }
   .scene-notice { bottom: 51px; left: 12px; }
+  .cmd-panel { left: 10px; top: 58px; width: calc(100vw - 20px); }
+  .monitor-panel { left: 10px; top: 315px; width: calc(100vw - 20px); }
+  .virtual-joystick { bottom: 12px; }
+  .joystick-left { left: 10px; }
+  .joystick-right { right: 10px; }
+  .joystick-base { height: 112px; width: 112px; }
+  .joystick-knob { height: 40px; width: 40px; }
+  .joystick-label span { display: none; }
 }

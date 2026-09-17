@@ -27,6 +27,7 @@
           <select id="policy" aria-label="选择策略"></select>
           <button id="start" class="primary" disabled>开始</button>
           <button id="reset" disabled>重置</button>
+          <button id="cmdToggle" disabled>CMD</button>
           <button id="monitorToggle" disabled>监测</button>
           <button id="terrainToggle" disabled>地形</button>
         </div>
@@ -36,7 +37,39 @@
       </header>
 
       <p id="notice" class="scene-notice">加载资源后即可开始。</p>
-      <p class="key-guide">请在“监测”面板中使用速度滑条控制指令</p>
+      <p class="key-guide"><kbd>WASD</kbd>移动 · <kbd>QE</kbd>转向 · CMD 设置速度赋值</p>
+
+      <div class="virtual-joystick joystick-left" id="leftJoystick" aria-label="左虚拟摇杆，控制前后左右">
+        <div class="joystick-label"><strong>移动</strong><span>↑ vx · ← vy</span></div>
+        <div class="joystick-base"><i class="joystick-cross horizontal"></i><i class="joystick-cross vertical"></i><div class="joystick-knob"></div></div>
+        <output id="leftJoystickValue">vx 0.00 · vy 0.00</output>
+      </div>
+      <div class="virtual-joystick joystick-right" id="rightJoystick" aria-label="右虚拟摇杆，控制左右转向">
+        <div class="joystick-label"><strong>转向</strong><span>← ω →</span></div>
+        <div class="joystick-base"><i class="joystick-cross horizontal"></i><i class="joystick-cross vertical"></i><div class="joystick-knob"></div></div>
+        <output id="rightJoystickValue">ω 0.00</output>
+      </div>
+
+      <aside id="cmdPanel" class="cmd-panel" aria-label="CMD 控制器" hidden>
+        <div class="panel-heading">
+          <div><p class="panel-kicker">PLAYGROUND / CMD</p><strong>运动指令</strong></div>
+          <button id="cmdClose" class="icon-button" aria-label="关闭 CMD 控制器">×</button>
+        </div>
+        <p class="panel-copy">Q/E 转向、W/S 前后、A/D 横移；此处设置按键和摇杆对应的速度赋值。</p>
+        <div class="controller-status"><span>输入模式</span><output id="controlSource">待命</output></div>
+        <div class="command-settings">
+          <label><span>vx 赋值</span><input id="commandSpeedVx" type="range" min="0" max="1" step="0.05" value="1" /><output id="commandSpeedVxValue">1.00 m/s</output></label>
+          <label><span>vy 赋值</span><input id="commandSpeedVy" type="range" min="0" max="1" step="0.05" value="1" /><output id="commandSpeedVyValue">1.00 m/s</output></label>
+          <label><span>ω 赋值</span><input id="commandSpeedYaw" type="range" min="0" max="1" step="0.05" value="1" /><output id="commandSpeedYawValue">1.00 rad/s</output></label>
+        </div>
+        <div class="command-live" aria-label="当前运动指令">
+          <strong>当前指令</strong>
+          <div><span>vx</span><output id="commandVxValue">0.00 m/s</output></div>
+          <div><span>vy</span><output id="commandVyValue">0.00 m/s</output></div>
+          <div><span>ω</span><output id="commandYawValue">0.00 rad/s</output></div>
+        </div>
+        <button id="commandStop" class="stop-command">归中 / 急停指令</button>
+      </aside>
 
       <aside id="monitorPanel" class="monitor-panel" aria-label="策略监测" hidden>
         <div class="panel-heading">
@@ -46,12 +79,6 @@
         <div class="telemetry-summary"><span>机身 <output id="bodyPosition">x 0.00 · y 0.00 · z 0.00</output></span><span>接触 <output id="contactCount">0</output> · 地形 <output id="terrainContactCount">0</output></span></div>
         <canvas id="actionChart" width="320" height="132" aria-label="策略动作输出曲线"></canvas>
         <div id="actionValues" class="action-values" aria-label="当前十二维动作输出"></div>
-        <div class="command-editor" aria-label="运动指令">
-          <strong>运动指令</strong>
-          <label><span>vx</span><input id="commandVx" type="range" min="-1" max="1" step="0.05" value="0" /><output id="commandVxValue">0.00 m/s</output></label>
-          <label><span>vy</span><input id="commandVy" type="range" min="-1" max="1" step="0.05" value="0" /><output id="commandVyValue">0.00 m/s</output></label>
-          <label><span>ω</span><input id="commandYaw" type="range" min="-1" max="1" step="0.05" value="0" /><output id="commandYawValue">0.00 rad/s</output></label>
-        </div>
       </aside>
 
       <aside id="terrainPanel" class="terrain-panel" aria-label="地形编辑器" hidden>
@@ -63,7 +90,6 @@
         <div class="terrain-form">
           <label>地表<select id="terrainKind"><option value="flat">平地</option><option value="slope">坡道</option><option value="stairs">阶梯</option><option value="obstacle_mix">随机障碍</option></select></label>
           <label>随机种子<input id="terrainSeed" type="number" min="0" max="99999" value="7" /></label>
-          <label>高度 / 强度<input id="terrainHeight" type="range" min="0.08" max="0.8" step="0.02" value="0.28" /><output id="terrainHeightValue">0.28 m</output></label>
         </div>
         <div class="terrain-tools" aria-label="障碍工具">
           <button data-terrain-tool="platform" class="active">高台</button><button data-terrain-tool="stairs">台阶</button><button data-terrain-tool="ramp">斜坡</button><button data-terrain-tool="stones">梅花桩</button><button data-terrain-tool="wall">矮墙</button>
