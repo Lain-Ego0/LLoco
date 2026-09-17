@@ -1,5 +1,6 @@
 """OpenDoge (OpenDog V1.1) constants."""
 
+from copy import deepcopy
 from pathlib import Path
 
 import mujoco
@@ -117,10 +118,12 @@ OPENDOGE_ARTICULATION = EntityArticulationInfoCfg(
 
 
 def get_opendoge_robot_cfg() -> EntityCfg:
-  """Get a fresh OpenDoge robot configuration instance."""
-  return EntityCfg(
-    init_state=OPENDOGE_INIT_STATE,
-    collisions=(FULL_COLLISION,),
-    spec_fn=get_spec,
-    articulation=OPENDOGE_ARTICULATION,
+  """Get an independent OpenDoge robot configuration instance."""
+  return deepcopy(
+    EntityCfg(
+      init_state=OPENDOGE_INIT_STATE,
+      collisions=(FULL_COLLISION,),
+      spec_fn=get_spec,
+      articulation=OPENDOGE_ARTICULATION,
+    )
   )

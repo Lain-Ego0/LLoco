@@ -15,4 +15,20 @@ OpenDoge is the OpenDog V1.1 quadruped migrated from
 
 The flat velocity profile scales height, foot clearance, command ranges, and
 debug visualization to the smaller OpenDoge body instead of reusing Go2-sized
-values directly.
+values directly. OpenDoge is an in-house robot and belongs to the `LainLab`
+task group; only the flat velocity task is currently registered.
+
+## Regenerating the MJCF
+
+`xmls/opendoge.xml` is generated from `urdf/opendoge.urdf` with the committed
+conversion script. Do not edit the XML by hand for source-geometry changes.
+
+```bash
+# From the repository root
+.venv/bin/python -m lloco.assets.robots.opendoge.convert_urdf
+```
+
+The script uses MuJoCo's URDF importer for inertias, joint transforms, limits,
+and collision primitives, then applies the mjlab-specific post-processing
+(base link/freejoint, visual geoms, `imu` site, foot sites, collision names,
+and IMU sensors). Run it after any URDF or mesh update.
