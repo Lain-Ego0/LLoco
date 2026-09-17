@@ -20,4 +20,4 @@ test:
 check: lint type test
 
 list:
-	uv run list-envs --keyword Unitree
+	uv run list-envs

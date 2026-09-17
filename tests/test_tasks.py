@@ -2,12 +2,30 @@
 
 from importlib.metadata import version
 
+from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.tasks.registry import list_tasks, load_env_cfg
 
 import lloco.tasks  # noqa: F401
-from mjlab.envs import ManagerBasedRlEnvCfg
 
-EXPECTED_ROBOTS = {"A2", "As2", "Go2", "G1", "G1-23Dof", "H1_2", "H2", "R1"}
+ROBOT_TERRAINS = {
+  **{
+    robot: ("Flat", "Rough")
+    for robot in ("A2", "As2", "Go2", "G1", "G1-23Dof", "H1_2", "H2", "R1")
+  },
+  "OpenDoge": ("Flat",),
+}
+ROBOT_TASK_GROUP = {
+  "OpenDoge": "LainLab",
+  **{
+    robot: "Unitree"
+    for robot in ("A2", "As2", "Go2", "G1", "G1-23Dof", "H1_2", "H2", "R1")
+  },
+}
+EXPECTED_ROBOTS = set(ROBOT_TASK_GROUP)
+
+
+def task_id(robot: str, terrain: str) -> str:
+  return f"{ROBOT_TASK_GROUP[robot]}-{robot}-{terrain}"
 
 
 def test_pinned_mjlab_version() -> None:
@@ -17,11 +35,13 @@ def test_pinned_mjlab_version() -> None:
 def test_velocity_tasks_are_registered() -> None:
   registered = set(list_tasks())
   expected = {
-    f"Unitree-{robot}-{terrain}"
-    for robot in EXPECTED_ROBOTS
-    for terrain in ("Flat", "Rough")
+    task_id(robot, terrain)
+    for robot, terrains in ROBOT_TERRAINS.items()
+    for terrain in terrains
   }
   assert expected <= registered
+  assert "Unitree-OpenDoge-Flat" not in registered
+  assert "LainLab-OpenDoge-Rough" not in registered
 
 
 def test_registered_configs_are_independent() -> None:
@@ -35,8 +55,8 @@ def test_registered_configs_are_independent() -> None:
 
 def test_flat_and_play_overrides() -> None:
   for robot in EXPECTED_ROBOTS:
-    train_cfg = load_env_cfg(f"Unitree-{robot}-Flat")
-    play_cfg = load_env_cfg(f"Unitree-{robot}-Flat", play=True)
+    train_cfg = load_env_cfg(task_id(robot, "Flat"))
+    play_cfg = load_env_cfg(task_id(robot, "Flat"), play=True)
     assert train_cfg.scene.terrain is not None
     assert train_cfg.scene.terrain.terrain_type == "plane"
     assert train_cfg.scene.terrain.terrain_generator is None

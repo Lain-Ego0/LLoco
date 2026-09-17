@@ -14,6 +14,7 @@ from lloco.assets.robots import (
   get_go2_robot_cfg,
   get_h1_2_robot_cfg,
   get_h2_robot_cfg,
+  get_opendoge_robot_cfg,
   get_r1_robot_cfg,
 )
 from lloco.motion_conversion import (
@@ -31,6 +32,7 @@ from lloco.motion_conversion import (
     get_g1_robot_cfg,
     get_g1_23dof_robot_cfg,
     get_go2_robot_cfg,
+    get_opendoge_robot_cfg,
     get_h1_2_robot_cfg,
     get_h2_robot_cfg,
     get_r1_robot_cfg,

@@ -2,7 +2,7 @@
 
 **LainLab** 是一个面向多厂商机器人的强化学习、仿真验证与部署项目，基于 **mjlab 1.6.0** 构建。`mjlab` 作为固定版本的通用基础依赖，LainLab 在其上维护机器人资产、任务差异、训练验证契约和部署适配，并由上游持续提供仿真框架能力。
 
-当前仓库以 Unitree 资产与任务作为可验证的起点。项目边界覆盖 LainLab 自己设计的机器人以及其他厂商的机器人资产；新增资产遵循统一的“资产 → profile/任务 → 验证 → 部署适配”路径，保持框架层的厂商中立性。
+当前仓库同时包含 Unitree 资产与 LainLab 自研 OpenDoge 等机器人资产。项目边界覆盖 LainLab 自己设计的机器人以及其他厂商的机器人资产；新增资产遵循统一的“资产 → profile/任务 → 验证 → 部署适配”路径，保持框架层的厂商中立性。
 
 > 说明：仓库与项目名称为 **LainLab**；Python 发行包、模块路径和已有 CLI 入口仍沿用 `lloco` 前缀，以保持兼容。
 
@@ -15,7 +15,7 @@
 | 维度 | 原版 `mjlab` | `unitree_rl_mjlab` 参考项目 | LainLab |
 | --- | --- | --- | --- |
 | 角色 | 通用 MuJoCo/Warp 仿真与强化学习框架 | 面向 Unitree 机器人的训练与实机部署项目 | 建立在 `mjlab` 上的多厂商机器人资产、任务与部署层 |
-| 机器人范围 | 通用框架能力 | 以 Unitree 机型为中心 | 当前有 Unitree 起点；设计上预留自研与其他厂商资产接入 |
+| 机器人范围 | 通用框架能力 | 以 Unitree 机型为中心 | 当前包含 Unitree、LainLab OpenDoge 等起点；设计上预留更多自研与其他厂商资产接入 |
 | 框架维护 | 上游维护仿真、manager、MDP、runner 与 viewer | 项目同时承载机型任务和部署流程 | 固定依赖 `mjlab==1.6.0`，以薄适配层降低框架复制与升级成本 |
 | 任务组织 | 提供通用任务与扩展机制 | 速度跟踪、动作模仿和实机控制为主 | 用机器人 profile、独立资产和可注册任务表达差异；Go2 还提供来源可追溯的 skill 迁移 |
 | 可验证性 | 提供框架级能力 | 以训练/部署工作流为主 | 为资产、配置、观测/奖励契约和 CPU smoke 保留项目级测试，并公开记录已知限制 |
@@ -28,7 +28,7 @@ LainLab 将“接入一台机器人”组织为可复用的产品路径：资产
 ```text
 LainLab/
 ├── src/lloco/
-│   ├── assets/          # Unitree MJCF、网格和示例动作
+│   ├── assets/          # 各机器人 MJCF、网格和示例动作
 │   ├── tasks/           # 基于 mjlab 1.6 的薄任务适配层
 │   └── cli.py           # train / play / list-envs 入口
 ├── tests/               # LainLab 自身的兼容性测试
@@ -60,17 +60,17 @@ uv sync --extra cpu
 ## 使用
 
 ```bash
-# 查看 Unitree 任务
-uv run list-envs --keyword Unitree
+# 查看任务
+uv run list-envs
 
-# 训练
-uv run train Unitree-Go2-Flat --env.scene.num-envs 4096
+# 训练 OpenDoge（自研机器人归入 LainLab 分类）
+uv run train LainLab-OpenDoge-Flat --env.scene.num-envs 4096
 
 # 用随机动作做配置冒烟测试
-uv run play Unitree-Go2-Flat --agent random --num-envs 1
+uv run play LainLab-OpenDoge-Flat --agent random --num-envs 1
 
 # 回放本地策略
-uv run play Unitree-Go2-Flat --checkpoint-file logs/.../model_1000.pt
+uv run play LainLab-OpenDoge-Flat --checkpoint-file logs/.../model_1000.pt
 
 # 把 G1 CSV 动作转换为 mjlab 跟踪格式
 uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
@@ -114,7 +114,7 @@ npm run dev
 
 `csv-to-npz` 直接在本地生成 NPZ，不需要 Weights & Biases。`--output-name` 只传文件名时，输出会保存到输入 CSV 的同一目录；也可传入完整路径。G1-23DoF 动作使用 `--robot g1_23dof`。
 
-任务命名为 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough`。速度任务支持 A2、As2、Go2、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与 G1-23Dof。
+任务命名统一使用分类前缀，例如 `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough` 和 `LainLab-<Robot>-Flat` / `LainLab-<Robot>-Rough`。OpenDoge 属于自研机器人，归入 `LainLab` 分类，且只注册 Flat 版本。速度任务支持 A2、As2、Go2、OpenDoge、G1、G1-23Dof、H1_2、H2 和 R1；动作跟踪任务支持 G1 与 G1-23Dof。
 
 ## 运行验证与已知限制
 
@@ -147,7 +147,7 @@ make check
 
 **LainLab** is a reinforcement-learning, simulation-validation, and deployment project for robots from multiple vendors, built on **mjlab 1.6.0**. `mjlab` remains the pinned, general-purpose dependency; LainLab owns robot assets, task-specific behavior, training-validation contracts, and deployment adapters, while upstream supplies the simulation framework.
 
-The repository currently uses Unitree assets and tasks as its validated baseline. LainLab will add its own robot designs and assets from other vendors. Every new asset follows the same path—asset, profile/task, validation, and deployment adapter—while the framework layer remains vendor-neutral.
+The repository currently includes Unitree assets together with LainLab-owned OpenDoge as validated starting points. LainLab continues to add its own robot designs and assets from other vendors. Every new asset follows the same path—asset, profile/task, validation, and deployment adapter—while the framework layer remains vendor-neutral.
 
 > Note: the project is named **LainLab**; the Python distribution, module paths, and existing CLI entry points keep the `lloco` prefix for compatibility.
 
@@ -160,7 +160,7 @@ The repository currently uses Unitree assets and tasks as its validated baseline
 | Dimension | Upstream `mjlab` | `unitree_rl_mjlab` reference project | LainLab |
 | --- | --- | --- | --- |
 | Role | General MuJoCo/Warp simulation and RL framework | Training and real-robot deployment project centered on Unitree robots | Multi-vendor robot asset, task, and deployment layer built on `mjlab` |
-| Robot scope | General framework capabilities | Unitree-centered | Unitree is the current baseline; self-designed and other-vendor assets are planned by design |
+| Robot scope | General framework capabilities | Unitree-centered | Unitree and LainLab OpenDoge are current starting points; more self-designed and other-vendor assets are planned by design |
 | Framework maintenance | Upstream owns simulation, managers, MDPs, runners, and viewers | The project carries robot tasks and deployment workflows | Pins `mjlab==1.6.0` and uses thin adapters to avoid framework duplication and reduce upgrade cost |
 | Task organization | General tasks and extension mechanisms | Primarily velocity tracking, motion imitation, and real-robot control | Robot profiles, isolated assets, and registrable tasks express differences; Go2 also includes source-traceable skill migrations |
 | Verifiability | Framework-level capabilities | Training and deployment workflows | Project-level asset, configuration, observation/reward contract, and CPU-smoke tests; known limitations are documented |
@@ -173,7 +173,7 @@ LainLab turns robot onboarding into a repeatable product path: assets have clear
 ```text
 LainLab/
 ├── src/lloco/
-│   ├── assets/          # Unitree MJCF files, meshes, and example motions
+│   ├── assets/          # Per-robot MJCF files, meshes, and example motions
 │   ├── tasks/           # Thin task adapters built on mjlab 1.6
 │   └── cli.py           # train / play / list-envs entry points
 ├── tests/               # LainLab compatibility tests
@@ -205,17 +205,17 @@ uv sync --extra cpu
 ## Usage
 
 ```bash
-# List Unitree tasks
-uv run list-envs --keyword Unitree
+# List tasks
+uv run list-envs
 
-# Train a task
-uv run train Unitree-Go2-Flat --env.scene.num-envs 4096
+# Train OpenDoge (in-house robots use the LainLab group)
+uv run train LainLab-OpenDoge-Flat --env.scene.num-envs 4096
 
 # Run a random-action configuration smoke test
-uv run play Unitree-Go2-Flat --agent random --num-envs 1
+uv run play LainLab-OpenDoge-Flat --agent random --num-envs 1
 
 # Replay a local policy
-uv run play Unitree-Go2-Flat --checkpoint-file logs/.../model_1000.pt
+uv run play LainLab-OpenDoge-Flat --checkpoint-file logs/.../model_1000.pt
 
 # Convert a G1 CSV motion into mjlab tracking format
 uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
@@ -224,7 +224,7 @@ uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
 
 `csv-to-npz` creates an NPZ locally and does not require Weights & Biases. If `--output-name` is only a filename, the output is written next to the input CSV; an absolute or relative output path may also be used. Use `--robot g1_23dof` for G1-23DoF motions.
 
-Tasks follow the `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough` convention. Velocity tasks support A2, As2, Go2, G1, G1-23Dof, H1_2, H2, and R1. Motion tracking tasks support G1 and G1-23Dof.
+Tasks use a category prefix, for example `Unitree-<Robot>-Flat` / `Unitree-<Robot>-Rough` and `LainLab-<Robot>-Flat` / `LainLab-<Robot>-Rough`. OpenDoge is an in-house robot and belongs to `LainLab`; only the Flat variant is currently registered. Velocity tasks support A2, As2, Go2, OpenDoge, G1, G1-23Dof, H1_2, H2, and R1. Motion tracking tasks support G1 and G1-23Dof.
 
 ## Validation status and known limitations
 
