@@ -503,7 +503,7 @@ function observation() {
   if (activePolicy.mode === "arenaHistory") return arenaHistoryObservation();
   const quaternion = bodyQuaternion();
   const inverse = quaternion.clone().invert();
-  const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]).applyQuaternion(inverse);
+  const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]);
   const gravity = new THREE.Vector3(0, 0, -1).applyQuaternion(inverse);
   const values = activePolicy.inputSize === 48 ? [0, 0, 0] : [];
   values.push(angularVelocity.x * 0.25, angularVelocity.y * 0.25, angularVelocity.z * 0.25);
@@ -518,7 +518,7 @@ function observation() {
 function arenaHistoryObservation() {
   const quaternion = bodyQuaternion();
   const inverse = quaternion.clone().invert();
-  const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]).applyQuaternion(inverse);
+  const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]);
   const gravity = new THREE.Vector3(0, 0, -1).applyQuaternion(inverse);
   const frame = [
     simulation.command[0] * 2, simulation.command[1] * 2, simulation.command[2] * .25,
@@ -537,8 +537,7 @@ function arenaHistoryObservation() {
 
 function gaitObservation() {
   const quaternion = bodyQuaternion();
-  const inverse = quaternion.clone().invert();
-  const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]).applyQuaternion(inverse);
+  const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]);
   const euler = new THREE.Euler().setFromQuaternion(quaternion, "XYZ");
   const frame = activePolicy.mode === "spring"
     // The exported 470-D checkpoint predates the 45-D mjlab migration:
