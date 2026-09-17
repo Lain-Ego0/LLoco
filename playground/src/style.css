@@ -32,11 +32,6 @@ button.primary:hover:not(:disabled) { background: #104b7b; }
 .pill.ready { background: #e5f2ea; border-color: #b8ddc3; color: #24613a; }
 .pill.error { background: #fbe9e9; border-color: #efc4c4; color: #8f3030; }
 
-.scene-notice, .key-guide { background: #f7f9fbe0; border: 1px solid #d1dbe2; box-shadow: 0 5px 18px #1f364017; color: #60707c; font-size: .72rem; line-height: 1.45; margin: 0; padding: .5rem .65rem; position: absolute; z-index: 1; backdrop-filter: blur(8px); }
-.scene-notice { border-left: 3px solid #a7b2bd; border-radius: 0 7px 7px 0; bottom: 15px; left: 16px; max-width: min(460px, calc(100% - 300px)); }
-.scene-notice.error { border-color: #c34d4d; color: #a03434; }
-.key-guide { border-radius: 7px; bottom: 15px; right: 16px; white-space: nowrap; }
-kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; border-radius: 4px; color: #48545f; font-size: .67rem; margin-right: .13rem; padding: .06rem .21rem; }
 
 .cmd-panel, .monitor-panel { background: #f9fbfdec; border: 1px solid #cbd6df; border-radius: 8px; box-shadow: 0 8px 28px #22354422; display: grid; gap: 9px; padding: 11px; position: absolute; top: 55px; z-index: 3; backdrop-filter: blur(12px); }
 .cmd-panel { left: 14px; width: min(350px, calc(100vw - 28px)); }
@@ -121,7 +116,6 @@ kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; bor
   .policy-context { flex: 1; }
   .top-actions { margin-left: 0; order: 3; }
   .command-output { margin-left: auto; }
-  .scene-notice { max-width: calc(100% - 32px); }
   .monitor-panel { left: 14px; top: 315px; width: min(330px, calc(100vw - 28px)); }
 }
 
@@ -130,8 +124,6 @@ kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; bor
   .policy-context { border-left: 0; padding-left: 0; }
   .policy-context span, .command-output, .pill { display: none; }
   .top-actions select { max-width: 120px; }
-  .key-guide { bottom: 12px; right: 12px; }
-  .scene-notice { bottom: 51px; left: 12px; }
   .cmd-panel { left: 10px; top: 58px; width: calc(100vw - 20px); }
   .monitor-panel { left: 10px; top: 315px; width: calc(100vw - 20px); }
   .virtual-joystick { bottom: 12px; }

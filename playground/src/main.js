@@ -115,7 +115,6 @@ const meshFiles = [
 const $ = (id) => document.getElementById(id);
 const publicAsset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 const engineState = $("engineState");
-const notice = $("notice");
 const simulation = {
   running: false,
   elapsed: 0,
@@ -146,8 +145,7 @@ function setStatus(text, kind = "") {
 }
 
 function setNotice(text, error = false) {
-  notice.textContent = text;
-  notice.classList.toggle("error", error);
+  if (error) console.warn(text);
 }
 
 function setBootStage(text, progress) {
