@@ -27,6 +27,7 @@
           <select id="policy" aria-label="选择策略"></select>
           <button id="start" class="primary" disabled>开始</button>
           <button id="reset" disabled>重置</button>
+          <button id="terrainToggle" disabled>地形</button>
         </div>
         <output id="command" class="command-output">vx 0.00 · vy 0.00 · ω 0.00</output>
         <output id="clock" class="clock">0.00 s</output>
@@ -35,6 +36,30 @@
 
       <p id="notice" class="scene-notice">加载资源后即可开始。</p>
       <p class="key-guide"><kbd>W</kbd><kbd>S</kbd> 前后　<kbd>A</kbd><kbd>D</kbd> 横移　<kbd>Q</kbd><kbd>E</kbd> 转向</p>
+
+      <aside id="terrainPanel" class="terrain-panel" aria-label="地形编辑器" hidden>
+        <div class="panel-heading">
+          <div><p class="panel-kicker">PLAYGROUND / TERRAIN</p><strong>地形编辑器</strong></div>
+          <button id="terrainClose" class="icon-button" aria-label="关闭地形编辑器">×</button>
+        </div>
+        <p class="panel-copy">浏览器内编辑，应用后同步重建当前 MuJoCo 场景。可导入 ArenaX 场景 JSON 或基础 box XML。</p>
+        <div class="terrain-form">
+          <label>地表<select id="terrainKind"><option value="flat">平地</option><option value="slope">坡道</option><option value="stairs">阶梯</option><option value="obstacle_mix">随机障碍</option></select></label>
+          <label>随机种子<input id="terrainSeed" type="number" min="0" max="99999" value="7" /></label>
+          <label>高度 / 强度<input id="terrainHeight" type="range" min="0.08" max="0.8" step="0.02" value="0.28" /><output id="terrainHeightValue">0.28 m</output></label>
+        </div>
+        <div class="terrain-tools" aria-label="障碍工具">
+          <button data-terrain-tool="platform" class="active">高台</button><button data-terrain-tool="stairs">台阶</button><button data-terrain-tool="ramp">斜坡</button><button data-terrain-tool="stones">梅花桩</button><button data-terrain-tool="wall">矮墙</button>
+        </div>
+        <canvas id="terrainMap" width="520" height="260" aria-label="地形俯视编辑画布"></canvas>
+        <p id="terrainHint" class="terrain-hint">选择工具后，在场地中点击放置。点击已有标记可选中。</p>
+        <div id="terrainElements" class="terrain-elements"></div>
+        <div class="terrain-actions">
+          <button id="terrainClear">清空</button><button id="terrainExport">导出 JSON</button>
+          <label class="file-button">导入<input id="terrainImport" type="file" accept=".json,.xml,application/json,text/xml" /></label>
+          <button id="terrainApply" class="primary">应用到场景</button>
+        </div>
+      </aside>
     </main>
     <script type="module" src="/src/main.js"></script>
   </body>

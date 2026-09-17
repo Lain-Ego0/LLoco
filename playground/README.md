@@ -23,6 +23,7 @@ library into `public/robot/`. Policy ONNX files are versioned in
 - Trot (470-D / 10-frame history)
 - Jump (470-D / 10-frame history)
 - Spring jump (470-D / 10-frame history)
+- Arena flat walk (270-D / 6-frame history, sourced from ArenaX)
 
 The artifacts are converted from the corresponding TorchScript policies in
 `/home/lxy/下载/My_unitree_go2_gym-main`, rather than being fetched by the
@@ -36,6 +37,20 @@ PyTorch and ONNX installed:
 
 The script exports only the five models whose input/output contracts are
 implemented by this browser demo. It does not run as part of the normal build.
+
+## Terrain editor
+
+The **Terrain** button opens a browser-native editor implemented as part of
+the playground UI; it has no PyQt, Python server, or workbench dependency.
+It provides flat, slope, stairs, and seeded obstacle profiles, plus placed
+platforms, stairs, ramps, stepping stones, and low walls. Selecting **Apply
+to scene** rebuilds the in-browser MuJoCo model so the generated boxes are
+both visible and collidable.
+
+**Export JSON** creates a portable playground scene draft for future online
+publishing. **Import** accepts that JSON and ArenaX-style `scene.json` files;
+it also imports simple MuJoCo XML files containing box geoms. Heightfields and
+external mesh assets intentionally remain out of scope for browser import.
 
 The current release is a public-facing interactive demo, not a replacement for
 native MuJoCo/Viser acceptance checks.

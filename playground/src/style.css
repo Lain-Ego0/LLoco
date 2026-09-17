@@ -17,17 +17,18 @@ button.primary:hover:not(:disabled) { background: #104b7b; }
 .scene-canvas { inset: 0; position: absolute; z-index: 0; }
 .scene-canvas canvas { display: block; height: 100%; width: 100%; }
 
-.top-bar { align-items: center; background: #f7f9fbe8; border-bottom: 1px solid #cfd8df; box-shadow: 0 1px 9px #1f36400e; display: flex; gap: 14px; left: 0; min-height: 54px; padding: 8px 18px; position: absolute; right: 0; top: 0; z-index: 2; backdrop-filter: blur(10px); }
-.brand { color: #185a91; font-size: .69rem; font-weight: 780; letter-spacing: .14em; text-decoration: none; white-space: nowrap; }
+.top-bar { align-items: center; background: #f7f9fbe8; border-bottom: 1px solid #cfd8df; box-shadow: 0 1px 9px #1f36400e; display: flex; gap: 10px; left: 0; min-height: 43px; padding: 5px 14px; position: absolute; right: 0; top: 0; z-index: 2; backdrop-filter: blur(10px); }
+.brand { color: #185a91; font-size: .61rem; font-weight: 780; letter-spacing: .13em; text-decoration: none; white-space: nowrap; }
 .brand span { color: #8da1b0; padding: 0 .18rem; }
 .policy-context { border-left: 1px solid #d3dce3; display: grid; gap: .06rem; min-width: 0; padding-left: 14px; }
-.policy-context strong { font-size: .82rem; line-height: 1.1; white-space: nowrap; }
-.policy-context span { color: #70808c; font-size: .67rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.policy-context strong { font-size: .72rem; line-height: 1.1; white-space: nowrap; }
+.policy-context span { color: #70808c; font-size: .6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .top-actions { display: flex; gap: 6px; margin-left: auto; }
-.top-actions select { background: #fffdfa; border: 1px solid #c7d0d8; border-radius: 6px; color: #26333c; max-width: 160px; padding: .4rem .45rem; }
-.command-output, .clock { color: #5c6c78; font-size: .69rem; white-space: nowrap; }
+.top-actions select { background: #fffdfa; border: 1px solid #c7d0d8; border-radius: 6px; color: #26333c; max-width: 150px; padding: .31rem .4rem; font-size: .68rem; }
+.top-actions button { font-size: .67rem; padding: .33rem .52rem; }
+.command-output, .clock { color: #5c6c78; font-size: .62rem; white-space: nowrap; }
 .clock { font-variant-numeric: tabular-nums; }
-.pill { background: #f8fafb; border: 1px solid #cbd2d9; border-radius: 999px; color: #53616d; font-size: .7rem; padding: .31rem .54rem; white-space: nowrap; }
+.pill { background: #f8fafb; border: 1px solid #cbd2d9; border-radius: 999px; color: #53616d; font-size: .61rem; padding: .25rem .45rem; white-space: nowrap; }
 .pill.ready { background: #e5f2ea; border-color: #b8ddc3; color: #24613a; }
 .pill.error { background: #fbe9e9; border-color: #efc4c4; color: #8f3030; }
 
@@ -36,6 +37,31 @@ button.primary:hover:not(:disabled) { background: #104b7b; }
 .scene-notice.error { border-color: #c34d4d; color: #a03434; }
 .key-guide { border-radius: 7px; bottom: 15px; right: 16px; white-space: nowrap; }
 kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; border-radius: 4px; color: #48545f; font-size: .67rem; margin-right: .13rem; padding: .06rem .21rem; }
+
+.terrain-panel { background: #f9fbfdec; border-left: 1px solid #cbd6df; box-shadow: -10px 0 32px #2235441f; display: flex; flex-direction: column; gap: 10px; max-width: min(390px, 100vw); overflow: auto; padding: 14px; position: absolute; right: 0; top: 43px; bottom: 0; width: 390px; z-index: 3; backdrop-filter: blur(12px); }
+.terrain-panel[hidden] { display: none; }
+.panel-heading { align-items: start; display: flex; justify-content: space-between; }
+.panel-heading strong { font-size: .88rem; }
+.panel-kicker { color: #185a91; font-size: .58rem; font-weight: 750; letter-spacing: .12em; margin: 0 0 .2rem; }
+.panel-copy, .terrain-hint { color: #687984; font-size: .68rem; line-height: 1.45; margin: 0; }
+.icon-button { font-size: 1rem; line-height: 1; padding: .2rem .43rem; }
+.terrain-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.terrain-form label { color: #485963; display: grid; font-size: .65rem; font-weight: 650; gap: .25rem; }
+.terrain-form label:last-child { grid-column: span 2; }
+.terrain-form select, .terrain-form input { background: #fff; border: 1px solid #c7d0d8; border-radius: 5px; color: #273640; min-width: 0; padding: .32rem; }
+.terrain-form input[type="range"] { accent-color: #185a91; padding: 0; width: 100%; }
+.terrain-form output { color: #627580; font-size: .61rem; font-weight: 500; }
+.terrain-tools { display: flex; flex-wrap: wrap; gap: 5px; }
+.terrain-tools button, .terrain-actions button, .file-button { font-size: .65rem; padding: .32rem .46rem; }
+.terrain-tools button.active { background: #e6f0f8; border-color: #7ca4c3; color: #145486; }
+#terrainMap { background: #eaf0eb; border: 1px solid #c8d3db; border-radius: 7px; cursor: crosshair; height: auto; max-width: 100%; width: 100%; }
+.terrain-elements { display: grid; gap: 4px; max-height: 108px; overflow: auto; }
+.terrain-element { align-items: center; background: #ffffffbd; border: 1px solid #d6dfe5; border-radius: 5px; display: flex; font-size: .65rem; justify-content: space-between; padding: .31rem .42rem; }
+.terrain-element.selected { border-color: #5c93bb; color: #155583; }
+.terrain-element button { font-size: .61rem; padding: .16rem .32rem; }
+.terrain-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+.file-button { background: #f8fafbd9; border: 1px solid #c7d0d8; border-radius: 6px; color: #24313b; cursor: pointer; }
+.file-button input { display: none; }
 
 .boot-screen { align-items: center; background: radial-gradient(circle at 50% 44%, #f8fafced, #e7edf2f8 60%, #dfe6ecfa); display: flex; flex-direction: column; inset: 0; justify-content: center; position: fixed; text-align: center; transition: opacity .58s ease, visibility .58s ease; z-index: 10; }
 .boot-screen.reveal { opacity: 0; pointer-events: none; visibility: hidden; }
@@ -49,7 +75,7 @@ kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; bor
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 890px) {
-  .top-bar { flex-wrap: wrap; gap: 7px 10px; min-height: 58px; padding: 7px 12px; }
+  .top-bar { flex-wrap: wrap; gap: 5px 8px; min-height: 48px; padding: 5px 10px; }
   .policy-context { flex: 1; }
   .top-actions { margin-left: 0; order: 3; }
   .command-output { margin-left: auto; }

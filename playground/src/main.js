@@ -66,6 +66,15 @@ const policies = {
     commandLimit: [-1, 1],
     note: "来自 Gym 工程的弹簧跳跃策略；前进指令会作为起跳输入。",
   },
+  arenaWalk: {
+    name: "Arena 平地行走",
+    file: "/policies/go2-arena-flat.onnx",
+    inputSize: 270,
+    mode: "arenaHistory",
+    defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
+    commandLimit: [-1, 1],
+    note: "ArenaX 参考工程的 6 帧历史平地行走策略。",
+  },
 };
 
 const jointNames = [
@@ -89,7 +98,8 @@ const $ = (id) => document.getElementById(id);
 const engineState = $("engineState");
 const notice = $("notice");
 const simulation = { running: false, elapsed: 0, action: new Float32Array(12), command: [0, 0, 0], history: [] };
-let mujoco, model, data, policySession, activePolicy, jointAddresses, actuatorAddresses;
+const terrainState = { kind: "flat", seed: 7, height: 0.28, tool: "platform", elements: [], selected: null };
+let mujoco, model, data, policySession, activePolicy, jointAddresses, actuatorAddresses, baseSceneXml, robotAssets;
 
 function setStatus(text, kind = "") {
   engineState.textContent = text;
@@ -157,10 +167,13 @@ function createScene() {
   };
   new ResizeObserver(resize).observe(mount);
   resize();
-  return { scene, camera, renderer, orbit };
+  return { scene, camera, renderer, orbit, floor, grid };
 }
 
 const view = createScene();
+const terrainVisual = new THREE.Group();
+terrainVisual.name = "playground-terrain";
+view.scene.add(terrainVisual);
 const robot = new THREE.Group();
 view.scene.add(robot);
 const bodyNodes = new Map();
@@ -230,8 +243,16 @@ async function initializeMujoco() {
     fetch("/robot/scene_go2.xml").then((response) => response.text()),
     Promise.all(meshFiles.map(async (file) => [file, new Uint8Array(await (await fetch(`/robot/assets/${file}`)).arrayBuffer())])),
   ]);
+  baseSceneXml = xml;
+  robotAssets = binaries;
+  createMujocoModel(baseSceneXml);
+}
+
+function createMujocoModel(xml) {
   const vfs = new mujoco.MjVFS();
-  for (const [file, buffer] of binaries) vfs.addBuffer(`assets/${file}`, buffer);
+  for (const [file, buffer] of robotAssets) vfs.addBuffer(`assets/${file}`, buffer);
+  data?.delete?.();
+  model?.delete?.();
   model = mujoco.MjModel.from_xml_string(xml, vfs);
   data = new mujoco.MjData(model);
   jointAddresses = jointNames.map((name) => ({
@@ -240,6 +261,107 @@ async function initializeMujoco() {
   }));
   actuatorAddresses = actuatorNames.map((name) => model.actuator(name).id);
   vfs.delete();
+}
+
+function seededRandom(seed) {
+  let value = (Number(seed) || 1) >>> 0;
+  return () => {
+    value += 0x6d2b79f5;
+    let result = value;
+    result = Math.imul(result ^ (result >>> 15), result | 1);
+    result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+    return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function box(x, y, z, sx, sy, sz, ry = 0, label = "障碍") {
+  return { x, y, z, sx, sy, sz, ry, label };
+}
+
+function profileBoxes() {
+  const height = terrainState.height;
+  if (terrainState.kind === "slope") return [box(2.2, 0, height / 2, 2.2, 2.5, height / 2, -0.15, "坡道")];
+  if (terrainState.kind === "stairs") return Array.from({ length: 7 }, (_, index) => {
+    const step = index + 1;
+    return box(1.2 + index * 0.42, 0, height * step / 14, 0.21, 1.35, height * step / 14, 0, "阶梯");
+  });
+  if (terrainState.kind === "obstacle_mix") {
+    const random = seededRandom(terrainState.seed);
+    const boxes = [];
+    while (boxes.length < 10) {
+      const x = -3.8 + random() * 7.6;
+      const y = -2.8 + random() * 5.6;
+      if (Math.hypot(x, y) < 1.05) continue;
+      boxes.push(box(x, y, height * (0.35 + random() * 0.45) / 2, 0.18 + random() * 0.24, 0.18 + random() * 0.24, height * (0.35 + random() * 0.45) / 2, 0, "随机障碍"));
+    }
+    return boxes;
+  }
+  return [];
+}
+
+function elementBoxes(element) {
+  const { x, y, kind } = element;
+  const height = terrainState.height;
+  if (kind === "stairs") return Array.from({ length: 5 }, (_, index) => box(x + (index - 2) * 0.28, y, height * (index + 1) / 10, 0.14, 0.8, height * (index + 1) / 10, element.yaw || 0, "台阶"));
+  if (kind === "ramp") return [box(x, y, height / 2, 1.2, 0.9, height / 2, element.yaw || -0.18, "斜坡")];
+  if (kind === "stones") return Array.from({ length: 6 }, (_, index) => box(x + (index % 3 - 1) * 0.42, y + (Math.floor(index / 3) - .5) * 0.6, height / 4, .14, .14, height / 4, 0, "梅花桩"));
+  if (kind === "wall") return [box(x, y, height / 2, 1.25, .12, height / 2, element.yaw || 0, "矮墙")];
+  return [box(x, y, height / 2, 0.9, 0.9, height / 2, element.yaw || 0, "高台")];
+}
+
+function terrainBoxes() {
+  return [...profileBoxes(), ...terrainState.elements.flatMap(elementBoxes)];
+}
+
+function clearTerrainVisual() {
+  terrainVisual.clear();
+}
+
+function addVisualBox(definition, accent = 0x7f9bb0) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(definition.sx * 2, definition.sy * 2, definition.sz * 2),
+    new THREE.MeshStandardMaterial({ color: accent, roughness: .76, metalness: .03 }),
+  );
+  mesh.position.set(definition.x, definition.y, definition.z);
+  mesh.rotation.y = definition.ry;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  terrainVisual.add(mesh);
+}
+
+function renderTerrain() {
+  clearTerrainVisual();
+  view.floor.material.color.set(terrainState.kind === "flat" ? 0xdfe4e8 : 0xd7e1e6);
+  for (const definition of profileBoxes()) addVisualBox(definition, 0x9aabba);
+  for (const element of terrainState.elements) for (const definition of elementBoxes(element)) addVisualBox(definition, 0x6f94ae);
+}
+
+function terrainXml() {
+  const document = new DOMParser().parseFromString(baseSceneXml, "text/xml");
+  const worldbodies = document.querySelectorAll("worldbody");
+  const worldbody = worldbodies[worldbodies.length - 1];
+  terrainBoxes().forEach((definition, index) => {
+    const geom = document.createElement("geom");
+    geom.setAttribute("name", `playground_terrain_${index}`);
+    geom.setAttribute("type", "box");
+    geom.setAttribute("pos", `${definition.x} ${definition.y} ${definition.z}`);
+    geom.setAttribute("size", `${definition.sx} ${definition.sy} ${definition.sz}`);
+    geom.setAttribute("euler", `0 ${definition.ry} 0`);
+    geom.setAttribute("rgba", ".48 .61 .7 1");
+    geom.setAttribute("friction", "0.9 0.1 0.1");
+    worldbody.append(geom);
+  });
+  return new XMLSerializer().serializeToString(document);
+}
+
+function applyTerrain() {
+  if (!mujoco || !baseSceneXml) return;
+  simulation.running = false;
+  $("start").textContent = "开始";
+  createMujocoModel(terrainXml());
+  renderTerrain();
+  reset();
+  setNotice(`已应用${terrainState.kind === "flat" ? "平地" : "自定义"}地形；物理碰撞与场景预览已同步更新。`);
 }
 
 async function loadPolicy(key) {
@@ -280,6 +402,7 @@ function bodyQuaternion() {
 
 function observation() {
   if (activePolicy.mode === "gait" || activePolicy.mode === "spring") return gaitObservation();
+  if (activePolicy.mode === "arenaHistory") return arenaHistoryObservation();
   const quaternion = bodyQuaternion();
   const inverse = quaternion.clone().invert();
   const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]).applyQuaternion(inverse);
@@ -292,6 +415,26 @@ function observation() {
   jointAddresses.forEach((address) => values.push(data.qvel[address.dof] * 0.05));
   values.push(...simulation.action);
   return new Float32Array(values);
+}
+
+function arenaHistoryObservation() {
+  const quaternion = bodyQuaternion();
+  const inverse = quaternion.clone().invert();
+  const angularVelocity = new THREE.Vector3(data.qvel[3], data.qvel[4], data.qvel[5]).applyQuaternion(inverse);
+  const gravity = new THREE.Vector3(0, 0, -1).applyQuaternion(inverse);
+  const frame = [
+    simulation.command[0] * 2, simulation.command[1] * 2, simulation.command[2] * .25,
+    angularVelocity.x * .25, angularVelocity.y * .25, angularVelocity.z * .25,
+    gravity.x, gravity.y, gravity.z,
+  ];
+  jointAddresses.forEach((address, index) => frame.push(data.qpos[address.qpos] - activePolicy.defaultPose[index]));
+  jointAddresses.forEach((address) => frame.push(data.qvel[address.dof] * .05));
+  frame.push(...simulation.action);
+  simulation.history.push(frame);
+  if (simulation.history.length > 6) simulation.history.shift();
+  const values = Array.from({ length: 6 - simulation.history.length }, () => new Array(45).fill(0));
+  values.push(...simulation.history);
+  return new Float32Array(values.flat());
 }
 
 function gaitObservation() {
@@ -387,6 +530,138 @@ async function tick() {
   requestAnimationFrame(tick);
 }
 
+const terrainLabels = { platform: "高台", stairs: "台阶", ramp: "斜坡", stones: "梅花桩", wall: "矮墙" };
+
+function updateTerrainHeight() {
+  terrainState.height = Number($("terrainHeight").value);
+  $("terrainHeightValue").textContent = `${terrainState.height.toFixed(2)} m`;
+  repaintTerrainEditor();
+}
+
+function terrainCanvasPosition(event) {
+  const canvas = $("terrainMap");
+  const bounds = canvas.getBoundingClientRect();
+  return {
+    x: ((event.clientX - bounds.left) / bounds.width - .5) * 8,
+    y: (.5 - (event.clientY - bounds.top) / bounds.height) * 6,
+  };
+}
+
+function repaintTerrainMap() {
+  const canvas = $("terrainMap");
+  const context = canvas.getContext("2d");
+  const { width, height } = canvas;
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = terrainState.kind === "flat" ? "#e7eee8" : "#dde8eb";
+  context.fillRect(0, 0, width, height);
+  context.strokeStyle = "#c1d0d5";
+  context.lineWidth = 1;
+  for (let x = 0; x <= width; x += width / 8) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke(); }
+  for (let y = 0; y <= height; y += height / 6) { context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke(); }
+  if (terrainState.kind === "slope") { context.fillStyle = "#9db6c5"; context.fillRect(width * .56, height * .16, width * .29, height * .68); }
+  if (terrainState.kind === "stairs") {
+    context.fillStyle = "#9db6c5";
+    for (let index = 0; index < 7; index += 1) context.fillRect(width * (.54 + index * .038), height * .18, width * .034, height * .64);
+  }
+  terrainState.elements.forEach((element, index) => {
+    const x = (element.x / 8 + .5) * width;
+    const y = (.5 - element.y / 6) * height;
+    context.beginPath();
+    context.arc(x, y, index === terrainState.selected ? 12 : 9, 0, Math.PI * 2);
+    context.fillStyle = index === terrainState.selected ? "#185a91" : "#6f94ae";
+    context.fill();
+    context.fillStyle = "#fff";
+    context.font = "10px system-ui";
+    context.textAlign = "center";
+    context.fillText(String(index + 1), x, y + 3);
+  });
+}
+
+function renderTerrainElements() {
+  const mount = $("terrainElements");
+  mount.replaceChildren(...terrainState.elements.map((element, index) => {
+    const row = document.createElement("div");
+    row.className = `terrain-element${index === terrainState.selected ? " selected" : ""}`;
+    row.innerHTML = `<span>${index + 1}. ${terrainLabels[element.kind] ?? "导入障碍"}</span>`;
+    row.onclick = () => { terrainState.selected = index; repaintTerrainEditor(); renderTerrainElements(); };
+    const remove = document.createElement("button");
+    remove.textContent = "删除";
+    remove.onclick = (event) => {
+      event.stopPropagation();
+      terrainState.elements.splice(index, 1);
+      terrainState.selected = null;
+      repaintTerrainEditor();
+    };
+    row.append(remove);
+    return row;
+  }));
+}
+
+function repaintTerrainEditor() {
+  repaintTerrainMap();
+  renderTerrainElements();
+  renderTerrain();
+}
+
+function addTerrainElement(position) {
+  const nearby = terrainState.elements.findIndex((element) => Math.hypot(element.x - position.x, element.y - position.y) < .26);
+  if (nearby >= 0) terrainState.selected = nearby;
+  else {
+    terrainState.elements.push({ kind: terrainState.tool, x: position.x, y: position.y, yaw: 0 });
+    terrainState.selected = terrainState.elements.length - 1;
+  }
+  repaintTerrainEditor();
+}
+
+function importTerrainScene(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const content = String(reader.result);
+      if (file.name.toLowerCase().endsWith(".xml")) {
+        const document = new DOMParser().parseFromString(content, "text/xml");
+        const imported = [...document.querySelectorAll('geom[type="box"]')].map((geom) => {
+          const position = vector(geom.getAttribute("pos") ?? "", 3, [0, 0, 0]);
+          const size = vector(geom.getAttribute("size") ?? "", 3, [.8, .8, .2]);
+          const euler = vector(geom.getAttribute("euler") ?? "", 3, [0, 0, 0]);
+          return { kind: size[0] > 1.1 && size[1] < .3 ? "wall" : "platform", x: position[0], y: position[1], yaw: euler[1] || 0 };
+        });
+        if (!imported.length) throw new Error("未找到可导入的 box 地形；高度场和外部 mesh 需先导出为 ArenaX JSON。");
+        terrainState.elements = imported;
+      } else {
+        const scene = JSON.parse(content);
+        const terrain = scene.terrain ?? scene;
+        if (terrain.kind && ["flat", "slope", "stairs", "obstacle_mix"].includes(terrain.kind)) terrainState.kind = terrain.kind;
+        terrainState.seed = Number(terrain.seed ?? terrainState.seed);
+        terrainState.height = Number(terrain.height ?? terrain.obstacle_height ?? terrainState.height);
+        terrainState.elements = (scene.elements ?? []).map((element) => ({
+          kind: ["platform", "stairs", "ramp", "stepping_stones", "high_wall"].includes(element.kind)
+            ? ({ stepping_stones: "stones", high_wall: "wall" }[element.kind] ?? element.kind)
+            : "platform",
+          x: Number(element.x) || 0, y: Number(element.y) || 0, yaw: Number(element.yaw) || 0,
+        }));
+      }
+      terrainState.selected = null;
+      $("terrainKind").value = terrainState.kind;
+      $("terrainSeed").value = terrainState.seed;
+      $("terrainHeight").value = terrainState.height;
+      updateTerrainHeight();
+      setNotice("地形已导入预览；点击“应用到场景”后写入浏览器内 MuJoCo 物理模型。");
+    } catch (error) { setNotice(error.message || String(error), true); }
+  };
+  reader.readAsText(file);
+}
+
+function exportTerrainScene() {
+  const payload = { version: 1, name: "lloco-playground-terrain", terrain: { kind: terrainState.kind, seed: terrainState.seed, height: terrainState.height }, elements: terrainState.elements };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "lloco-playground-terrain.json";
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 for (const [key, config] of Object.entries(policies)) $("policy").add(new Option(config.name, key));
 $("policy").onchange = () => loadPolicy($("policy").value).catch((error) => setNotice(error.message, true));
 $("start").onclick = () => {
@@ -394,6 +669,33 @@ $("start").onclick = () => {
   $("start").textContent = simulation.running ? "暂停" : "继续";
 };
 $("reset").onclick = () => reset();
+$("terrainToggle").onclick = () => {
+  const panel = $("terrainPanel");
+  panel.hidden = !panel.hidden;
+  if (!panel.hidden) repaintTerrainEditor();
+};
+$("terrainClose").onclick = () => { $("terrainPanel").hidden = true; };
+$("terrainKind").onchange = (event) => { terrainState.kind = event.target.value; repaintTerrainEditor(); };
+$("terrainSeed").oninput = (event) => { terrainState.seed = Number(event.target.value) || 0; repaintTerrainEditor(); };
+$("terrainHeight").oninput = updateTerrainHeight;
+document.querySelectorAll("[data-terrain-tool]").forEach((button) => {
+  button.onclick = () => {
+    terrainState.tool = button.dataset.terrainTool;
+    document.querySelectorAll("[data-terrain-tool]").forEach((item) => item.classList.toggle("active", item === button));
+    $("terrainHint").textContent = `当前工具：${terrainLabels[terrainState.tool]}。在场地中点击放置。`;
+  };
+});
+$("terrainMap").onclick = (event) => addTerrainElement(terrainCanvasPosition(event));
+$("terrainClear").onclick = () => { terrainState.elements = []; terrainState.selected = null; repaintTerrainEditor(); };
+$("terrainApply").onclick = () => {
+  try { applyTerrain(); } catch (error) { setNotice(error.message || String(error), true); }
+};
+$("terrainExport").onclick = exportTerrainScene;
+$("terrainImport").onchange = (event) => {
+  const [file] = event.target.files;
+  if (file) importTerrainScene(file);
+  event.target.value = "";
+};
 const pressed = new Set();
 const movementKeys = ["KeyQ", "KeyW", "KeyE", "KeyA", "KeyS", "KeyD"];
 window.addEventListener("keydown", (event) => {
@@ -429,6 +731,7 @@ Promise.all([robotTask, engineTask])
   .then(() => {
     $("start").disabled = false;
     $("reset").disabled = false;
+    $("terrainToggle").disabled = false;
     setStatus("浏览器物理引擎已就绪", "ready");
     setBootStage("场景已就绪", 100);
     tick();
