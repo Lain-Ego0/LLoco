@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Convert the selected My_unitree_go2_gym TorchScript policies to ONNX.
+"""Refresh the browser policy artifacts.
 
 Run this only when refreshing the checked-in browser demo artifacts.  The
 runtime demo never needs PyTorch or the source Gym project; it consumes the
-resulting files in ``public/policies`` through ONNX Runtime Web.
+resulting files in ``public/policies`` through ONNX Runtime Web.  The
+handstand artifact is copied from LLoco's own exported policy; the remaining
+policies are converted from the reference Gym project.
 """
 
 from __future__ import annotations
@@ -16,7 +18,6 @@ import torch
 
 POLICIES = {
     "go2-rear-stand.onnx": ("go2_handstand/exported/policies/policy_1.pt", 45),
-    "go2-handstand.onnx": ("go2_leggedstand/exported/policies/policy_1.pt", 48),
     "go2-trot.onnx": ("go2_trot/exported/policies/policy_trot.pt", 470),
     "go2-jump.onnx": ("go2_jump/exported/policies/policy_jump.pt", 470),
     "go2-spring-jump.onnx": ("go2_spring_jump/exported/policies/policy_1.pt", 470),
@@ -28,9 +29,25 @@ POLICIES = {
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, required=True, help="My_unitree_go2_gym-main path")
+    parser.add_argument(
+        "--handstand",
+        type=Path,
+        default=(
+            Path(__file__).parents[2]
+            / "logs/rsl_rl/go2_handstand/2026-09-07_12-05-41_migration_2048x1000"
+            / "2026-09-07_12-05-41_migration_2048x1000.onnx"
+        ),
+        help="LLoco handstand ONNX export",
+    )
     parser.add_argument("--output", type=Path, default=Path(__file__).parents[1] / "public" / "policies")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
+
+    handstand_target = args.output / "go2-handstand.onnx"
+    if not args.handstand.is_file():
+        raise FileNotFoundError(args.handstand)
+    handstand_target.write_bytes(args.handstand.read_bytes())
+    print(f"copied {handstand_target.name}: LLoco handstand 48 -> 12")
 
     for output_name, (relative_source, input_size) in POLICIES.items():
         source = args.source / "logs" / relative_source

@@ -27,8 +27,10 @@ library into `public/robot/`. Policy ONNX files are versioned in
 - DreamWaQ terrain gait (270-D / 6-frame history)
 - AMP-CTS gait (270-D / 6-frame history)
 
-The artifacts are converted from the corresponding TorchScript policies in
-`/home/lxy/下载/My_unitree_go2_gym-main`, rather than being fetched by the
+The handstand artifact is LLoco's own exported policy from
+`logs/rsl_rl/go2_handstand/`, while the other artifacts are converted from the
+corresponding TorchScript policies in
+`/home/lxy/下载/My_unitree_go2_gym-main`. They are never fetched by the
 browser. To intentionally refresh them on a development machine that has
 PyTorch and ONNX installed:
 
@@ -37,8 +39,9 @@ PyTorch and ONNX installed:
   --source /home/lxy/下载/My_unitree_go2_gym-main
 ```
 
-The script exports the seven Gym models whose input/output contracts are
-implemented by this browser demo. It does not run as part of the normal build.
+The script copies the selected LLoco handstand export and converts the six
+remaining Gym models whose input/output contracts are implemented by this
+browser demo. It does not run as part of the normal build.
 
 ## Terrain editor
 
