@@ -75,6 +75,24 @@ const policies = {
     commandLimit: [-1, 1],
     note: "ArenaX 参考工程的 6 帧历史平地行走策略。",
   },
+  dreamwaq: {
+    name: "DreamWaQ 越野步态",
+    file: "/policies/go2-dreamwaq.onnx",
+    inputSize: 270,
+    mode: "arenaHistory",
+    defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
+    commandLimit: [-1, 1],
+    note: "DreamWaQ 发布导出的 6 帧历史越野步态策略。",
+  },
+  ampCts: {
+    name: "AMP-CTS 步态",
+    file: "/policies/go2-amp-cts.onnx",
+    inputSize: 270,
+    mode: "arenaHistory",
+    defaultPose: [0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5],
+    commandLimit: [-1, 1],
+    note: "AMP-CTS 发布导出的 6 帧历史行走策略。",
+  },
 };
 
 const jointNames = [
@@ -97,9 +115,11 @@ const meshFiles = [
 const $ = (id) => document.getElementById(id);
 const engineState = $("engineState");
 const notice = $("notice");
-const simulation = { running: false, elapsed: 0, action: new Float32Array(12), command: [0, 0, 0], history: [] };
+const simulation = { running: false, elapsed: 0, action: new Float32Array(12), actionHistory: [], command: [0, 0, 0], history: [] };
 const terrainState = { kind: "flat", seed: 7, height: 0.28, tool: "platform", elements: [], selected: null };
-let mujoco, model, data, policySession, activePolicy, jointAddresses, actuatorAddresses, baseSceneXml, robotAssets;
+const TERRAIN_AREA = { x: 10, y: 8 };
+const TERRAIN_SLOT_COUNT = 96;
+let mujoco, model, data, policySession, activePolicy, jointAddresses, actuatorAddresses, baseSceneXml, robotAssets, robotVfs, terrainSlotIds, terrainSlotSet;
 
 function setStatus(text, kind = "") {
   engineState.textContent = text;
@@ -139,19 +159,23 @@ function createScene() {
   const orbit = new OrbitControls(camera, renderer.domElement);
   orbit.target.set(0, 0, 0.38);
   orbit.enableDamping = true;
+  orbit.dampingFactor = 0.18;
+  orbit.rotateSpeed = 0.48;
+  orbit.panSpeed = 0.55;
+  orbit.zoomSpeed = 0.72;
   scene.add(new THREE.HemisphereLight(0xffffff, 0x98a5b1, 2.2));
   const key = new THREE.DirectionalLight(0xffffff, 2.4);
   key.position.set(2, -3, 5);
   key.castShadow = true;
   scene.add(key);
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(12, 12),
+    new THREE.PlaneGeometry(TERRAIN_AREA.x * 2.4, TERRAIN_AREA.y * 2.4),
     new THREE.MeshStandardMaterial({ color: 0xdfe4e8, roughness: 0.92 }),
   );
   floor.receiveShadow = true;
   floor.position.z = -0.002;
   scene.add(floor);
-  const grid = new THREE.GridHelper(8, 16, 0xb7c1ca, 0xd7dde2);
+  const grid = new THREE.GridHelper(TERRAIN_AREA.x * 2, 40, 0xb7c1ca, 0xd7dde2);
   // GridHelper is horizontal in Three.js' Y-up world. This scene and MuJoCo
   // model use Z-up, so rotate it onto the physical floor plane.
   grid.rotation.x = Math.PI / 2;
@@ -177,6 +201,13 @@ view.scene.add(terrainVisual);
 const robot = new THREE.Group();
 view.scene.add(robot);
 const bodyNodes = new Map();
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const dragArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0, 0x1e75ae, .13, .07);
+dragArrow.visible = false;
+view.scene.add(dragArrow);
+let robotDrag = null;
 
 function attribute(element, name, fallback = "") {
   return element.getAttribute(name) ?? fallback;
@@ -245,22 +276,23 @@ async function initializeMujoco() {
   ]);
   baseSceneXml = xml;
   robotAssets = binaries;
-  createMujocoModel(baseSceneXml);
+  robotVfs = new mujoco.MjVFS();
+  for (const [file, buffer] of robotAssets) robotVfs.addBuffer(`assets/${file}`, buffer);
+  createMujocoModel(terrainXml(), terrainBoxes().length);
 }
 
-function createMujocoModel(xml) {
-  const vfs = new mujoco.MjVFS();
-  for (const [file, buffer] of robotAssets) vfs.addBuffer(`assets/${file}`, buffer);
+function createMujocoModel(xml, terrainCount) {
   data?.delete?.();
   model?.delete?.();
-  model = mujoco.MjModel.from_xml_string(xml, vfs);
+  model = mujoco.MjModel.from_xml_string(xml, robotVfs);
   data = new mujoco.MjData(model);
   jointAddresses = jointNames.map((name) => ({
     qpos: model.jnt(name).qposadr,
     dof: model.jnt(name).dofadr,
   }));
   actuatorAddresses = actuatorNames.map((name) => model.actuator(name).id);
-  vfs.delete();
+  terrainSlotIds = Array.from({ length: terrainCount }, (_, index) => model.geom(`playground_terrain_${index}`).id);
+  terrainSlotSet = new Set(terrainSlotIds);
 }
 
 function seededRandom(seed) {
@@ -280,17 +312,17 @@ function box(x, y, z, sx, sy, sz, ry = 0, label = "障碍") {
 
 function profileBoxes() {
   const height = terrainState.height;
-  if (terrainState.kind === "slope") return [box(2.2, 0, height / 2, 2.2, 2.5, height / 2, -0.15, "坡道")];
+  if (terrainState.kind === "slope") return [box(3.8, 0, height / 2, 3.2, 3.2, height / 2, -0.11, "坡道")];
   if (terrainState.kind === "stairs") return Array.from({ length: 7 }, (_, index) => {
     const step = index + 1;
-    return box(1.2 + index * 0.42, 0, height * step / 14, 0.21, 1.35, height * step / 14, 0, "阶梯");
+    return box(2 + index * 0.62, 0, height * step / 14, 0.31, 1.8, height * step / 14, 0, "阶梯");
   });
   if (terrainState.kind === "obstacle_mix") {
     const random = seededRandom(terrainState.seed);
     const boxes = [];
     while (boxes.length < 10) {
-      const x = -3.8 + random() * 7.6;
-      const y = -2.8 + random() * 5.6;
+      const x = -TERRAIN_AREA.x + .8 + random() * (TERRAIN_AREA.x * 2 - 1.6);
+      const y = -TERRAIN_AREA.y + .8 + random() * (TERRAIN_AREA.y * 2 - 1.6);
       if (Math.hypot(x, y) < 1.05) continue;
       boxes.push(box(x, y, height * (0.35 + random() * 0.45) / 2, 0.18 + random() * 0.24, 0.18 + random() * 0.24, height * (0.35 + random() * 0.45) / 2, 0, "随机障碍"));
     }
@@ -301,16 +333,20 @@ function profileBoxes() {
 
 function elementBoxes(element) {
   const { x, y, kind } = element;
-  const height = terrainState.height;
-  if (kind === "stairs") return Array.from({ length: 5 }, (_, index) => box(x + (index - 2) * 0.28, y, height * (index + 1) / 10, 0.14, 0.8, height * (index + 1) / 10, element.yaw || 0, "台阶"));
-  if (kind === "ramp") return [box(x, y, height / 2, 1.2, 0.9, height / 2, element.yaw || -0.18, "斜坡")];
-  if (kind === "stones") return Array.from({ length: 6 }, (_, index) => box(x + (index % 3 - 1) * 0.42, y + (Math.floor(index / 3) - .5) * 0.6, height / 4, .14, .14, height / 4, 0, "梅花桩"));
-  if (kind === "wall") return [box(x, y, height / 2, 1.25, .12, height / 2, element.yaw || 0, "矮墙")];
-  return [box(x, y, height / 2, 0.9, 0.9, height / 2, element.yaw || 0, "高台")];
+  const height = Number.isFinite(element.height) ? element.height : terrainState.height;
+  const scaleX = Number.isFinite(element.scaleX) ? element.scaleX : 1;
+  const scaleY = Number.isFinite(element.scaleY) ? element.scaleY : 1;
+  if (kind === "stairs") return Array.from({ length: 5 }, (_, index) => box(x + (index - 2) * 0.28 * scaleX, y, height * (index + 1) / 10, 0.14 * scaleX, 0.8 * scaleY, height * (index + 1) / 10, element.yaw || 0, "台阶"));
+  if (kind === "ramp") return [box(x, y, height / 2, 1.2 * scaleX, 0.9 * scaleY, height / 2, element.yaw || -0.18, "斜坡")];
+  if (kind === "stones") return Array.from({ length: 6 }, (_, index) => box(x + (index % 3 - 1) * 0.42 * scaleX, y + (Math.floor(index / 3) - .5) * 0.6 * scaleY, height / 4, .14 * scaleX, .14 * scaleY, height / 4, 0, "梅花桩"));
+  if (kind === "wall") return [box(x, y, height / 2, 1.25 * scaleX, .12 * scaleY, height / 2, element.yaw || 0, "矮墙")];
+  return [box(x, y, height / 2, 0.9 * scaleX, 0.9 * scaleY, height / 2, element.yaw || 0, "高台")];
 }
 
 function terrainBoxes() {
-  return [...profileBoxes(), ...terrainState.elements.flatMap(elementBoxes)];
+  // The Three.js floor is visual only. This explicit MuJoCo box prevents the
+  // robot from falling through a flat area or gaps between placed obstacles.
+  return [box(0, 0, -0.08, TERRAIN_AREA.x, TERRAIN_AREA.y, .08, 0, "场地地面"), ...profileBoxes(), ...terrainState.elements.flatMap(elementBoxes)];
 }
 
 function clearTerrainVisual() {
@@ -340,28 +376,47 @@ function terrainXml() {
   const document = new DOMParser().parseFromString(baseSceneXml, "text/xml");
   const worldbodies = document.querySelectorAll("worldbody");
   const worldbody = worldbodies[worldbodies.length - 1];
-  terrainBoxes().forEach((definition, index) => {
+  const definitions = terrainBoxes();
+  if (definitions.length > TERRAIN_SLOT_COUNT) throw new Error(`地形最多支持 ${TERRAIN_SLOT_COUNT} 个碰撞组件。`);
+  definitions.forEach((definition, index) => {
     const geom = document.createElement("geom");
     geom.setAttribute("name", `playground_terrain_${index}`);
     geom.setAttribute("type", "box");
     geom.setAttribute("pos", `${definition.x} ${definition.y} ${definition.z}`);
     geom.setAttribute("size", `${definition.sx} ${definition.sy} ${definition.sz}`);
     geom.setAttribute("euler", `0 ${definition.ry} 0`);
-    geom.setAttribute("rgba", ".48 .61 .7 1");
+    geom.setAttribute("rgba", "0 0 0 0");
     geom.setAttribute("friction", "0.9 0.1 0.1");
+    geom.setAttribute("solref", "-200 -1");
+    geom.setAttribute("solimp", "0.95 0.99 0.002");
+    geom.setAttribute("contype", index < definitions.length ? "1" : "0");
+    geom.setAttribute("conaffinity", index < definitions.length ? "1" : "0");
     worldbody.append(geom);
   });
   return new XMLSerializer().serializeToString(document);
 }
 
-function applyTerrain() {
+async function applyTerrain() {
   if (!mujoco || !baseSceneXml) return;
   simulation.running = false;
   $("start").textContent = "开始";
-  createMujocoModel(terrainXml());
-  renderTerrain();
-  reset();
-  setNotice(`已应用${terrainState.kind === "flat" ? "平地" : "自定义"}地形；物理碰撞与场景预览已同步更新。`);
+  const definitions = terrainBoxes();
+  if (definitions.length > TERRAIN_SLOT_COUNT) throw new Error(`地形最多支持 ${TERRAIN_SLOT_COUNT} 个碰撞组件。`);
+  $("terrainApply").disabled = true;
+  setStatus("正在同步地形碰撞…");
+  setNotice("正在同步地形碰撞…");
+  try {
+    // Geometry topology is part of MuJoCo's collision broad-phase. Compile
+    // only active boxes, while keeping robot mesh assets cached in memory.
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    createMujocoModel(terrainXml(), definitions.length);
+    renderTerrain();
+    reset();
+    setStatus("浏览器物理引擎已就绪", "ready");
+    setNotice(`已应用${terrainState.kind === "flat" ? "平地" : "自定义"}地形；物理碰撞已同步。`);
+  } finally {
+    $("terrainApply").disabled = false;
+  }
 }
 
 async function loadPolicy(key) {
@@ -390,6 +445,7 @@ function reset() {
   data.qvel.fill(0);
   data.ctrl.fill(0);
   simulation.action.fill(0);
+  simulation.actionHistory = [];
   simulation.history = [];
   simulation.elapsed = 0;
   mujoco.mj_forward(model, data);
@@ -470,6 +526,8 @@ async function policyStep() {
   const outputName = policySession.outputNames[0];
   const output = await policySession.run({ [inputName]: new ort.Tensor("float32", obs, [1, obs.length]) });
   simulation.action.set(output[outputName].data);
+  simulation.actionHistory.push(Array.from(simulation.action));
+  if (simulation.actionHistory.length > 90) simulation.actionHistory.shift();
 }
 
 function applyControl() {
@@ -500,6 +558,127 @@ function updateRobot() {
 
 function updateControls() {
   $("command").textContent = `vx ${simulation.command[0].toFixed(2)} · vy ${simulation.command[1].toFixed(2)} · ω ${simulation.command[2].toFixed(2)}`;
+  $("commandVx").value = simulation.command[0];
+  $("commandVy").value = simulation.command[1];
+  $("commandYaw").value = simulation.command[2];
+  $("commandVxValue").textContent = `${simulation.command[0].toFixed(2)} m/s`;
+  $("commandVyValue").textContent = `${simulation.command[1].toFixed(2)} m/s`;
+  $("commandYawValue").textContent = `${simulation.command[2].toFixed(2)} rad/s`;
+}
+
+function drawActionChart() {
+  const canvas = $("actionChart");
+  const context = canvas.getContext("2d");
+  const { width, height } = canvas;
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "#edf2f5";
+  context.fillRect(0, 0, width, height);
+  context.strokeStyle = "#cbd8e0";
+  context.lineWidth = 1;
+  for (let row = 1; row < 4; row += 1) { const y = height * row / 4; context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke(); }
+  context.strokeStyle = "#9bb0be";
+  context.beginPath(); context.moveTo(0, height / 2); context.lineTo(width, height / 2); context.stroke();
+  const samples = simulation.actionHistory;
+  const palette = ["#185a91", "#4d7b4a", "#ae6c32", "#825eaa", "#b14955", "#347d8b"];
+  if (samples.length > 1) {
+    for (let joint = 0; joint < 12; joint += 1) {
+      context.beginPath();
+      context.strokeStyle = palette[joint % palette.length];
+      context.globalAlpha = joint < 6 ? .78 : .43;
+      samples.forEach((sample, index) => {
+        const x = index * width / (samples.length - 1);
+        const y = height / 2 - THREE.MathUtils.clamp(sample[joint], -1.2, 1.2) * height / 3;
+        if (index) context.lineTo(x, y); else context.moveTo(x, y);
+      });
+      context.stroke();
+    }
+  }
+  context.globalAlpha = 1;
+  $("actionValues").replaceChildren(...Array.from(simulation.action, (value, index) => {
+    const item = document.createElement("span");
+    item.innerHTML = `a${index + 1} <b>${value.toFixed(2)}</b>`;
+    return item;
+  }));
+}
+
+let lastTelemetryDraw = 0;
+function updateTelemetry() {
+  if (!data) return;
+  $("bodyPosition").textContent = `x ${data.qpos[0].toFixed(2)} · y ${data.qpos[1].toFixed(2)} · z ${data.qpos[2].toFixed(2)}`;
+  $("contactCount").textContent = String(data.ncon ?? 0);
+  let terrainContacts = 0;
+  for (let index = 0; index < data.ncon; index += 1) {
+    const contact = data.contact.get(index);
+    if (contact && (terrainSlotSet.has(contact.geom1) || terrainSlotSet.has(contact.geom2))) terrainContacts += 1;
+  }
+  $("terrainContactCount").textContent = String(terrainContacts);
+  if (performance.now() - lastTelemetryDraw > 100) {
+    drawActionChart();
+    lastTelemetryDraw = performance.now();
+  }
+}
+
+function updatePointer(event) {
+  const bounds = view.renderer.domElement.getBoundingClientRect();
+  pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -((event.clientY - bounds.top) / bounds.height) * 2 + 1);
+  raycaster.setFromCamera(pointer, view.camera);
+}
+
+function robotHit(event) {
+  updatePointer(event);
+  return raycaster.intersectObject(robot, true)[0];
+}
+
+function installRobotDrag() {
+  const canvas = view.renderer.domElement;
+  const pointOnDragPlane = (target) => raycaster.ray.intersectPlane(dragPlane, target);
+  canvas.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || !data) return;
+    const hit = robotHit(event);
+    if (!hit) return;
+    dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), hit.point);
+    const start = pointOnDragPlane(new THREE.Vector3());
+    if (!start) return;
+    robotDrag = { start, vector: new THREE.Vector3() };
+    view.orbit.enabled = false;
+    canvas.setPointerCapture(event.pointerId);
+    canvas.style.cursor = "grabbing";
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+  canvas.addEventListener("pointermove", (event) => {
+    if (!robotDrag) {
+      canvas.style.cursor = robotHit(event) ? "pointer" : "";
+      return;
+    }
+    updatePointer(event);
+    const end = pointOnDragPlane(new THREE.Vector3());
+    if (!end) return;
+    robotDrag.vector.copy(end).sub(robotDrag.start).setZ(0).clampLength(0, 1.15);
+    const length = robotDrag.vector.length();
+    dragArrow.position.copy(robotDrag.start);
+    dragArrow.setDirection(length > .001 ? robotDrag.vector.clone().normalize() : new THREE.Vector3(1, 0, 0));
+    dragArrow.setLength(length, .13, .07);
+    dragArrow.visible = true;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+  const release = (event) => {
+    if (!robotDrag || !data) return;
+    const impulse = robotDrag.vector.clone().multiplyScalar(2.4);
+    data.qvel[0] += impulse.x;
+    data.qvel[1] += impulse.y;
+    dragArrow.visible = false;
+    robotDrag = null;
+    view.orbit.enabled = true;
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    canvas.style.cursor = "";
+    if (impulse.lengthSq() > .0025) setNotice("已向机器人施加拖拽向量。", false);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  canvas.addEventListener("pointerup", release, true);
+  canvas.addEventListener("pointercancel", release, true);
 }
 
 let pendingStep = false;
@@ -525,6 +704,7 @@ async function tick() {
   }
   updateRobot();
   $("clock").textContent = `${simulation.elapsed.toFixed(2)} s`;
+  updateTelemetry();
   view.orbit.update();
   view.renderer.render(view.scene, view.camera);
   requestAnimationFrame(tick);
@@ -542,8 +722,8 @@ function terrainCanvasPosition(event) {
   const canvas = $("terrainMap");
   const bounds = canvas.getBoundingClientRect();
   return {
-    x: ((event.clientX - bounds.left) / bounds.width - .5) * 8,
-    y: (.5 - (event.clientY - bounds.top) / bounds.height) * 6,
+    x: THREE.MathUtils.clamp(((event.clientX - bounds.left) / bounds.width - .5) * TERRAIN_AREA.x * 2, -TERRAIN_AREA.x, TERRAIN_AREA.x),
+    y: THREE.MathUtils.clamp((.5 - (event.clientY - bounds.top) / bounds.height) * TERRAIN_AREA.y * 2, -TERRAIN_AREA.y, TERRAIN_AREA.y),
   };
 }
 
@@ -556,16 +736,16 @@ function repaintTerrainMap() {
   context.fillRect(0, 0, width, height);
   context.strokeStyle = "#c1d0d5";
   context.lineWidth = 1;
-  for (let x = 0; x <= width; x += width / 8) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke(); }
-  for (let y = 0; y <= height; y += height / 6) { context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke(); }
+  for (let x = 0; x <= width; x += width / 10) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke(); }
+  for (let y = 0; y <= height; y += height / 8) { context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke(); }
   if (terrainState.kind === "slope") { context.fillStyle = "#9db6c5"; context.fillRect(width * .56, height * .16, width * .29, height * .68); }
   if (terrainState.kind === "stairs") {
     context.fillStyle = "#9db6c5";
     for (let index = 0; index < 7; index += 1) context.fillRect(width * (.54 + index * .038), height * .18, width * .034, height * .64);
   }
   terrainState.elements.forEach((element, index) => {
-    const x = (element.x / 8 + .5) * width;
-    const y = (.5 - element.y / 6) * height;
+    const x = (element.x / (TERRAIN_AREA.x * 2) + .5) * width;
+    const y = (.5 - element.y / (TERRAIN_AREA.y * 2)) * height;
     context.beginPath();
     context.arc(x, y, index === terrainState.selected ? 12 : 9, 0, Math.PI * 2);
     context.fillStyle = index === terrainState.selected ? "#185a91" : "#6f94ae";
@@ -582,8 +762,9 @@ function renderTerrainElements() {
   mount.replaceChildren(...terrainState.elements.map((element, index) => {
     const row = document.createElement("div");
     row.className = `terrain-element${index === terrainState.selected ? " selected" : ""}`;
-    row.innerHTML = `<span>${index + 1}. ${terrainLabels[element.kind] ?? "导入障碍"}</span>`;
-    row.onclick = () => { terrainState.selected = index; repaintTerrainEditor(); renderTerrainElements(); };
+    const elementHeight = Number.isFinite(element.height) ? element.height : terrainState.height;
+    row.innerHTML = `<span>${index + 1}. ${terrainLabels[element.kind] ?? "导入障碍"} · ${elementHeight.toFixed(2)} m</span>`;
+    row.onclick = () => { terrainState.selected = index; repaintTerrainEditor(); };
     const remove = document.createElement("button");
     remove.textContent = "删除";
     remove.onclick = (event) => {
@@ -600,14 +781,27 @@ function renderTerrainElements() {
 function repaintTerrainEditor() {
   repaintTerrainMap();
   renderTerrainElements();
+  updateTerrainElementEditor();
   renderTerrain();
 }
 
+function updateTerrainElementEditor() {
+  const element = terrainState.elements[terrainState.selected];
+  $("terrainElementEditor").hidden = !element;
+  if (!element) return;
+  $("elementX").value = element.x.toFixed(2);
+  $("elementY").value = element.y.toFixed(2);
+  $("elementHeight").value = (Number.isFinite(element.height) ? element.height : terrainState.height).toFixed(2);
+  $("elementScaleX").value = Number.isFinite(element.scaleX) ? element.scaleX : 1;
+  $("elementScaleY").value = Number.isFinite(element.scaleY) ? element.scaleY : 1;
+  $("elementYaw").value = THREE.MathUtils.radToDeg(element.yaw || 0).toFixed(0);
+}
+
 function addTerrainElement(position) {
-  const nearby = terrainState.elements.findIndex((element) => Math.hypot(element.x - position.x, element.y - position.y) < .26);
+  const nearby = terrainState.elements.findIndex((element) => Math.hypot(element.x - position.x, element.y - position.y) < .45);
   if (nearby >= 0) terrainState.selected = nearby;
   else {
-    terrainState.elements.push({ kind: terrainState.tool, x: position.x, y: position.y, yaw: 0 });
+    terrainState.elements.push({ kind: terrainState.tool, x: position.x, y: position.y, yaw: 0, height: terrainState.height, scaleX: 1, scaleY: 1 });
     terrainState.selected = terrainState.elements.length - 1;
   }
   repaintTerrainEditor();
@@ -624,7 +818,7 @@ function importTerrainScene(file) {
           const position = vector(geom.getAttribute("pos") ?? "", 3, [0, 0, 0]);
           const size = vector(geom.getAttribute("size") ?? "", 3, [.8, .8, .2]);
           const euler = vector(geom.getAttribute("euler") ?? "", 3, [0, 0, 0]);
-          return { kind: size[0] > 1.1 && size[1] < .3 ? "wall" : "platform", x: position[0], y: position[1], yaw: euler[1] || 0 };
+          return { kind: size[0] > 1.1 && size[1] < .3 ? "wall" : "platform", x: position[0], y: position[1], yaw: euler[1] || 0, height: size[2] * 2, scaleX: 1, scaleY: 1 };
         });
         if (!imported.length) throw new Error("未找到可导入的 box 地形；高度场和外部 mesh 需先导出为 ArenaX JSON。");
         terrainState.elements = imported;
@@ -639,6 +833,8 @@ function importTerrainScene(file) {
             ? ({ stepping_stones: "stones", high_wall: "wall" }[element.kind] ?? element.kind)
             : "platform",
           x: Number(element.x) || 0, y: Number(element.y) || 0, yaw: Number(element.yaw) || 0,
+          height: Number(element.height ?? element.size?.[2] ?? terrainState.height),
+          scaleX: Number(element.scaleX ?? element.scale_x ?? 1), scaleY: Number(element.scaleY ?? element.scale_y ?? 1),
         }));
       }
       terrainState.selected = null;
@@ -669,6 +865,12 @@ $("start").onclick = () => {
   $("start").textContent = simulation.running ? "暂停" : "继续";
 };
 $("reset").onclick = () => reset();
+$("monitorToggle").onclick = () => {
+  const panel = $("monitorPanel");
+  panel.hidden = !panel.hidden;
+  if (!panel.hidden) drawActionChart();
+};
+$("monitorClose").onclick = () => { $("monitorPanel").hidden = true; };
 $("terrainToggle").onclick = () => {
   const panel = $("terrainPanel");
   panel.hidden = !panel.hidden;
@@ -678,6 +880,20 @@ $("terrainClose").onclick = () => { $("terrainPanel").hidden = true; };
 $("terrainKind").onchange = (event) => { terrainState.kind = event.target.value; repaintTerrainEditor(); };
 $("terrainSeed").oninput = (event) => { terrainState.seed = Number(event.target.value) || 0; repaintTerrainEditor(); };
 $("terrainHeight").oninput = updateTerrainHeight;
+function editSelectedTerrain(key, value) {
+  const element = terrainState.elements[terrainState.selected];
+  if (!element || !Number.isFinite(value)) return;
+  if (key === "x") value = THREE.MathUtils.clamp(value, -TERRAIN_AREA.x, TERRAIN_AREA.x);
+  if (key === "y") value = THREE.MathUtils.clamp(value, -TERRAIN_AREA.y, TERRAIN_AREA.y);
+  element[key] = value;
+  repaintTerrainEditor();
+}
+$("elementX").onchange = (event) => editSelectedTerrain("x", Number(event.target.value));
+$("elementY").onchange = (event) => editSelectedTerrain("y", Number(event.target.value));
+$("elementHeight").onchange = (event) => editSelectedTerrain("height", Number(event.target.value));
+$("elementScaleX").onchange = (event) => editSelectedTerrain("scaleX", Number(event.target.value));
+$("elementScaleY").onchange = (event) => editSelectedTerrain("scaleY", Number(event.target.value));
+$("elementYaw").onchange = (event) => editSelectedTerrain("yaw", THREE.MathUtils.degToRad(Number(event.target.value)));
 document.querySelectorAll("[data-terrain-tool]").forEach((button) => {
   button.onclick = () => {
     terrainState.tool = button.dataset.terrainTool;
@@ -688,7 +904,7 @@ document.querySelectorAll("[data-terrain-tool]").forEach((button) => {
 $("terrainMap").onclick = (event) => addTerrainElement(terrainCanvasPosition(event));
 $("terrainClear").onclick = () => { terrainState.elements = []; terrainState.selected = null; repaintTerrainEditor(); };
 $("terrainApply").onclick = () => {
-  try { applyTerrain(); } catch (error) { setNotice(error.message || String(error), true); }
+  applyTerrain().catch((error) => { setStatus("地形同步失败", "error"); setNotice(error.message || String(error), true); });
 };
 $("terrainExport").onclick = exportTerrainScene;
 $("terrainImport").onchange = (event) => {
@@ -696,6 +912,13 @@ $("terrainImport").onchange = (event) => {
   if (file) importTerrainScene(file);
   event.target.value = "";
 };
+[["commandVx", 0], ["commandVy", 1], ["commandYaw", 2]].forEach(([id, index]) => {
+  $(id).oninput = (event) => {
+    const [min, max] = index === 0 ? activePolicy.commandLimit : [-1, 1];
+    simulation.command[index] = THREE.MathUtils.clamp(Number(event.target.value), min, max);
+    updateControls();
+  };
+});
 const pressed = new Set();
 const movementKeys = ["KeyQ", "KeyW", "KeyE", "KeyA", "KeyS", "KeyD"];
 window.addEventListener("keydown", (event) => {
@@ -731,7 +954,9 @@ Promise.all([robotTask, engineTask])
   .then(() => {
     $("start").disabled = false;
     $("reset").disabled = false;
+    $("monitorToggle").disabled = false;
     $("terrainToggle").disabled = false;
+    installRobotDrag();
     setStatus("浏览器物理引擎已就绪", "ready");
     setBootStage("场景已就绪", 100);
     tick();

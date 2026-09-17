@@ -20,6 +20,8 @@ POLICIES = {
     "go2-trot.onnx": ("go2_trot/exported/policies/policy_trot.pt", 470),
     "go2-jump.onnx": ("go2_jump/exported/policies/policy_jump.pt", 470),
     "go2-spring-jump.onnx": ("go2_spring_jump/exported/policies/policy_1.pt", 470),
+    "go2-dreamwaq.onnx": ("go2_dreamwaq/exported/policies/policy_dwaq.pt", 270),
+    "go2-amp-cts.onnx": ("go2_amp_cts/exported/policies/policy_cts.pt", 270),
 }
 
 

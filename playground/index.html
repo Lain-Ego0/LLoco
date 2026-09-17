@@ -27,6 +27,7 @@
           <select id="policy" aria-label="选择策略"></select>
           <button id="start" class="primary" disabled>开始</button>
           <button id="reset" disabled>重置</button>
+          <button id="monitorToggle" disabled>监测</button>
           <button id="terrainToggle" disabled>地形</button>
         </div>
         <output id="command" class="command-output">vx 0.00 · vy 0.00 · ω 0.00</output>
@@ -37,12 +38,28 @@
       <p id="notice" class="scene-notice">加载资源后即可开始。</p>
       <p class="key-guide"><kbd>W</kbd><kbd>S</kbd> 前后　<kbd>A</kbd><kbd>D</kbd> 横移　<kbd>Q</kbd><kbd>E</kbd> 转向</p>
 
+      <aside id="monitorPanel" class="monitor-panel" aria-label="策略监测" hidden>
+        <div class="panel-heading">
+          <div><p class="panel-kicker">PLAYGROUND / TELEMETRY</p><strong>策略监测</strong></div>
+          <button id="monitorClose" class="icon-button" aria-label="关闭策略监测">×</button>
+        </div>
+        <div class="telemetry-summary"><span>机身 <output id="bodyPosition">x 0.00 · y 0.00 · z 0.00</output></span><span>接触 <output id="contactCount">0</output> · 地形 <output id="terrainContactCount">0</output></span></div>
+        <canvas id="actionChart" width="320" height="132" aria-label="策略动作输出曲线"></canvas>
+        <div id="actionValues" class="action-values" aria-label="当前十二维动作输出"></div>
+        <div class="command-editor" aria-label="运动指令">
+          <strong>运动指令</strong>
+          <label><span>vx</span><input id="commandVx" type="range" min="-1" max="1" step="0.05" value="0" /><output id="commandVxValue">0.00 m/s</output></label>
+          <label><span>vy</span><input id="commandVy" type="range" min="-1" max="1" step="0.05" value="0" /><output id="commandVyValue">0.00 m/s</output></label>
+          <label><span>ω</span><input id="commandYaw" type="range" min="-1" max="1" step="0.05" value="0" /><output id="commandYawValue">0.00 rad/s</output></label>
+        </div>
+      </aside>
+
       <aside id="terrainPanel" class="terrain-panel" aria-label="地形编辑器" hidden>
         <div class="panel-heading">
           <div><p class="panel-kicker">PLAYGROUND / TERRAIN</p><strong>地形编辑器</strong></div>
           <button id="terrainClose" class="icon-button" aria-label="关闭地形编辑器">×</button>
         </div>
-        <p class="panel-copy">浏览器内编辑，应用后同步重建当前 MuJoCo 场景。可导入 ArenaX 场景 JSON 或基础 box XML。</p>
+        <p class="panel-copy">浏览器内编辑；应用时同步更新物理碰撞。可导入 ArenaX 场景 JSON 或基础 box XML。</p>
         <div class="terrain-form">
           <label>地表<select id="terrainKind"><option value="flat">平地</option><option value="slope">坡道</option><option value="stairs">阶梯</option><option value="obstacle_mix">随机障碍</option></select></label>
           <label>随机种子<input id="terrainSeed" type="number" min="0" max="99999" value="7" /></label>
@@ -54,6 +71,15 @@
         <canvas id="terrainMap" width="520" height="260" aria-label="地形俯视编辑画布"></canvas>
         <p id="terrainHint" class="terrain-hint">选择工具后，在场地中点击放置。点击已有标记可选中。</p>
         <div id="terrainElements" class="terrain-elements"></div>
+        <div id="terrainElementEditor" class="terrain-element-editor" hidden>
+          <strong>选中障碍参数</strong>
+          <label>位置 X<input id="elementX" type="number" step="0.1" /></label>
+          <label>位置 Y<input id="elementY" type="number" step="0.1" /></label>
+          <label>高度<input id="elementHeight" type="number" min="0.04" max="2" step="0.02" /></label>
+          <label>长度倍率<input id="elementScaleX" type="number" min="0.2" max="4" step="0.1" /></label>
+          <label>宽度倍率<input id="elementScaleY" type="number" min="0.2" max="4" step="0.1" /></label>
+          <label>朝向 °<input id="elementYaw" type="number" min="-180" max="180" step="5" /></label>
+        </div>
         <div class="terrain-actions">
           <button id="terrainClear">清空</button><button id="terrainExport">导出 JSON</button>
           <label class="file-button">导入<input id="terrainImport" type="file" accept=".json,.xml,application/json,text/xml" /></label>

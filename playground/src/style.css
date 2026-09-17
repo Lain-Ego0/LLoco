@@ -38,6 +38,20 @@ button.primary:hover:not(:disabled) { background: #104b7b; }
 .key-guide { border-radius: 7px; bottom: 15px; right: 16px; white-space: nowrap; }
 kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; border-radius: 4px; color: #48545f; font-size: .67rem; margin-right: .13rem; padding: .06rem .21rem; }
 
+.monitor-panel { background: #f9fbfdec; border: 1px solid #cbd6df; border-radius: 8px; box-shadow: 0 8px 28px #22354422; display: grid; gap: 9px; left: 14px; padding: 11px; position: absolute; top: 55px; width: min(330px, calc(100vw - 28px)); z-index: 3; backdrop-filter: blur(12px); }
+.monitor-panel[hidden] { display: none; }
+.telemetry-summary { color: #60707c; display: flex; font-size: .63rem; justify-content: space-between; }
+.telemetry-summary output { color: #1f3f57; font-variant-numeric: tabular-nums; }
+#actionChart { background: #edf2f5; border: 1px solid #d2dde4; border-radius: 6px; height: auto; width: 100%; }
+.action-values { display: grid; font-variant-numeric: tabular-nums; gap: 3px 5px; grid-template-columns: repeat(4, 1fr); }
+.action-values span { background: #f0f4f7; border-radius: 3px; color: #50616d; font-size: .56rem; padding: .17rem .22rem; }
+.action-values b { color: #195886; font-weight: 680; }
+.command-editor { border-top: 1px solid #d8e1e6; display: grid; gap: 6px; padding-top: 8px; }
+.command-editor strong { font-size: .68rem; }
+.command-editor label { align-items: center; color: #4c5d68; display: grid; font-size: .62rem; gap: 6px; grid-template-columns: 20px 1fr 68px; }
+.command-editor input { accent-color: #185a91; min-width: 0; }
+.command-editor output { color: #21608c; text-align: right; }
+
 .terrain-panel { background: #f9fbfdec; border-left: 1px solid #cbd6df; box-shadow: -10px 0 32px #2235441f; display: flex; flex-direction: column; gap: 10px; max-width: min(390px, 100vw); overflow: auto; padding: 14px; position: absolute; right: 0; top: 43px; bottom: 0; width: 390px; z-index: 3; backdrop-filter: blur(12px); }
 .terrain-panel[hidden] { display: none; }
 .panel-heading { align-items: start; display: flex; justify-content: space-between; }
@@ -59,6 +73,11 @@ kbd { background: #fff; border: 1px solid #cbd2d9; border-bottom-width: 2px; bor
 .terrain-element { align-items: center; background: #ffffffbd; border: 1px solid #d6dfe5; border-radius: 5px; display: flex; font-size: .65rem; justify-content: space-between; padding: .31rem .42rem; }
 .terrain-element.selected { border-color: #5c93bb; color: #155583; }
 .terrain-element button { font-size: .61rem; padding: .16rem .32rem; }
+.terrain-element-editor { background: #f2f6f8; border: 1px solid #d4e0e6; border-radius: 6px; display: grid; gap: 7px; grid-template-columns: 1fr 1fr; padding: 8px; }
+.terrain-element-editor[hidden] { display: none; }
+.terrain-element-editor strong { font-size: .67rem; grid-column: span 2; }
+.terrain-element-editor label { color: #52636e; display: grid; font-size: .6rem; gap: 3px; }
+.terrain-element-editor input { background: #fff; border: 1px solid #c7d0d8; border-radius: 4px; color: #273640; min-width: 0; padding: .27rem; }
 .terrain-actions { display: flex; flex-wrap: wrap; gap: 5px; }
 .file-button { background: #f8fafbd9; border: 1px solid #c7d0d8; border-radius: 6px; color: #24313b; cursor: pointer; }
 .file-button input { display: none; }
