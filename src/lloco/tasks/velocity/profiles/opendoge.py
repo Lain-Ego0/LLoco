@@ -1,12 +1,12 @@
 """OpenDoge (OpenDog V1.1) velocity robot profile."""
 
 from lloco.assets.robots import get_opendoge_robot_cfg
-from lloco.tasks.velocity_types import (
+
+from ..core import (
   TASK_GROUP_LAINLAB,
   VelocityRobotProfile,
   VelocityScaling,
 )
-
 from .common import _QUAD_FEET, _QUAD_GEOMS
 
 OPENDOGE_VELOCITY_SCALING = VelocityScaling(

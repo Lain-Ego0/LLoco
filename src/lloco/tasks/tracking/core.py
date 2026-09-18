@@ -2,8 +2,14 @@
 
 from collections.abc import Callable
 
+from mjlab.entity import EntityCfg
+from mjlab.envs import ManagerBasedRlEnvCfg
+from mjlab.envs.mdp.actions import JointPositionActionCfg
 from mjlab.managers.observation_manager import ObservationGroupCfg
+from mjlab.sensor import ContactMatch, ContactSensorCfg
 from mjlab.tasks.registry import register_mjlab_task
+from mjlab.tasks.tracking.mdp import MotionCommandCfg
+from mjlab.tasks.tracking.rl import MotionTrackingOnPolicyRunner
 from mjlab.tasks.tracking.tracking_env_cfg import make_tracking_env_cfg
 
 from lloco.assets.robots import (
@@ -13,12 +19,6 @@ from lloco.assets.robots import (
   get_g1_robot_cfg,
 )
 from lloco.tasks.rl import make_ppo_runner_cfg
-from mjlab.entity import EntityCfg
-from mjlab.envs import ManagerBasedRlEnvCfg
-from mjlab.envs.mdp.actions import JointPositionActionCfg
-from mjlab.sensor import ContactMatch, ContactSensorCfg
-from mjlab.tasks.tracking.mdp import MotionCommandCfg
-from mjlab.tasks.tracking.rl import MotionTrackingOnPolicyRunner
 
 
 def make_g1_tracking_env_cfg(

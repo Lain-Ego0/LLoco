@@ -15,13 +15,13 @@ from lloco.assets.robots import (
   get_h2_robot_cfg,
   get_r1_robot_cfg,
 )
-from lloco.tasks.velocity_types import (
+
+from ..core import (
   TASK_GROUP_UNITREE,
   VelocityRobotProfile,
   humanoid_velocity_scaling,
   quadruped_velocity_scaling,
 )
-
 from .common import _HUMANOID_GEOMS, _HUMANOID_SITES, _QUAD_FEET, _QUAD_GEOMS
 
 UNITREE_PROFILES = (
