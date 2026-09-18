@@ -5,6 +5,7 @@ from typing import Any, cast
 
 import src.tasks  # noqa: F401
 from mjlab.envs import ManagerBasedRlEnvCfg
+from mjlab.sensor import GridPatternCfg, RayCastSensorCfg
 from mjlab.tasks.registry import list_tasks, load_env_cfg
 
 ROBOT_TERRAINS = {
@@ -76,8 +77,29 @@ def test_opendoge_rough_overrides() -> None:
   assert generator.num_cols == 20
   assert generator.curriculum is True
   assert terrain.max_init_terrain_level == 2
+  pyramid_stairs = cast(Any, generator.sub_terrains["pyramid_stairs"])
+  assert pyramid_stairs.step_height_range == (0.0, 0.04)
+  assert pyramid_stairs.step_width == 0.22
+  pyramid_stairs_inv = cast(Any, generator.sub_terrains["pyramid_stairs_inv"])
+  assert pyramid_stairs_inv.step_height_range == (0.0, 0.04)
+  assert pyramid_stairs_inv.step_width == 0.22
   random_rough = cast(Any, generator.sub_terrains["random_rough"])
   assert random_rough.noise_range == (0.005, 0.025)
+  slope = cast(Any, generator.sub_terrains["hf_pyramid_slope"])
+  assert slope.slope_range == (0.0, 0.45)
+  slope_inv = cast(Any, generator.sub_terrains["hf_pyramid_slope_inv"])
+  assert slope_inv.slope_range == (0.0, 0.45)
+  wave = cast(Any, generator.sub_terrains["wave_terrain"])
+  assert wave.amplitude_range == (0.0, 0.08)
+
+  terrain_scan = next(
+    sensor for sensor in (cfg.scene.sensors or ()) if sensor.name == "terrain_scan"
+  )
+  assert isinstance(terrain_scan, RayCastSensorCfg)
+  assert isinstance(terrain_scan.pattern, GridPatternCfg)
+  assert terrain_scan.pattern.size == (0.7, 0.5)
+  assert terrain_scan.pattern.resolution == 0.05
+
   assert cfg.sim.nconmax == 64
   assert cfg.sim.njmax == 600
   assert cfg.sim.contact_sensor_maxmatch == 128
