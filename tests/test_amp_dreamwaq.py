@@ -6,8 +6,8 @@ import torch
 from mjlab.tasks.registry import load_env_cfg, load_rl_cfg
 
 import lloco.tasks  # noqa: F401
-from lloco.tasks.go2_skills.amp_dreamwaq.motion import Go2AmpMotionLoader
-from lloco.tasks.go2_skills.amp_dreamwaq.rl import (
+from lloco.tasks.robots.go2.skills.amp_dreamwaq.motion import Go2AmpMotionLoader
+from lloco.tasks.robots.go2.skills.amp_dreamwaq.rl import (
   _AmpReplayBuffer,
   _RunningMeanStd,
 )
@@ -17,24 +17,24 @@ def test_amp_source_configuration() -> None:
   env = load_env_cfg("Unitree-Go2-AMP-DreamWaQ-Rough")
   runner = cast(Any, load_rl_cfg("Unitree-Go2-AMP-DreamWaQ-Rough"))
   command = cast(Any, env.commands["twist"])
-  assert env.observations["actor"].terms["frame"].params["joint_position_noise"] == .01
+  assert env.observations["actor"].terms["frame"].params["joint_position_noise"] == 0.01
   assert "amp_terminal_state" in env.recorders
-  assert env.rewards["alive"].weight == .1
+  assert env.rewards["alive"].weight == 0.1
   assert env.rewards["termination"].weight == -5.0
-  assert command.ranges.lin_vel_y == (-.6, .6)
+  assert command.ranges.lin_vel_y == (-0.6, 0.6)
   assert runner.algorithm.amp_replay_buffer_size == 1_000_000
   assert runner.algorithm.amp_num_preload_transitions == 2_000_000
   assert runner.algorithm.amp_discr_hidden_dims == (1024, 512)
-  assert runner.algorithm.min_normalized_std == .05
+  assert runner.algorithm.min_normalized_std == 0.05
 
 
 def test_expert_state_uses_policy_dt_interpolation() -> None:
   frames = torch.arange(4, dtype=torch.float32).view(4, 1).repeat(1, 49)
   state = Go2AmpMotionLoader._state_at_time(
-    frames, torch.tensor([.02]), trajectory_length=.12
+    frames, torch.tensor([0.02]), trajectory_length=0.12
   )
   next_state = Go2AmpMotionLoader._state_at_time(
-    frames, torch.tensor([.04]), trajectory_length=.12
+    frames, torch.tensor([0.04]), trajectory_length=0.12
   )
   # Source phase is time / trajectory_length * num_frames.  A 0.02 s
   # transition therefore advances 2/3 of a 0.04 s data frame, not one frame.

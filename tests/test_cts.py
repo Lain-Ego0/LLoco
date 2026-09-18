@@ -8,7 +8,7 @@ from mjlab.envs import ManagerBasedRlEnv
 from mjlab.tasks.registry import load_env_cfg
 
 import lloco.tasks  # noqa: F401
-from lloco.tasks.go2_skills.cts import mdp as cts_mdp
+from lloco.tasks.robots.go2.skills.cts import mdp as cts_mdp
 
 
 def test_cts_source_physics_and_reward_contract() -> None:
@@ -20,7 +20,9 @@ def test_cts_source_physics_and_reward_contract() -> None:
   assert cfg.rewards["action_smoothness"].func is cts_mdp.CtsActionSmoothness
   assert cfg.events["base_com"].func is cts_mdp.randomize_base_com
   assert cfg.events["reset_robot_joints"].params["scale_range"] == (0.9, 1.1)
-  assert all(a.armature == 0.00448 for a in cfg.scene.entities["robot"].articulation.actuators)
+  assert all(
+    a.armature == 0.00448 for a in cfg.scene.entities["robot"].articulation.actuators
+  )
   assert cfg.scene.entities["robot"].collisions[0].conaffinity == 0
   base_sensor = next(s for s in cfg.scene.sensors if s.name == "base_ground_contact")
   assert base_sensor.primary.mode == "geom"

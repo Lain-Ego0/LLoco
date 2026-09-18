@@ -1,0 +1,122 @@
+"""Unitree velocity profiles (excluding Go2)."""
+
+from lloco.assets.robots import (
+  G1_23DOF_ACTION_SCALE,
+  G1_ACTION_SCALE,
+  H1_2_ACTION_SCALE,
+  H2_ACTION_SCALE,
+  R1_ACTION_SCALE,
+  get_a2_robot_cfg,
+  get_as2_robot_cfg,
+  get_g1_23dof_robot_cfg,
+  get_g1_robot_cfg,
+  get_h1_2_robot_cfg,
+  get_h2_robot_cfg,
+  get_r1_robot_cfg,
+)
+from lloco.tasks.robots.common import (
+  _HUMANOID_GEOMS,
+  _HUMANOID_SITES,
+  _QUAD_FEET,
+  _QUAD_GEOMS,
+)
+from lloco.tasks.velocity import (
+  TASK_GROUP_UNITREE,
+  VelocityRobotProfile,
+  humanoid_velocity_scaling,
+  quadruped_velocity_scaling,
+)
+
+UNITREE_VELOCITY_PROFILES = (
+  VelocityRobotProfile(
+    "A2",
+    get_a2_robot_cfg,
+    "quadruped",
+    "base_link",
+    "base_link",
+    _QUAD_FEET,
+    _QUAD_GEOMS,
+    _QUAD_GEOMS,
+    scaling=quadruped_velocity_scaling(),
+    task_group=TASK_GROUP_UNITREE,
+  ),
+  VelocityRobotProfile(
+    "As2",
+    get_as2_robot_cfg,
+    "quadruped",
+    "base_link",
+    "base_link",
+    _QUAD_FEET,
+    _QUAD_GEOMS,
+    _QUAD_GEOMS,
+    scaling=quadruped_velocity_scaling(),
+    task_group=TASK_GROUP_UNITREE,
+  ),
+  VelocityRobotProfile(
+    "G1",
+    get_g1_robot_cfg,
+    "humanoid",
+    "pelvis",
+    "torso_link",
+    _HUMANOID_SITES,
+    _HUMANOID_GEOMS,
+    r"^(left_ankle_roll_link|right_ankle_roll_link)$",
+    scaling=humanoid_velocity_scaling(G1_ACTION_SCALE, 1.15),
+    task_group=TASK_GROUP_UNITREE,
+  ),
+  VelocityRobotProfile(
+    "G1-23Dof",
+    get_g1_23dof_robot_cfg,
+    "humanoid",
+    "pelvis",
+    "torso_link",
+    _HUMANOID_SITES,
+    _HUMANOID_GEOMS,
+    r"^(left_ankle_roll_link|right_ankle_roll_link)$",
+    scaling=humanoid_velocity_scaling(G1_23DOF_ACTION_SCALE, 1.15),
+    task_group=TASK_GROUP_UNITREE,
+  ),
+  VelocityRobotProfile(
+    "H1_2",
+    get_h1_2_robot_cfg,
+    "humanoid",
+    "pelvis",
+    "torso_link",
+    _HUMANOID_SITES,
+    _HUMANOID_GEOMS,
+    r"^(left_ankle_roll_link|right_ankle_roll_link)$",
+    scaling=humanoid_velocity_scaling(H1_2_ACTION_SCALE, 1.55),
+    task_group=TASK_GROUP_UNITREE,
+  ),
+  VelocityRobotProfile(
+    "H2",
+    get_h2_robot_cfg,
+    "humanoid",
+    "pelvis",
+    "torso_link",
+    _HUMANOID_SITES,
+    _HUMANOID_GEOMS,
+    r"^(left_ankle_pitch_link|right_ankle_pitch_link)$",
+    scaling=humanoid_velocity_scaling(H2_ACTION_SCALE, 1.15),
+    task_group=TASK_GROUP_UNITREE,
+  ),
+  VelocityRobotProfile(
+    "R1",
+    get_r1_robot_cfg,
+    "humanoid",
+    "pelvis",
+    "torso_link",
+    _HUMANOID_SITES,
+    _HUMANOID_GEOMS,
+    r"^(left_ankle_roll_link|right_ankle_roll_link)$",
+    scaling=humanoid_velocity_scaling(R1_ACTION_SCALE, 1.05),
+    task_group=TASK_GROUP_UNITREE,
+  ),
+)
+
+
+def register_velocity_tasks() -> None:
+  from lloco.tasks.velocity import register_velocity_profile
+
+  for profile in UNITREE_VELOCITY_PROFILES:
+    register_velocity_profile(profile)

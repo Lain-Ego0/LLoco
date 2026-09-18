@@ -3,9 +3,15 @@
 from mjlab.tasks.registry import list_tasks, load_env_cfg, load_rl_cfg
 
 import lloco.tasks  # noqa: F401
-from lloco.tasks.go2_skills.hand_stand.mdp.observations import handstand_noise_bounds
-from lloco.tasks.go2_skills.rear_stand.mdp.observations import rear_stand_noise_bounds
-from lloco.tasks.go2_skills.trot.mdp.observations import single_frame_noise_bounds
+from lloco.tasks.robots.go2.skills.hand_stand.mdp.observations import (
+  handstand_noise_bounds,
+)
+from lloco.tasks.robots.go2.skills.rear_stand.mdp.observations import (
+  rear_stand_noise_bounds,
+)
+from lloco.tasks.robots.go2.skills.trot.mdp.observations import (
+  single_frame_noise_bounds,
+)
 
 
 def test_only_completed_staged_skills_are_registered() -> None:
@@ -36,17 +42,32 @@ def test_spring_jump_source_configuration() -> None:
   assert cfg.commands["jump_target"].ranges.lin_vel_x == (0.8, 1.2)
   assert cfg.events["friction"].params["num_buckets"] == 64
   assert set(cfg.rewards) == {
-    "before_setting", "line_z", "flight", "base_height_flight",
-    "base_height_stance", "orientation", "dof_pos", "dof_hip_pos",
-    "ang_vel_xy", "torques", "dof_pos_limits", "dof_vel_limits",
-    "dof_vel", "collision", "action_rate", "land_pos", "tracking_lin_vel",
-    "line_vel_stance", "feet_contact_forces", "foot_clearance",
+    "before_setting",
+    "line_z",
+    "flight",
+    "base_height_flight",
+    "base_height_stance",
+    "orientation",
+    "dof_pos",
+    "dof_hip_pos",
+    "ang_vel_xy",
+    "torques",
+    "dof_pos_limits",
+    "dof_vel_limits",
+    "dof_vel",
+    "collision",
+    "action_rate",
+    "land_pos",
+    "tracking_lin_vel",
+    "line_vel_stance",
+    "feet_contact_forces",
+    "foot_clearance",
   }
   rl = load_rl_cfg("Unitree-Go2-Spring-Jump-Flat")
   assert rl.max_iterations == 50_000
   assert rl.algorithm.learning_rate == 1.0e-5
   assert rl.algorithm.class_name == (
-    "lloco.tasks.go2_skills.spring_jump.mdp.symmetry:SourceSymmetricPPO"
+    "lloco.tasks.robots.go2.skills.spring_jump.mdp.symmetry:SourceSymmetricPPO"
   )
 
 
@@ -65,17 +86,32 @@ def test_dreamwaq_source_configuration() -> None:
   assert cfg.commands["twist"].heading_command
   assert cfg.actions["joint_pos"].scale == 0.25
   assert set(cfg.rewards) == {
-    "tracking_lin_vel", "tracking_ang_vel", "lin_vel_z", "ang_vel_xy",
-    "orientation", "base_height", "torques", "dof_acc", "collision",
-    "action_rate", "dof_pos_limits", "action_smoothness", "stumble",
+    "tracking_lin_vel",
+    "tracking_ang_vel",
+    "lin_vel_z",
+    "ang_vel_xy",
+    "orientation",
+    "base_height",
+    "torques",
+    "dof_acc",
+    "collision",
+    "action_rate",
+    "dof_pos_limits",
+    "action_smoothness",
+    "stumble",
     "foot_clearance",
   }
-  assert cfg.events["friction"].params == {"low": .2, "high": 1.25, "num_buckets": 64}
+  assert cfg.events["friction"].params == {"low": 0.2, "high": 1.25, "num_buckets": 64}
   rl = load_rl_cfg("Unitree-Go2-DreamWaQ-Rough")
   assert rl.seed == 1 and rl.num_steps_per_env == 24
   assert rl.max_iterations == 20_000 and rl.save_interval == 500
-  assert rl.actor.class_name == "lloco.tasks.go2_skills.dreamwaq.mdp.rl:DreamWaQActor"
-  assert rl.algorithm.class_name == "lloco.tasks.go2_skills.dreamwaq.mdp.rl:DreamWaQPPO"
+  assert (
+    rl.actor.class_name == "lloco.tasks.robots.go2.skills.dreamwaq.mdp.rl:DreamWaQActor"
+  )
+  assert (
+    rl.algorithm.class_name
+    == "lloco.tasks.robots.go2.skills.dreamwaq.mdp.rl:DreamWaQPPO"
+  )
 
 
 def test_trot_timing_initial_state_and_action() -> None:
@@ -331,11 +367,11 @@ def test_rear_stand_rewards_commands_events_and_ppo() -> None:
   assert rl.num_steps_per_env == 24
   assert rl.algorithm.learning_rate == 1.0e-3
   assert rl.algorithm.class_name == (
-    "lloco.tasks.go2_skills.rear_stand.mdp.symmetry:SourceSymmetricPPO"
+    "lloco.tasks.robots.go2.skills.rear_stand.mdp.symmetry:SourceSymmetricPPO"
   )
   assert rl.algorithm.symmetry_cfg == {
     "data_augmentation_func": (
-      "lloco.tasks.go2_skills.rear_stand.mdp.symmetry:rear_stand_symmetry"
+      "lloco.tasks.robots.go2.skills.rear_stand.mdp.symmetry:rear_stand_symmetry"
     ),
     "use_data_augmentation": False,
     "use_mirror_loss": True,

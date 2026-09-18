@@ -418,7 +418,6 @@ _ENV_FACTORIES: dict[TerrainName, Callable[..., ManagerBasedRlEnvCfg]] = {
   "Flat": make_flat_env_cfg,
   "Rough": make_rough_env_cfg,
 }
-_REGISTERED = False
 
 
 def register_velocity_profile(profile: VelocityRobotProfile) -> None:
@@ -441,22 +440,3 @@ def register_velocity_profile(profile: VelocityRobotProfile) -> None:
       rl_cfg=runner_cfg,
       runner_cls=VelocityOnPolicyRunner,
     )
-
-
-def register_velocity_tasks() -> None:
-  """Register every built-in velocity profile exactly once."""
-  global _REGISTERED
-  if _REGISTERED:
-    return
-  for profile in PROFILES:
-    register_velocity_profile(profile)
-  _REGISTERED = True
-
-
-def _load_profiles() -> tuple[VelocityRobotProfile, ...]:
-  from .profiles import PROFILES
-
-  return PROFILES
-
-
-PROFILES = _load_profiles()

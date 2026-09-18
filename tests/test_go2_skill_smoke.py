@@ -5,7 +5,7 @@ from mjlab.envs import ManagerBasedRlEnv
 from mjlab.tasks.registry import load_env_cfg
 
 import lloco.tasks  # noqa: F401
-from lloco.tasks.go2_skills.shared.contacts import source_vertical_contact
+from lloco.tasks.robots.go2.skills.shared.contacts import source_vertical_contact
 
 
 def test_trot_single_environment_reset_step() -> None:
@@ -75,8 +75,6 @@ def test_dreamwaq_single_environment_reset_step() -> None:
     assert torch.isfinite(reward).all()
   finally:
     env.close()
-
-
 
 
 def test_jump_vertical_contact_sign_after_settling() -> None:

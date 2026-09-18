@@ -29,7 +29,11 @@ LainLab 将“接入一台机器人”组织为可复用的产品路径：资产
 LainLab/
 ├── src/lloco/
 │   ├── assets/          # 各机器人 MJCF、网格和示例动作
-│   ├── tasks/           # 基于 mjlab 1.6 的薄任务适配层
+│   ├── tasks/
+│   │   ├── velocity/    # 通用速度跟踪 MDP
+│   │   ├── tracking/    # 通用动作跟踪 MDP
+│   │   ├── amp/         # 预留通用 AMP core
+│   │   └── robots/      # 机器人组成、profile 与任务注册
 │   └── cli.py           # train / play / list-envs 入口
 ├── tests/               # LainLab 自身的兼容性测试
 ├── deploy/              # 实机部署源码（不提交模型和预编译运行库）
@@ -131,7 +135,7 @@ make format
 make check
 ```
 
-机器人差异集中在 `src/lloco/tasks/velocity.py` 的 `PROFILES`。新增同类机器人时，通常只需增加资产常量和一个 profile，无需复制整套 MDP。
+机器人差异集中在 `src/lloco/tasks/robots/` 下的机器人包，通用 MDP 位于 `src/lloco/tasks/velocity/core.py`、`tracking/core.py` 等任务类型包。新增同类机器人时，通常在对应机器人包中增加 profile 和注册函数，无需复制整套 MDP。
 
 ## 部署
 
@@ -174,7 +178,11 @@ LainLab turns robot onboarding into a repeatable product path: assets have clear
 LainLab/
 ├── src/lloco/
 │   ├── assets/          # Per-robot MJCF files, meshes, and example motions
-│   ├── tasks/           # Thin task adapters built on mjlab 1.6
+│   ├── tasks/
+│   │   ├── velocity/    # Shared velocity-tracking MDP
+│   │   ├── tracking/    # Shared motion-tracking MDP
+│   │   ├── amp/         # Reserved generic AMP core
+│   │   └── robots/      # Robot composition, profiles, and registration
 │   └── cli.py           # train / play / list-envs entry points
 ├── tests/               # LainLab compatibility tests
 ├── deploy/              # Real-robot deployment source (no models or bundled runtimes)
@@ -241,7 +249,7 @@ make format
 make check
 ```
 
-Robot differences are centralized in `src/lloco/tasks/velocity.py` through `PROFILES`. Adding a similar robot typically consists of asset constants and a profile on the shared MDP implementation.
+Robot differences are centralized under `src/lloco/tasks/robots/`. Shared MDPs live in task-type packages such as `velocity/core.py` and `tracking/core.py`. Adding a similar robot typically consists of a profile and registration in its robot package, without copying the shared MDP implementation.
 
 ## Deployment
 

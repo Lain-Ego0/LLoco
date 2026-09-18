@@ -1,3 +1,3 @@
-"""Tracking task type: G1 motion-tracking registrations."""
+"""Tracking task type facade."""
 
-from .core import make_g1_tracking_env_cfg as make_g1_tracking_env_cfg
+from .core import make_tracking_env_cfg as make_tracking_env_cfg

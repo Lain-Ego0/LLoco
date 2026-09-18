@@ -3,7 +3,7 @@
 import torch
 from tensordict import TensorDict
 
-from lloco.tasks.go2_skills.rear_stand.mdp.symmetry import rear_stand_symmetry
+from lloco.tasks.robots.go2.skills.rear_stand.mdp.symmetry import rear_stand_symmetry
 
 
 def test_rear_stand_symmetry_matches_source_permutations_and_is_involution() -> None:

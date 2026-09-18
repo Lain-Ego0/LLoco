@@ -20,7 +20,7 @@ from lloco.assets.robots import (
   get_g1_23dof_robot_cfg,
   get_g1_robot_cfg,
 )
-from lloco.tasks.tracking import make_g1_tracking_env_cfg
+from lloco.tasks.robots.g1.tracking import make_g1_tracking_env_cfg
 
 RobotName = Literal["g1", "g1_23dof"]
 
