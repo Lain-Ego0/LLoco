@@ -421,7 +421,12 @@ def _make_base_env_cfg(profile: VelocityRobotProfile) -> ManagerBasedRlEnvCfg:
   return cfg
 
 
-def _apply_play_overrides(cfg: ManagerBasedRlEnvCfg, play: bool) -> None:
+def _apply_play_overrides(
+  cfg: ManagerBasedRlEnvCfg,
+  play: bool,
+  *,
+  command_ranges: CommandRanges | None = None,
+) -> None:
   if not play:
     return
   cfg.episode_length_s = int(1e9)
@@ -440,6 +445,12 @@ def _apply_play_overrides(cfg: ManagerBasedRlEnvCfg, play: bool) -> None:
     terrain.num_cols = 5
     terrain.num_rows = 5
     terrain.border_width = 10.0
+  if command_ranges is not None:
+    command = cfg.commands["twist"]
+    assert isinstance(command, UniformVelocityCommandCfg)
+    command.ranges.lin_vel_x = command_ranges[0]
+    command.ranges.lin_vel_y = command_ranges[1]
+    command.ranges.ang_vel_z = command_ranges[2]
 
 
 def _sub_terrain_patch(patch: SubTerrainOverrideCfg) -> dict[str, object]:
@@ -518,17 +529,32 @@ def _apply_rough_variant_overrides(
     _apply_sim_overrides(cfg, rough.sim)
 
 
+def _scaling_for_terrain(
+  profile: VelocityRobotProfile, terrain: TerrainName
+) -> VelocityScaling:
+  if (
+    terrain == "Rough"
+    and profile.rough is not None
+    and profile.rough.scaling is not None
+  ):
+    return profile.rough.scaling
+  return profile.scaling
+
+
 def make_rough_env_cfg(
   profile: VelocityRobotProfile, *, play: bool = False
 ) -> ManagerBasedRlEnvCfg:
   """Build a rough-terrain environment from a compact robot profile."""
   rough = profile.rough
-  rough_scaling = rough.scaling if rough is not None else None
-  selected_scaling = rough_scaling if rough_scaling is not None else profile.scaling
+  selected_scaling = _scaling_for_terrain(profile, "Rough")
   cfg = _make_base_env_cfg(replace(profile, scaling=selected_scaling))
   if rough is not None:
     _apply_rough_variant_overrides(cfg, rough)
-  _apply_play_overrides(cfg, play)
+  _apply_play_overrides(
+    cfg,
+    play,
+    command_ranges=selected_scaling.play_command_ranges,
+  )
   return cfg
 
 
@@ -536,8 +562,13 @@ def make_flat_env_cfg(
   profile: VelocityRobotProfile, *, play: bool = False
 ) -> ManagerBasedRlEnvCfg:
   """Build a flat-ground variant of a robot's velocity task."""
-  cfg = _make_base_env_cfg(replace(profile, scaling=profile.scaling))
-  _apply_play_overrides(cfg, play)
+  flat_scaling = _scaling_for_terrain(profile, "Flat")
+  cfg = _make_base_env_cfg(replace(profile, scaling=flat_scaling))
+  _apply_play_overrides(
+    cfg,
+    play,
+    command_ranges=flat_scaling.play_command_ranges,
+  )
   cfg.sim.njmax = 300
   cfg.sim.mujoco.ccd_iterations = 50
   cfg.sim.contact_sensor_maxmatch = 64
@@ -552,12 +583,6 @@ def make_flat_env_cfg(
   cfg.observations["critic"].terms.pop("height_scan", None)
   cfg.terminations.pop("out_of_terrain_bounds", None)
   cfg.curriculum.pop("terrain_levels", None)
-  if play:
-    command = cfg.commands["twist"]
-    assert isinstance(command, UniformVelocityCommandCfg)
-    command.ranges.lin_vel_x = profile.play_command_ranges[0]
-    command.ranges.lin_vel_y = profile.play_command_ranges[1]
-    command.ranges.ang_vel_z = profile.play_command_ranges[2]
   return cfg
 
 
@@ -577,7 +602,7 @@ def register_velocity_profile(profile: VelocityRobotProfile) -> None:
     )
     runner_cfg = make_ppo_runner_cfg(
       experiment_name,
-      max_iterations=profile.max_iterations,
+      max_iterations=_scaling_for_terrain(profile, terrain).max_iterations,
     )
     env_factory = _ENV_FACTORIES[terrain]
     register_mjlab_task(
