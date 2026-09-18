@@ -64,6 +64,13 @@ class VelocityScaling:
   decimation: int
 
 
+@dataclass(frozen=True)
+class RoughVariantCfg:
+  """Optional rough-terrain configuration for a robot profile."""
+
+  scaling: VelocityScaling | None = None
+
+
 def quadruped_velocity_scaling() -> VelocityScaling:
   """Baseline scaling for the existing small/medium Unitree quadrupeds."""
   return VelocityScaling(
@@ -126,7 +133,7 @@ class VelocityRobotProfile:
   scaling: VelocityScaling
   task_group: str = ""
   terrains: tuple[TerrainName, ...] = ("Flat", "Rough")
-  rough_scaling: VelocityScaling | None = None
+  rough: RoughVariantCfg | None = None
   rough_env_hook: Callable[[ManagerBasedRlEnvCfg], None] | None = None
 
   def __post_init__(self) -> None:
@@ -396,9 +403,8 @@ def make_rough_env_cfg(
   profile: VelocityRobotProfile, *, play: bool = False
 ) -> ManagerBasedRlEnvCfg:
   """Build a rough-terrain environment from a compact robot profile."""
-  selected_scaling = (
-    profile.rough_scaling if profile.rough_scaling is not None else profile.scaling
-  )
+  rough_scaling = profile.rough.scaling if profile.rough is not None else None
+  selected_scaling = rough_scaling if rough_scaling is not None else profile.scaling
   rough_hook = profile.rough_env_hook
   cfg = _make_base_env_cfg(replace(profile, scaling=selected_scaling))
   if rough_hook is not None:

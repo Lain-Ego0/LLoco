@@ -6,6 +6,7 @@ from .core import ActionScale as ActionScale
 from .core import CommandRange as CommandRange
 from .core import CommandRanges as CommandRanges
 from .core import RobotKind as RobotKind
+from .core import RoughVariantCfg as RoughVariantCfg
 from .core import TerrainName as TerrainName
 from .core import VelocityRobotProfile as VelocityRobotProfile
 from .core import VelocityScaling as VelocityScaling

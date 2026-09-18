@@ -9,6 +9,7 @@ from src.assets.robots import get_opendoge_robot_cfg
 from src.tasks.robots.common import _QUAD_FEET, _QUAD_GEOMS
 from src.tasks.velocity import (
   TASK_GROUP_LAINLAB,
+  RoughVariantCfg,
   VelocityRobotProfile,
   VelocityScaling,
 )
@@ -143,7 +144,7 @@ OPENDOGE_VELOCITY_PROFILES = (
     _QUAD_GEOMS,
     _QUAD_GEOMS,
     scaling=OPENDOGE_FLAT_SCALING,
-    rough_scaling=OPENDOGE_ROUGH_SCALING,
+    rough=RoughVariantCfg(scaling=OPENDOGE_ROUGH_SCALING),
     rough_env_hook=configure_opendoge_rough_env,
     task_group=TASK_GROUP_LAINLAB,
     terrains=("Flat", "Rough"),
