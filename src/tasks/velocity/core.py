@@ -300,21 +300,8 @@ def _configure_posture(
   cfg.rewards["pose"].params["std_running"] = moving
 
 
-def make_rough_env_cfg(
-  profile: VelocityRobotProfile,
-  *,
-  play: bool = False,
-  scaling: VelocityScaling | None = None,
-  use_rough: bool = True,
-) -> ManagerBasedRlEnvCfg:
-  """Build a rough-terrain environment from a compact robot profile."""
-  selected_scaling = scaling
-  if selected_scaling is None:
-    selected_scaling = profile.rough_scaling if use_rough else profile.scaling
-  if selected_scaling is None:
-    selected_scaling = profile.scaling
-  rough_hook = profile.rough_env_hook if use_rough else None
-  profile = replace(profile, scaling=selected_scaling)
+def _make_base_env_cfg(profile: VelocityRobotProfile) -> ManagerBasedRlEnvCfg:
+  """Build the terrain-agnostic velocity environment for a robot profile."""
   cfg = make_velocity_env_cfg()
   cfg.sim.mujoco.ccd_iterations = 500
   cfg.sim.contact_sensor_maxmatch = 500
@@ -381,29 +368,42 @@ def make_rough_env_cfg(
       func=mdp.illegal_contact,
       params={"sensor_name": other_sensor.name, "force_threshold": 10.0},
     )
+  return cfg
 
+
+def _apply_play_overrides(cfg: ManagerBasedRlEnvCfg, play: bool) -> None:
+  if not play:
+    return
+  cfg.episode_length_s = int(1e9)
+  cfg.observations["actor"].enable_corruption = False
+  cfg.events.pop("push_robot", None)
+  cfg.terminations.pop("out_of_terrain_bounds", None)
+  cfg.curriculum = {}
+  cfg.events["randomize_terrain"] = EventTermCfg(
+    func=envs_mdp.randomize_terrain,
+    mode="reset",
+    params={},
+  )
+  if cfg.scene.terrain is not None and cfg.scene.terrain.terrain_generator is not None:
+    terrain = cfg.scene.terrain.terrain_generator
+    terrain.curriculum = False
+    terrain.num_cols = 5
+    terrain.num_rows = 5
+    terrain.border_width = 10.0
+
+
+def make_rough_env_cfg(
+  profile: VelocityRobotProfile, *, play: bool = False
+) -> ManagerBasedRlEnvCfg:
+  """Build a rough-terrain environment from a compact robot profile."""
+  selected_scaling = (
+    profile.rough_scaling if profile.rough_scaling is not None else profile.scaling
+  )
+  rough_hook = profile.rough_env_hook
+  cfg = _make_base_env_cfg(replace(profile, scaling=selected_scaling))
   if rough_hook is not None:
     rough_hook(cfg)
-
-  if play:
-    cfg.episode_length_s = int(1e9)
-    cfg.observations["actor"].enable_corruption = False
-    cfg.events.pop("push_robot", None)
-    cfg.terminations.pop("out_of_terrain_bounds", None)
-    cfg.curriculum = {}
-    cfg.events["randomize_terrain"] = EventTermCfg(
-      func=envs_mdp.randomize_terrain,
-      mode="reset",
-      params={},
-    )
-    if (
-      cfg.scene.terrain is not None and cfg.scene.terrain.terrain_generator is not None
-    ):
-      terrain = cfg.scene.terrain.terrain_generator
-      terrain.curriculum = False
-      terrain.num_cols = 5
-      terrain.num_rows = 5
-      terrain.border_width = 10.0
+  _apply_play_overrides(cfg, play)
   return cfg
 
 
@@ -411,12 +411,8 @@ def make_flat_env_cfg(
   profile: VelocityRobotProfile, *, play: bool = False
 ) -> ManagerBasedRlEnvCfg:
   """Build a flat-ground variant of a robot's velocity task."""
-  cfg = make_rough_env_cfg(
-    profile,
-    play=play,
-    scaling=profile.scaling,
-    use_rough=False,
-  )
+  cfg = _make_base_env_cfg(replace(profile, scaling=profile.scaling))
+  _apply_play_overrides(cfg, play)
   cfg.sim.njmax = 300
   cfg.sim.mujoco.ccd_iterations = 50
   cfg.sim.contact_sensor_maxmatch = 64
