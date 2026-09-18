@@ -1,4 +1,4 @@
-"""Reset/step smoke test for the migrated OpenDoge flat velocity task."""
+"""Reset/step smoke tests for the migrated OpenDoge velocity tasks."""
 
 import src.tasks  # noqa: F401
 import torch
@@ -14,6 +14,22 @@ def test_opendoge_flat_reset_step() -> None:
     observations, _ = env.reset()
     assert observations["actor"].shape == (1, 48)
     assert observations["critic"].shape == (1, 72)
+    observations, reward, *_ = env.step(torch.zeros((1, 12)))
+    assert torch.isfinite(observations["actor"]).all()
+    assert torch.isfinite(observations["critic"]).all()
+    assert torch.isfinite(reward).all()
+  finally:
+    env.close()
+
+
+def test_opendoge_rough_reset_step() -> None:
+  cfg = load_env_cfg("LainLab-OpenDoge-Rough")
+  cfg.scene.num_envs = 1
+  env = ManagerBasedRlEnv(cfg, device="cpu")
+  try:
+    observations, _ = env.reset()
+    assert observations["actor"].shape == (1, 213)
+    assert observations["critic"].shape == (1, 237)
     observations, reward, *_ = env.step(torch.zeros((1, 12)))
     assert torch.isfinite(observations["actor"]).all()
     assert torch.isfinite(observations["critic"]).all()

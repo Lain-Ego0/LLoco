@@ -16,7 +16,7 @@ OpenDoge is the OpenDog V1.1 quadruped migrated from
 The flat velocity profile scales height, foot clearance, command ranges, and
 debug visualization to the smaller OpenDoge body instead of reusing Go2-sized
 values directly. OpenDoge is an in-house robot and belongs to the `LainLab`
-task group; only the flat velocity task is currently registered.
+task group; both flat and rough velocity tasks are registered.
 
 ## Regenerating the MJCF
 

@@ -3,6 +3,7 @@
 TASKS = {
   "velocity": [
     "LainLab-OpenDoge-Flat",
+    "LainLab-OpenDoge-Rough",
     "Unitree-Go2-Flat",
     "Unitree-Go2-Rough",
     "Unitree-A2-Flat",
@@ -18,6 +19,7 @@ TASKS = {
 TASK_ASSETS = {
   "Unitree-Go2-Flat": "src/assets/robots/unitree_go2/xmls/scene_go2.xml",
   "LainLab-OpenDoge-Flat": "src/assets/robots/opendoge/xmls/scene_opendoge.xml",
+  "LainLab-OpenDoge-Rough": "src/assets/robots/opendoge/xmls/scene_opendoge.xml",
   "Unitree-Go2-Rough": "src/assets/robots/unitree_go2/xmls/scene_go2.xml",
   "Unitree-A2-Flat": "src/assets/robots/unitree_a2/xmls/scene_a2.xml",
   "Unitree-As2-Flat": "src/assets/robots/unitree_as2/xmls/as2.xml",

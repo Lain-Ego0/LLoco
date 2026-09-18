@@ -2,7 +2,7 @@
 
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Literal
 
 from mjlab.entity import EntityCfg
@@ -38,7 +38,7 @@ TASK_GROUP_UNITREE = "Unitree"
 TASK_GROUP_LAINLAB = "LainLab"
 
 _TASK_GROUP_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
-_TERRAINS = {"Flat", "Rough"}
+_TERRAINS: frozenset[TerrainName] = frozenset({"Flat", "Rough"})
 
 
 @dataclass(frozen=True)
@@ -108,7 +108,12 @@ def humanoid_velocity_scaling(
 
 @dataclass(frozen=True)
 class VelocityRobotProfile:
-  """Robot-specific names and tuning layered on mjlab's shared velocity task."""
+  """Robot-specific names and tuning layered on mjlab's shared velocity task.
+
+  ``rough_env_hook`` is a rough-only escape hatch for terrain, sensor, and
+  physics overrides. It must not mutate observations, rewards, actions,
+  commands, events, or terminations.
+  """
 
   task_name: str
   robot_cfg: Callable[[], EntityCfg]
@@ -121,6 +126,8 @@ class VelocityRobotProfile:
   scaling: VelocityScaling
   task_group: str = ""
   terrains: tuple[TerrainName, ...] = ("Flat", "Rough")
+  rough_scaling: VelocityScaling | None = None
+  rough_env_hook: Callable[[ManagerBasedRlEnvCfg], None] | None = None
 
   def __post_init__(self) -> None:
     if not self.task_group:
@@ -294,9 +301,20 @@ def _configure_posture(
 
 
 def make_rough_env_cfg(
-  profile: VelocityRobotProfile, *, play: bool = False
+  profile: VelocityRobotProfile,
+  *,
+  play: bool = False,
+  scaling: VelocityScaling | None = None,
+  use_rough: bool = True,
 ) -> ManagerBasedRlEnvCfg:
   """Build a rough-terrain environment from a compact robot profile."""
+  selected_scaling = scaling
+  if selected_scaling is None:
+    selected_scaling = profile.rough_scaling if use_rough else profile.scaling
+  if selected_scaling is None:
+    selected_scaling = profile.scaling
+  rough_hook = profile.rough_env_hook if use_rough else None
+  profile = replace(profile, scaling=selected_scaling)
   cfg = make_velocity_env_cfg()
   cfg.sim.mujoco.ccd_iterations = 500
   cfg.sim.contact_sensor_maxmatch = 500
@@ -364,6 +382,9 @@ def make_rough_env_cfg(
       params={"sensor_name": other_sensor.name, "force_threshold": 10.0},
     )
 
+  if rough_hook is not None:
+    rough_hook(cfg)
+
   if play:
     cfg.episode_length_s = int(1e9)
     cfg.observations["actor"].enable_corruption = False
@@ -390,7 +411,12 @@ def make_flat_env_cfg(
   profile: VelocityRobotProfile, *, play: bool = False
 ) -> ManagerBasedRlEnvCfg:
   """Build a flat-ground variant of a robot's velocity task."""
-  cfg = make_rough_env_cfg(profile, play=play)
+  cfg = make_rough_env_cfg(
+    profile,
+    play=play,
+    scaling=profile.scaling,
+    use_rough=False,
+  )
   cfg.sim.njmax = 300
   cfg.sim.mujoco.ccd_iterations = 50
   cfg.sim.contact_sensor_maxmatch = 64
