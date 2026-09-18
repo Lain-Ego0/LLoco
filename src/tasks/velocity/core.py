@@ -1,8 +1,8 @@
 """Velocity-task types, environment builders, registration, and facade."""
 
 import re
-from collections.abc import Callable
-from dataclasses import dataclass, replace
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field, replace
 from typing import Literal
 
 from mjlab.entity import EntityCfg
@@ -15,7 +15,9 @@ from mjlab.managers.termination_manager import TerminationTermCfg
 from mjlab.sensor import (
   ContactMatch,
   ContactSensorCfg,
+  GridPatternCfg,
   ObjRef,
+  PinholeCameraPatternCfg,
   RayCastSensorCfg,
   RingPatternCfg,
   TerrainHeightSensorCfg,
@@ -33,6 +35,7 @@ TerrainName = Literal["Flat", "Rough"]
 ActionScale = float | dict[str, float]
 CommandRange = tuple[float, float]
 CommandRanges = tuple[CommandRange, CommandRange, CommandRange]
+SensorPatternCfg = GridPatternCfg | PinholeCameraPatternCfg | RingPatternCfg
 
 TASK_GROUP_UNITREE = "Unitree"
 TASK_GROUP_LAINLAB = "LainLab"
@@ -65,10 +68,52 @@ class VelocityScaling:
 
 
 @dataclass(frozen=True)
+class SubTerrainOverrideCfg:
+  """Partial field overrides for one named terrain sub-generator."""
+
+  step_height_range: tuple[float, float] | None = None
+  step_width: float | None = None
+  noise_range: tuple[float, float] | None = None
+  slope_range: tuple[float, float] | None = None
+  amplitude_range: tuple[float, float] | None = None
+
+
+@dataclass(frozen=True)
+class RoughTerrainOverrides:
+  """Declarative overrides for a rough terrain generator."""
+
+  max_init_terrain_level: int | None = None
+  generator_size: tuple[float, float] | None = None
+  generator_border_width: float | None = None
+  sub_terrains: Mapping[str, SubTerrainOverrideCfg] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class SensorOverrideCfg:
+  """Pattern override for a named raycast sensor."""
+
+  name: str
+  pattern: SensorPatternCfg
+
+
+@dataclass(frozen=True)
+class SimOverrides:
+  """Explicit simulation buffer overrides for one variant."""
+
+  nconmax: int | None = None
+  njmax: int | None = None
+  contact_sensor_maxmatch: int | None = None
+  mujoco_ccd_iterations: int | None = None
+
+
+@dataclass(frozen=True)
 class RoughVariantCfg:
   """Optional rough-terrain configuration for a robot profile."""
 
   scaling: VelocityScaling | None = None
+  terrain: RoughTerrainOverrides | None = None
+  sensors: tuple[SensorOverrideCfg, ...] = ()
+  sim: SimOverrides | None = None
 
 
 def quadruped_velocity_scaling() -> VelocityScaling:
@@ -117,9 +162,8 @@ def humanoid_velocity_scaling(
 class VelocityRobotProfile:
   """Robot-specific names and tuning layered on mjlab's shared velocity task.
 
-  ``rough_env_hook`` is a rough-only escape hatch for terrain, sensor, and
-  physics overrides. It must not mutate observations, rewards, actions,
-  commands, events, or terminations.
+  ``rough`` declares typed rough-only scaling, terrain, sensor, and simulation
+  overrides. It cannot mutate observations, rewards, or actions.
   """
 
   task_name: str
@@ -134,7 +178,6 @@ class VelocityRobotProfile:
   task_group: str = ""
   terrains: tuple[TerrainName, ...] = ("Flat", "Rough")
   rough: RoughVariantCfg | None = None
-  rough_env_hook: Callable[[ManagerBasedRlEnvCfg], None] | None = None
 
   def __post_init__(self) -> None:
     if not self.task_group:
@@ -399,16 +442,92 @@ def _apply_play_overrides(cfg: ManagerBasedRlEnvCfg, play: bool) -> None:
     terrain.border_width = 10.0
 
 
+def _sub_terrain_patch(patch: SubTerrainOverrideCfg) -> dict[str, object]:
+  values: dict[str, object] = {}
+  for name in (
+    "step_height_range",
+    "step_width",
+    "noise_range",
+    "slope_range",
+    "amplitude_range",
+  ):
+    value = getattr(patch, name)
+    if value is not None:
+      values[name] = value
+  return values
+
+
+def _apply_rough_terrain_overrides(
+  cfg: ManagerBasedRlEnvCfg, overrides: RoughTerrainOverrides
+) -> None:
+  terrain = cfg.scene.terrain
+  if terrain is None or terrain.terrain_generator is None:
+    raise ValueError("Rough terrain overrides require a terrain generator")
+  if overrides.max_init_terrain_level is not None:
+    terrain.max_init_terrain_level = overrides.max_init_terrain_level
+
+  generator = terrain.terrain_generator
+  if overrides.generator_size is not None:
+    generator.size = overrides.generator_size
+  if overrides.generator_border_width is not None:
+    generator.border_width = overrides.generator_border_width
+
+  for name, patch in overrides.sub_terrains.items():
+    if name not in generator.sub_terrains:
+      raise ValueError(f"Unknown sub-terrain override {name!r}")
+    patch_values = _sub_terrain_patch(patch)
+    if patch_values:
+      generator.sub_terrains[name] = replace(
+        generator.sub_terrains[name],
+        **patch_values,
+      )
+
+
+def _apply_sensor_overrides(
+  cfg: ManagerBasedRlEnvCfg, overrides: tuple[SensorOverrideCfg, ...]
+) -> None:
+  sensors = {sensor.name: sensor for sensor in (cfg.scene.sensors or ())}
+  for override in overrides:
+    sensor = sensors.get(override.name)
+    if sensor is None:
+      raise ValueError(f"Unknown sensor override {override.name!r}")
+    if not isinstance(sensor, RayCastSensorCfg):
+      raise TypeError(f"Sensor {override.name!r} is not a raycast sensor")
+    sensor.pattern = override.pattern
+
+
+def _apply_sim_overrides(cfg: ManagerBasedRlEnvCfg, overrides: SimOverrides) -> None:
+  if overrides.nconmax is not None:
+    cfg.sim.nconmax = overrides.nconmax
+  if overrides.njmax is not None:
+    cfg.sim.njmax = overrides.njmax
+  if overrides.contact_sensor_maxmatch is not None:
+    cfg.sim.contact_sensor_maxmatch = overrides.contact_sensor_maxmatch
+  if overrides.mujoco_ccd_iterations is not None:
+    cfg.sim.mujoco.ccd_iterations = overrides.mujoco_ccd_iterations
+
+
+def _apply_rough_variant_overrides(
+  cfg: ManagerBasedRlEnvCfg, rough: RoughVariantCfg
+) -> None:
+  if rough.terrain is not None:
+    _apply_rough_terrain_overrides(cfg, rough.terrain)
+  if rough.sensors:
+    _apply_sensor_overrides(cfg, rough.sensors)
+  if rough.sim is not None:
+    _apply_sim_overrides(cfg, rough.sim)
+
+
 def make_rough_env_cfg(
   profile: VelocityRobotProfile, *, play: bool = False
 ) -> ManagerBasedRlEnvCfg:
   """Build a rough-terrain environment from a compact robot profile."""
-  rough_scaling = profile.rough.scaling if profile.rough is not None else None
+  rough = profile.rough
+  rough_scaling = rough.scaling if rough is not None else None
   selected_scaling = rough_scaling if rough_scaling is not None else profile.scaling
-  rough_hook = profile.rough_env_hook
   cfg = _make_base_env_cfg(replace(profile, scaling=selected_scaling))
-  if rough_hook is not None:
-    rough_hook(cfg)
+  if rough is not None:
+    _apply_rough_variant_overrides(cfg, rough)
   _apply_play_overrides(cfg, play)
   return cfg
 

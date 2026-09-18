@@ -2,14 +2,17 @@
 
 from dataclasses import replace
 
-from mjlab.envs import ManagerBasedRlEnvCfg
-from mjlab.sensor import GridPatternCfg, RayCastSensorCfg
+from mjlab.sensor import GridPatternCfg
 
 from src.assets.robots import get_opendoge_robot_cfg
 from src.tasks.robots.common import _QUAD_FEET, _QUAD_GEOMS
 from src.tasks.velocity import (
   TASK_GROUP_LAINLAB,
+  RoughTerrainOverrides,
   RoughVariantCfg,
+  SensorOverrideCfg,
+  SimOverrides,
+  SubTerrainOverrideCfg,
   VelocityRobotProfile,
   VelocityScaling,
 )
@@ -79,58 +82,48 @@ OPENDOGE_ROUGH_SCALING = replace(
 )
 
 
-def configure_opendoge_rough_env(cfg: ManagerBasedRlEnvCfg) -> None:
-  """Scale mjlab's rough terrain curriculum to the OpenDoge body."""
-  terrain = cfg.scene.terrain
-  assert terrain is not None
-  generator = terrain.terrain_generator
-  assert generator is not None
-
-  # OpenDoge is smaller than Go2, so use a compact terrain grid, reduced
-  # roughness, and a lower initial curriculum level for reliable early
-  # adaptation.
-  generator.size = (6.0, 6.0)
-  generator.border_width = 10.0
-  terrain.max_init_terrain_level = 2
-
-  sub = generator.sub_terrains
-  sub["pyramid_stairs"] = replace(
-    sub["pyramid_stairs"],
-    step_height_range=(0.0, 0.04),
-    step_width=0.22,
-  )
-  sub["pyramid_stairs_inv"] = replace(
-    sub["pyramid_stairs_inv"],
-    step_height_range=(0.0, 0.04),
-    step_width=0.22,
-  )
-  sub["random_rough"] = replace(
-    sub["random_rough"],
-    noise_range=(0.005, 0.025),
-  )
-  sub["hf_pyramid_slope"] = replace(
-    sub["hf_pyramid_slope"],
-    slope_range=(0.0, 0.45),
-  )
-  sub["hf_pyramid_slope_inv"] = replace(
-    sub["hf_pyramid_slope_inv"],
-    slope_range=(0.0, 0.45),
-  )
-  sub["wave_terrain"] = replace(
-    sub["wave_terrain"],
-    amplitude_range=(0.0, 0.08),
-  )
-
-  for sensor in cfg.scene.sensors or ():
-    if isinstance(sensor, RayCastSensorCfg) and sensor.name == "terrain_scan":
-      sensor.pattern = GridPatternCfg(size=(0.7, 0.5), resolution=0.05)
-
-  # 4096-env rough training is memory bound on 16 GB. Keep contact buffers near
-  # the generic rough-velocity baseline instead of Go2-scaled large buffers.
-  cfg.sim.nconmax = 64
-  cfg.sim.njmax = 600
-  cfg.sim.contact_sensor_maxmatch = 128
-  cfg.sim.mujoco.ccd_iterations = 200
+OPENDOGE_ROUGH_VARIANT = RoughVariantCfg(
+  scaling=OPENDOGE_ROUGH_SCALING,
+  terrain=RoughTerrainOverrides(
+    max_init_terrain_level=2,
+    generator_size=(6.0, 6.0),
+    generator_border_width=10.0,
+    sub_terrains={
+      "pyramid_stairs": SubTerrainOverrideCfg(
+        step_height_range=(0.0, 0.04),
+        step_width=0.22,
+      ),
+      "pyramid_stairs_inv": SubTerrainOverrideCfg(
+        step_height_range=(0.0, 0.04),
+        step_width=0.22,
+      ),
+      "random_rough": SubTerrainOverrideCfg(
+        noise_range=(0.005, 0.025),
+      ),
+      "hf_pyramid_slope": SubTerrainOverrideCfg(
+        slope_range=(0.0, 0.45),
+      ),
+      "hf_pyramid_slope_inv": SubTerrainOverrideCfg(
+        slope_range=(0.0, 0.45),
+      ),
+      "wave_terrain": SubTerrainOverrideCfg(
+        amplitude_range=(0.0, 0.08),
+      ),
+    },
+  ),
+  sensors=(
+    SensorOverrideCfg(
+      name="terrain_scan",
+      pattern=GridPatternCfg(size=(0.7, 0.5), resolution=0.05),
+    ),
+  ),
+  sim=SimOverrides(
+    nconmax=64,
+    njmax=600,
+    contact_sensor_maxmatch=128,
+    mujoco_ccd_iterations=200,
+  ),
+)
 
 
 OPENDOGE_VELOCITY_PROFILES = (
@@ -144,8 +137,7 @@ OPENDOGE_VELOCITY_PROFILES = (
     _QUAD_GEOMS,
     _QUAD_GEOMS,
     scaling=OPENDOGE_FLAT_SCALING,
-    rough=RoughVariantCfg(scaling=OPENDOGE_ROUGH_SCALING),
-    rough_env_hook=configure_opendoge_rough_env,
+    rough=OPENDOGE_ROUGH_VARIANT,
     task_group=TASK_GROUP_LAINLAB,
     terrains=("Flat", "Rough"),
   ),
