@@ -23,6 +23,10 @@ button.primary:hover:not(:disabled) { background: #104b7b; }
 .policy-context { border-left: 1px solid #d3dce3; display: grid; gap: .06rem; min-width: 0; padding-left: 14px; }
 .policy-context strong { font-size: .72rem; line-height: 1.1; white-space: nowrap; }
 .policy-context span { color: #70808c; font-size: .6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.policy-context, .command-output { display: none; }
+.project-link { align-items: center; background: #edf4f8; border: 1px solid #cbdbe5; border-radius: 999px; color: #185a91; display: inline-flex; flex: 0 0 auto; font-size: .61rem; font-weight: 700; gap: .28rem; padding: .26rem .52rem; text-decoration: none; white-space: nowrap; }
+.project-link:hover { background: #e3eff6; border-color: #8eafc4; color: #104b7b; }
+.github-mark { fill: currentColor; height: .78rem; width: .78rem; }
 .top-actions { display: flex; gap: 6px; margin-left: auto; }
 .top-actions select { background: #fffdfa; border: 1px solid #c7d0d8; border-radius: 6px; color: #26333c; max-width: 150px; padding: .31rem .4rem; font-size: .68rem; }
 .top-actions button { font-size: .67rem; padding: .33rem .52rem; }
@@ -123,6 +127,8 @@ button.primary:hover:not(:disabled) { background: #104b7b; }
   .brand { display: none; }
   .policy-context { border-left: 0; padding-left: 0; }
   .policy-context span, .command-output, .pill { display: none; }
+  .project-link { font-size: .57rem; gap: .2rem; padding: .22rem .42rem; }
+  .github-mark { height: .7rem; width: .7rem; }
   .top-actions select { max-width: 120px; }
   .cmd-panel { left: 10px; top: 58px; width: calc(100vw - 20px); }
   .monitor-panel { left: 10px; top: 315px; width: calc(100vw - 20px); }

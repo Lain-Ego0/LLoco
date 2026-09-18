@@ -612,6 +612,7 @@ function updateControls() {
   const keyboardActive = controllerState.keyboardKeys.size > 0;
   const joystickActive = Math.abs(controllerState.joystick.left.x) > .001 || Math.abs(controllerState.joystick.left.y) > .001 || Math.abs(controllerState.joystick.right.x) > .001;
   $("controlSource").textContent = keyboardActive ? "键盘 · 满幅" : joystickActive ? "摇杆 · 线性" : "待命";
+  syncJoystickVisuals();
   $("leftJoystickValue").textContent = `vx ${vx.toFixed(2)} · vy ${vy.toFixed(2)}`;
   $("rightJoystickValue").textContent = `ω ${yaw.toFixed(2)}`;
 }
@@ -666,6 +667,35 @@ function recomputeCommand() {
     simulation.command[index] = THREE.MathUtils.clamp(value, min, max);
   });
   updateControls();
+}
+
+function keyboardJoystickPosition(stickKey) {
+  const state = controllerState.joystick[stickKey];
+  if (stickKey === "left") {
+    const vx = keyboardAxis(0);
+    const vy = keyboardAxis(1);
+    return {
+      x: vy === null ? state.x : -vy,
+      y: vx === null ? state.y : -vx,
+    };
+  }
+  const yaw = keyboardAxis(2);
+  return { x: yaw === null ? state.x : -yaw, y: state.y };
+}
+
+function renderJoystickPosition(stickKey) {
+  const mount = $(stickKey === "left" ? "leftJoystick" : "rightJoystick");
+  const base = mount.querySelector(".joystick-base");
+  const knob = mount.querySelector(".joystick-knob");
+  const { x, y } = keyboardJoystickPosition(stickKey);
+  const radius = Math.max(1, base.getBoundingClientRect().width / 2 - knob.offsetWidth / 2 - 3);
+  knob.style.left = `calc(50% + ${x * radius}px)`;
+  knob.style.top = `calc(50% + ${y * radius}px)`;
+}
+
+function syncJoystickVisuals() {
+  renderJoystickPosition("left");
+  renderJoystickPosition("right");
 }
 
 function drawActionChart() {
@@ -986,8 +1016,7 @@ function installJoystick(id, stickKey) {
     const state = controllerState.joystick[stickKey];
     state.x = x / radius;
     state.y = y / radius;
-    knob.style.left = "calc(50% + " + x + "px)";
-    knob.style.top = "calc(50% + " + y + "px)";
+    renderJoystickPosition(stickKey);
     recomputeCommand();
   };
 
@@ -996,8 +1025,7 @@ function installJoystick(id, stickKey) {
     pointerId = null;
     controllerState.joystick[stickKey].x = 0;
     controllerState.joystick[stickKey].y = 0;
-    knob.style.left = "50%";
-    knob.style.top = "50%";
+    renderJoystickPosition(stickKey);
     if (mount.hasPointerCapture(event.pointerId)) mount.releasePointerCapture(event.pointerId);
     recomputeCommand();
   };
@@ -1022,11 +1050,8 @@ function resetJoysticks() {
   for (const [key, stick] of Object.entries(controllerState.joystick)) {
     stick.x = 0;
     stick.y = 0;
-    const mount = $(key === "left" ? "leftJoystick" : "rightJoystick");
-    const knob = mount.querySelector(".joystick-knob");
-    knob.style.left = "50%";
-    knob.style.top = "50%";
   }
+  syncJoystickVisuals();
 }
 
 function installKeyboardControl() {
