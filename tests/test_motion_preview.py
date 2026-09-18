@@ -4,12 +4,11 @@ import json
 
 import numpy as np
 import pytest
-
-from lloco.workbench.motion_preview import Preview, read_preview
+from src.workbench.motion_preview import Preview, read_preview
 
 
 def test_incremental_preview_and_partial_record(tmp_path, monkeypatch):
-  monkeypatch.setenv("LLOCO_PREVIEW_DIR", str(tmp_path))
+  monkeypatch.setenv("SRC_PREVIEW_DIR", str(tmp_path))
   preview = Preview()
   preview.update(stage="retargeting", total=3, fps=30)
   preview.frame(0, 30, np.arange(36, dtype=float), [[0, 0, 1]])
@@ -32,9 +31,8 @@ def test_incremental_preview_and_partial_record(tmp_path, monkeypatch):
 
 
 def test_invalid_pose_does_not_change_model(tmp_path):
+  from src.workbench.models import Models
   from test_workbench_models import URDF, uploaded
-
-  from lloco.workbench.models import Models
 
   models = Models()
   initial = models.load(

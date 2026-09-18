@@ -3,9 +3,8 @@
 import base64
 
 import pytest
-
-from lloco.workbench.motion_library import LIBRARY, catalog, conversion, import_file
-from lloco.workbench.services import command
+from src.workbench.motion_library import LIBRARY, catalog, conversion, import_file
+from src.workbench.services import command
 
 
 def test_import_select_and_generate(tmp_path):

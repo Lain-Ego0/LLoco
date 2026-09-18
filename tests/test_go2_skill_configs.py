@@ -1,15 +1,14 @@
 """Source-parity checks for the staged Go2 migration."""
 
+import src.tasks  # noqa: F401
 from mjlab.tasks.registry import list_tasks, load_env_cfg, load_rl_cfg
-
-import lloco.tasks  # noqa: F401
-from lloco.tasks.robots.go2.skills.hand_stand.mdp.observations import (
+from src.tasks.robots.go2.skills.hand_stand.mdp.observations import (
   handstand_noise_bounds,
 )
-from lloco.tasks.robots.go2.skills.rear_stand.mdp.observations import (
+from src.tasks.robots.go2.skills.rear_stand.mdp.observations import (
   rear_stand_noise_bounds,
 )
-from lloco.tasks.robots.go2.skills.trot.mdp.observations import (
+from src.tasks.robots.go2.skills.trot.mdp.observations import (
   single_frame_noise_bounds,
 )
 
@@ -67,7 +66,7 @@ def test_spring_jump_source_configuration() -> None:
   assert rl.max_iterations == 50_000
   assert rl.algorithm.learning_rate == 1.0e-5
   assert rl.algorithm.class_name == (
-    "lloco.tasks.robots.go2.skills.spring_jump.mdp.symmetry:SourceSymmetricPPO"
+    "src.tasks.robots.go2.skills.spring_jump.mdp.symmetry:SourceSymmetricPPO"
   )
 
 
@@ -106,11 +105,10 @@ def test_dreamwaq_source_configuration() -> None:
   assert rl.seed == 1 and rl.num_steps_per_env == 24
   assert rl.max_iterations == 20_000 and rl.save_interval == 500
   assert (
-    rl.actor.class_name == "lloco.tasks.robots.go2.skills.dreamwaq.mdp.rl:DreamWaQActor"
+    rl.actor.class_name == "src.tasks.robots.go2.skills.dreamwaq.mdp.rl:DreamWaQActor"
   )
   assert (
-    rl.algorithm.class_name
-    == "lloco.tasks.robots.go2.skills.dreamwaq.mdp.rl:DreamWaQPPO"
+    rl.algorithm.class_name == "src.tasks.robots.go2.skills.dreamwaq.mdp.rl:DreamWaQPPO"
   )
 
 
@@ -367,11 +365,11 @@ def test_rear_stand_rewards_commands_events_and_ppo() -> None:
   assert rl.num_steps_per_env == 24
   assert rl.algorithm.learning_rate == 1.0e-3
   assert rl.algorithm.class_name == (
-    "lloco.tasks.robots.go2.skills.rear_stand.mdp.symmetry:SourceSymmetricPPO"
+    "src.tasks.robots.go2.skills.rear_stand.mdp.symmetry:SourceSymmetricPPO"
   )
   assert rl.algorithm.symmetry_cfg == {
     "data_augmentation_func": (
-      "lloco.tasks.robots.go2.skills.rear_stand.mdp.symmetry:rear_stand_symmetry"
+      "src.tasks.robots.go2.skills.rear_stand.mdp.symmetry:rear_stand_symmetry"
     ),
     "use_data_augmentation": False,
     "use_mirror_loss": True,

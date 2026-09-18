@@ -10,10 +10,9 @@ import urllib.request
 from http.server import ThreadingHTTPServer
 
 import pytest
-
-from lloco.workbench.catalog import ALGORITHMS
-from lloco.workbench.server import Handler
-from lloco.workbench.services import Jobs, command, inside
+from src.workbench.catalog import ALGORITHMS
+from src.workbench.server import Handler
+from src.workbench.services import Jobs, command, inside
 
 
 @pytest.fixture

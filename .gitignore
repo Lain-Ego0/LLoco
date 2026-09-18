@@ -38,5 +38,5 @@ Makefile.user
 *~
 
 # Independent workbench runtime and frontend dependencies
-.lloco-workbench/
+.src-workbench/
 node_modules/

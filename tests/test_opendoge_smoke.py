@@ -1,10 +1,9 @@
 """Reset/step smoke test for the migrated OpenDoge flat velocity task."""
 
+import src.tasks  # noqa: F401
 import torch
 from mjlab.envs import ManagerBasedRlEnv
 from mjlab.tasks.registry import load_env_cfg
-
-import lloco.tasks  # noqa: F401
 
 
 def test_opendoge_flat_reset_step() -> None:

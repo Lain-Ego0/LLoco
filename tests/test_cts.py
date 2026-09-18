@@ -3,12 +3,11 @@
 from typing import Any, cast
 
 import mujoco
+import src.tasks  # noqa: F401
 import torch
 from mjlab.envs import ManagerBasedRlEnv
 from mjlab.tasks.registry import load_env_cfg
-
-import lloco.tasks  # noqa: F401
-from lloco.tasks.robots.go2.skills.cts import mdp as cts_mdp
+from src.tasks.robots.go2.skills.cts import mdp as cts_mdp
 
 
 def test_cts_source_physics_and_reward_contract() -> None:

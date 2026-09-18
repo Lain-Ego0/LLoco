@@ -988,11 +988,11 @@ function importTerrainScene(file) {
 }
 
 function exportTerrainScene() {
-  const payload = { version: 1, name: "lloco-playground-terrain", terrain: { kind: terrainState.kind, seed: terrainState.seed, height: terrainState.height }, elements: terrainState.elements };
+  const payload = { version: 1, name: "src-playground-terrain", terrain: { kind: terrainState.kind, seed: terrainState.seed, height: terrainState.height }, elements: terrainState.elements };
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "lloco-playground-terrain.json";
+  anchor.download = "src-playground-terrain.json";
   anchor.click();
   URL.revokeObjectURL(url);
 }

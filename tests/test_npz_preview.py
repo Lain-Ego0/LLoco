@@ -2,9 +2,8 @@
 
 import numpy as np
 import pytest
-
-from lloco.workbench.motion_library import LIBRARY
-from lloco.workbench.npz_preview import load_motion
+from src.workbench.motion_library import LIBRARY
+from src.workbench.npz_preview import load_motion
 
 
 @pytest.mark.parametrize("dof", [23, 29])

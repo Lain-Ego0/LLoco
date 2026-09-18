@@ -1,11 +1,10 @@
 """MuJoCo Warp reset/step smoke test for completed Go2 skill tasks."""
 
+import src.tasks  # noqa: F401
 import torch
 from mjlab.envs import ManagerBasedRlEnv
 from mjlab.tasks.registry import load_env_cfg
-
-import lloco.tasks  # noqa: F401
-from lloco.tasks.robots.go2.skills.shared.contacts import source_vertical_contact
+from src.tasks.robots.go2.skills.shared.contacts import source_vertical_contact
 
 
 def test_trot_single_environment_reset_step() -> None:

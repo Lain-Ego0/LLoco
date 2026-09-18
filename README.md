@@ -4,7 +4,7 @@
 
 当前仓库同时包含 Unitree 资产与 LainLab 自研 OpenDoge 等机器人资产。项目边界覆盖 LainLab 自己设计的机器人以及其他厂商的机器人资产；新增资产遵循统一的“资产 → profile/任务 → 验证 → 部署适配”路径，保持框架层的厂商中立性。
 
-> 说明：仓库与项目名称为 **LainLab**；Python 发行包、模块路径和已有 CLI 入口仍沿用 `lloco` 前缀，以保持兼容。
+> 说明：仓库与项目名称为 **LainLab**；源码根目录为 `src/`，Python 包路径统一为 `src.*`。
 
 ### 名称与愿景
 
@@ -27,7 +27,7 @@ LainLab 将“接入一台机器人”组织为可复用的产品路径：资产
 
 ```text
 LainLab/
-├── src/lloco/
+├── src/
 │   ├── assets/          # 各机器人 MJCF、网格和示例动作
 │   ├── tasks/
 │   │   ├── velocity/    # 通用速度跟踪 MDP
@@ -43,8 +43,8 @@ LainLab/
 分层原则：
 
 - `mjlab` 负责仿真、manager、通用 MDP、runner 和 viewer。
-- `lloco.assets` 负责本项目机器人描述。
-- `lloco.tasks` 只表达机器人名称、接触点、动作缩放等差异。
+- `src.assets` 负责本项目机器人描述。
+- `src.tasks` 只表达机器人名称、接触点、动作缩放等差异。
 - CLI 先注册 LainLab 任务，再复用 mjlab 1.6 的训练和回放实现。
 
 ## 安装
@@ -77,15 +77,15 @@ uv run play LainLab-OpenDoge-Flat --agent random --num-envs 1
 uv run play LainLab-OpenDoge-Flat --checkpoint-file logs/.../model_1000.pt
 
 # 把 G1 CSV 动作转换为 mjlab 跟踪格式
-uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
+uv run csv-to-npz --input-file src/assets/motions/g1/dance1_subject2.csv \
   --output-name dance1-subject2 --robot g1
 ```
 
 ### 独立工作台
 
 ```bash
-# 在 LainLab 根目录启动（webui / lloco-webui 兼容入口仍可用）
-uv run --extra workbench lloco-workbench
+# 在 LainLab 根目录启动（webui / src-webui 兼容入口仍可用）
+uv run --extra workbench src-workbench
 ```
 
 浏览器打开 `http://127.0.0.1:7860`。工作台按固定顺序组织：
@@ -96,11 +96,11 @@ uv run --extra workbench lloco-workbench
 4. **训练**：设置迭代轮次、保存间隔、并行环境数；查看实时日志、停止任务，在内嵌 TensorBoard 中查看奖励和训练指标。
 5. **导出与验证**：浏览、选择、下载 checkpoint/ONNX，手动导出 ONNX，启动 CPU 单环境 Viser checkpoint 回放。
 
-工作台源码在 `src/lloco/workbench/`，不改变 `tasks/` 中的训练算法与环境。
+工作台源码在 `src/workbench/`，不改变 `tasks/` 中的训练算法与环境。
 查看器由 LainLab 自行实现：MuJoCo 解析模型，精简 Three.js 页面负责绘制；仅参考 `robot_viewer` 的功能思路，不复制其整套应用。查看器与 GMR 子集都在项目内运行。
 模型导入用于检查；训练仍使用已注册任务的机器人配置。GMR 当前限 LAFAN1 骨架和 G1 29-DoF，23-DoF 任务需使用对应 NPZ。Viser 当前回放 checkpoint，ONNX 是独立导出产物。
 
-动作集中在 `src/lloco/assets/motions/`。页面支持导入和选择文件，转换输出自动命名、入库，并选为训练动作。
+动作集中在 `src/assets/motions/`。页面支持导入和选择文件，转换输出自动命名、入库，并选为训练动作。
 
 前端开发、模块边界和验证说明见 [工作台文档](docs/workbench.md)。
 
@@ -135,7 +135,7 @@ make format
 make check
 ```
 
-机器人差异集中在 `src/lloco/tasks/robots/` 下的机器人包，通用 MDP 位于 `src/lloco/tasks/velocity/core.py`、`tracking/core.py` 等任务类型包。新增同类机器人时，通常在对应机器人包中增加 profile 和注册函数，无需复制整套 MDP。
+机器人差异集中在 `src/tasks/robots/` 下的机器人包，通用 MDP 位于 `src/tasks/velocity/core.py`、`tracking/core.py` 等任务类型包。新增同类机器人时，通常在对应机器人包中增加 profile 和注册函数，无需复制整套 MDP。
 
 ## 部署
 
@@ -153,7 +153,7 @@ make check
 
 The repository currently includes Unitree assets together with LainLab-owned OpenDoge as validated starting points. LainLab continues to add its own robot designs and assets from other vendors. Every new asset follows the same path—asset, profile/task, validation, and deployment adapter—while the framework layer remains vendor-neutral.
 
-> Note: the project is named **LainLab**; the Python distribution, module paths, and existing CLI entry points keep the `lloco` prefix for compatibility.
+> Note: the repository and project are named **LainLab**; the source root is `src/`, and Python package paths use the `src.*` namespace.
 
 ### Name and intent
 
@@ -176,7 +176,7 @@ LainLab turns robot onboarding into a repeatable product path: assets have clear
 
 ```text
 LainLab/
-├── src/lloco/
+├── src/
 │   ├── assets/          # Per-robot MJCF files, meshes, and example motions
 │   ├── tasks/
 │   │   ├── velocity/    # Shared velocity-tracking MDP
@@ -192,8 +192,8 @@ LainLab/
 Layering principles:
 
 - `mjlab` provides simulation, managers, common MDPs, runners, and viewers.
-- `lloco.assets` owns project-specific robot descriptions.
-- `lloco.tasks` expresses only task differences such as robot names, contacts, and action scales.
+- `src.assets` owns project-specific robot descriptions.
+- `src.tasks` expresses only task differences such as robot names, contacts, and action scales.
 - The CLI registers LainLab tasks before reusing mjlab 1.6 training and playback.
 
 ## Installation
@@ -226,7 +226,7 @@ uv run play LainLab-OpenDoge-Flat --agent random --num-envs 1
 uv run play LainLab-OpenDoge-Flat --checkpoint-file logs/.../model_1000.pt
 
 # Convert a G1 CSV motion into mjlab tracking format
-uv run csv-to-npz --input-file src/lloco/assets/motions/g1/dance1_subject2.csv \
+uv run csv-to-npz --input-file src/assets/motions/g1/dance1_subject2.csv \
   --output-name dance1-subject2 --robot g1
 ```
 
@@ -249,7 +249,7 @@ make format
 make check
 ```
 
-Robot differences are centralized under `src/lloco/tasks/robots/`. Shared MDPs live in task-type packages such as `velocity/core.py` and `tracking/core.py`. Adding a similar robot typically consists of a profile and registration in its robot package, without copying the shared MDP implementation.
+Robot differences are centralized under `src/tasks/robots/`. Shared MDPs live in task-type packages such as `velocity/core.py` and `tracking/core.py`. Adding a similar robot typically consists of a profile and registration in its robot package, without copying the shared MDP implementation.
 
 ## Deployment
 

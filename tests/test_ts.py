@@ -2,12 +2,11 @@
 
 from typing import Any, cast
 
+import src.tasks  # noqa: F401
 import torch
 from mjlab.envs import ManagerBasedRlEnv
 from mjlab.tasks.registry import load_env_cfg, load_rl_cfg
-
-import lloco.tasks  # noqa: F401
-from lloco.tasks.robots.go2.skills.ts.rl import TsTeacherPolicy
+from src.tasks.robots.go2.skills.ts.rl import TsTeacherPolicy
 
 
 def test_ts_source_contract() -> None:

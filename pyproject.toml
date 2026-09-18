@@ -3,7 +3,7 @@ requires = ["uv_build>=0.12.1,<0.13.0"]
 build-backend = "uv_build"
 
 [project]
-name = "lloco"
+name = "src"
 version = "0.1.0"
 description = "LainLab: multi-vendor robot learning, simulation validation, and deployment tools for mjlab 1.6"
 readme = "README.md"
@@ -17,17 +17,17 @@ dependencies = ["mjlab==1.6.0"]
 Repository = "https://github.com/Lain-Ego0/LainLab"
 
 [project.scripts]
-train = "lloco.cli:train"
-play = "lloco.cli:play"
-list-envs = "lloco.cli:list_envs"
-lloco-train = "lloco.cli:train"
-lloco-play = "lloco.cli:play"
-lloco-list-envs = "lloco.cli:list_envs"
-csv-to-npz = "lloco.cli:csv_to_npz"
-gmr-to-npz = "lloco.cli:gmr_to_npz"
-webui = "lloco.webui:main"
-lloco-webui = "lloco.webui:main"
-lloco-workbench = "lloco.workbench.server:main"
+train = "src.cli:train"
+play = "src.cli:play"
+list-envs = "src.cli:list_envs"
+src-train = "src.cli:train"
+src-play = "src.cli:play"
+src-list-envs = "src.cli:list_envs"
+csv-to-npz = "src.cli:csv_to_npz"
+gmr-to-npz = "src.cli:gmr_to_npz"
+webui = "src.webui:main"
+src-webui = "src.webui:main"
+src-workbench = "src.workbench.server:main"
 
 [dependency-groups]
 dev = [
@@ -84,5 +84,7 @@ stubPath = "typings"
 testpaths = ["tests"]
 
 [tool.uv.build-backend]
-source-exclude = ["src/lloco/workbench/viewer/node_modules/**"]
-wheel-exclude = ["lloco/workbench/viewer/node_modules/**"]
+module-root = "."
+module-name = "src"
+source-exclude = ["src/workbench/viewer/node_modules/**"]
+wheel-exclude = ["src/workbench/viewer/node_modules/**"]

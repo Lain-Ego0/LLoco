@@ -5,8 +5,7 @@ from pathlib import Path
 
 import pytest
 from mjlab.entity import Entity, EntityCfg
-
-from lloco.assets.robots import (
+from src.assets.robots import (
   get_a2_robot_cfg,
   get_as2_robot_cfg,
   get_g1_23dof_robot_cfg,
@@ -17,7 +16,7 @@ from lloco.assets.robots import (
   get_opendoge_robot_cfg,
   get_r1_robot_cfg,
 )
-from lloco.motion_conversion import (
+from src.motion_conversion import (
   G1_23DOF_JOINT_NAMES,
   G1_JOINT_NAMES,
   resolve_output_path,

@@ -2,10 +2,9 @@
 
 from importlib.metadata import version
 
+import src.tasks  # noqa: F401
 from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.tasks.registry import list_tasks, load_env_cfg
-
-import lloco.tasks  # noqa: F401
 
 ROBOT_TERRAINS = {
   **{

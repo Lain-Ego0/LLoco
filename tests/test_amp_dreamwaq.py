@@ -2,12 +2,11 @@
 
 from typing import Any, cast
 
+import src.tasks  # noqa: F401
 import torch
 from mjlab.tasks.registry import load_env_cfg, load_rl_cfg
-
-import lloco.tasks  # noqa: F401
-from lloco.tasks.robots.go2.skills.amp_dreamwaq.motion import Go2AmpMotionLoader
-from lloco.tasks.robots.go2.skills.amp_dreamwaq.rl import (
+from src.tasks.robots.go2.skills.amp_dreamwaq.motion import Go2AmpMotionLoader
+from src.tasks.robots.go2.skills.amp_dreamwaq.rl import (
   _AmpReplayBuffer,
   _RunningMeanStd,
 )

@@ -1,18 +1,18 @@
 # LainLab 独立工作台
 
-工作台位于 `src/lloco/workbench/`。主训练包 `lloco.tasks` 和原有 train/play CLI 保持独立；HTTP 服务不导入 torch、mjlab 或训练环境，耗时工作全部在子进程中运行。
+工作台位于 `src/workbench/`。主训练包 `src.tasks` 和原有 train/play CLI 保持独立；HTTP 服务不导入 torch、mjlab 或训练环境，耗时工作全部在子进程中运行。
 
 ## 启动
 
 ```bash
 cd /path/to/LainLab
-uv run --extra workbench lloco-workbench
+uv run --extra workbench src-workbench
 # 或指定项目、端口，不自动打开浏览器
-uv run --extra workbench lloco-workbench --project /path/to/LainLab --port 7861 --no-browser
+uv run --extra workbench src-workbench --project /path/to/LainLab --port 7861 --no-browser
 ```
 
-`webui`、`lloco-webui` 和 `python -m lloco.webui` 指向同一新工作台。
-页面状态保存在浏览器 localStorage；任务信息和日志位于被 git 忽略的 `.lloco-workbench/`。
+`webui`、`src-webui` 和 `python -m src.webui` 指向同一新工作台。
+页面状态保存在浏览器 localStorage；任务信息和日志位于被 git 忽略的 `.src-workbench/`。
 训练写入 `logs/workbench/`，与原有训练输出分开。运行任务可查看日志、停止；退出服务时停止其子进程。重启保留历史状态，不自动恢复训练。
 
 ## 五步流程
@@ -45,7 +45,7 @@ GMR 第三方归属见 `gmr/NOTICE.md`、`gmr/LICENSE` 及 LAFAN loader 许可�
 已包含构建产物，首次启动无需 Node.js。修改查看器后重建：
 
 ```bash
-cd src/lloco/workbench/viewer
+cd src/workbench/viewer
 npm ci
 npm run build
 ```
@@ -69,7 +69,7 @@ Tracking 页面从统一资产库选择 BVH / PKL 输入，点击开始后自动
 - PKL：只显示 G1；已有 GMR PKL 不包含原始人体骨架。
 - 支持播放 / 暂停、时间轴定位、0.25× / 0.5× / 1× / 2× 速度。“固定根位置”便于原地对比，关闭后显示根位置移动。
 - 预览保留 GMR 求解后的 qpos，以约 15 Hz 抽样传输，按源动作时间回放；训练 NPZ 仍按原转换流程生成 50 Hz 数据。预览用于检查运动姿态，不是训练策略回放，也不是重定向误差评测。
-- 每个任务的进度和预览位于 `.lloco-workbench/previews/<任务ID>/`。任务列表的“动作预览”可重新打开结果；页面的“查看上次预览”记住最近选择。停止或失败后可查看已生成部分，界面明确显示状态。旧版本任务若没有保存预览，需要重新运行。
+- 每个任务的进度和预览位于 `.src-workbench/previews/<任务ID>/`。任务列表的“动作预览”可重新打开结果；页面的“查看上次预览”记住最近选择。停止或失败后可查看已生成部分，界面明确显示状态。旧版本任务若没有保存预览，需要重新运行。
 
 前端采用紧凑的浅色工具界面，主工作台与模型/动作查看器使用一致的表单和边框样式。
 
@@ -77,7 +77,7 @@ Tracking 页面从统一资产库选择 BVH / PKL 输入，点击开始后自动
 
 ## 统一动作资产库
 
-工作台只从 `src/lloco/assets/motions/` 枚举动作。重定向输入和训练 NPZ 均使用下拉选择，不再填写路径；“浏览资产库”可按文件直接选择用途，“导入动作文件”将本机 BVH / PKL / CSV / NPZ / TXT 复制入库。
+工作台只从 `src/assets/motions/` 枚举动作。重定向输入和训练 NPZ 均使用下拉选择，不再填写路径；“浏览资产库”可按文件直接选择用途，“导入动作文件”将本机 BVH / PKL / CSV / NPZ / TXT 复制入库。
 
 | 子目录 | 内容 |
 | --- | --- |

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 pytest.importorskip("mujoco")
-from lloco.workbench.models import Models
+from src.workbench.models import Models
 
 URDF = b"""<robot name="inspection">
 <link name="base"><visual><geometry><box size=".3 .2 .1"/></geometry></visual></link>
@@ -58,7 +58,7 @@ def test_mjcf_include_and_inertia(tmp_path):
 def test_builtin_go2_meshes():
   root = Path(__file__).resolve().parents[1]
   model = Models().load(
-    root, dict(path="src/lloco/assets/robots/unitree_go2/xmls/scene_go2.xml")
+    root, dict(path="src/assets/robots/unitree_go2/xmls/scene_go2.xml")
   )
   assert len(model["joints"]) == 12
   assert model["meshes"]
