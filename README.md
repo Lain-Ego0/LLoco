@@ -36,8 +36,7 @@ LainLab/
 │   │   └── robots/      # 机器人组成、profile 与任务注册
 │   └── cli.py           # train / play / list-envs 入口
 ├── tests/               # LainLab 自身的兼容性测试
-├── deploy/              # 实机部署源码（不提交模型和预编译运行库）
-└── simulate/            # unitree_mujoco 桥接源码
+└── deploy/              # 实机部署源码（不提交模型和预编译运行库）
 ```
 
 分层原则：
@@ -139,7 +138,7 @@ make check
 
 ## 部署
 
-`deploy/` 与 `simulate/` 保留参考项目中的源码，但不再内置 ONNX Runtime、MuJoCo 二进制或训练好的策略。请按 [deploy/README.md](deploy/README.md) 配置系统依赖并把导出的策略放到对应机器人目录。
+`deploy/` 保留参考项目中的源码，但不再内置 ONNX Runtime、MuJoCo 二进制或训练好的策略。请按 [deploy/README.md](deploy/README.md) 配置系统依赖并把导出的策略放到对应机器人目录。
 
 ## 上游与许可
 
@@ -185,8 +184,7 @@ LainLab/
 │   │   └── robots/      # Robot composition, profiles, and registration
 │   └── cli.py           # train / play / list-envs entry points
 ├── tests/               # LainLab compatibility tests
-├── deploy/              # Real-robot deployment source (no models or bundled runtimes)
-└── simulate/            # unitree_mujoco bridge source
+└── deploy/              # Real-robot deployment source (no models or bundled runtimes)
 ```
 
 Layering principles:
@@ -253,7 +251,7 @@ Robot differences are centralized under `src/tasks/robots/`. Shared MDPs live in
 
 ## Deployment
 
-`deploy/` and `simulate/` retain source from the reference projects but do not bundle ONNX Runtime, MuJoCo binaries, or trained policies. Follow [deploy/README.md](deploy/README.md) to configure system dependencies, then place exported policies in the corresponding robot directory.
+`deploy/` retains source from the reference projects but does not bundle ONNX Runtime, MuJoCo binaries, or trained policies. Follow [deploy/README.md](deploy/README.md) to configure system dependencies, then place exported policies in the corresponding robot directory.
 
 ## Upstream and license
 
