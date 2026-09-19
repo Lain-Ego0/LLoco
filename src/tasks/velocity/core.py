@@ -5,8 +5,9 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from typing import Literal
 
+import torch
 from mjlab.entity import EntityCfg
-from mjlab.envs import ManagerBasedRlEnvCfg
+from mjlab.envs import ManagerBasedRlEnv, ManagerBasedRlEnvCfg
 from mjlab.envs import mdp as envs_mdp
 from mjlab.envs.mdp.actions import JointPositionActionCfg
 from mjlab.managers.event_manager import EventTermCfg
@@ -74,6 +75,7 @@ class SubTerrainOverrideCfg:
   step_height_range: tuple[float, float] | None = None
   step_width: float | None = None
   noise_range: tuple[float, float] | None = None
+  scale_with_difficulty: bool | None = None
   slope_range: tuple[float, float] | None = None
   amplitude_range: tuple[float, float] | None = None
 
@@ -85,6 +87,9 @@ class RoughTerrainOverrides:
   max_init_terrain_level: int | None = None
   generator_size: tuple[float, float] | None = None
   generator_border_width: float | None = None
+  generator_difficulty_range: tuple[float, float] | None = None
+  max_level_stages: tuple[tuple[int, int], ...] = ()
+  promotion_distance_scale: float | None = None
   sub_terrains: Mapping[str, SubTerrainOverrideCfg] = field(default_factory=dict)
 
 
@@ -426,6 +431,8 @@ def _apply_play_overrides(
   play: bool,
   *,
   command_ranges: CommandRanges | None = None,
+  fixed_terrain_level: int | None = None,
+  fixed_terrain_type: int | None = None,
 ) -> None:
   if not play:
     return
@@ -434,16 +441,27 @@ def _apply_play_overrides(
   cfg.events.pop("push_robot", None)
   cfg.terminations.pop("out_of_terrain_bounds", None)
   cfg.curriculum = {}
-  cfg.events["randomize_terrain"] = EventTermCfg(
-    func=envs_mdp.randomize_terrain,
-    mode="reset",
-    params={},
-  )
+  if fixed_terrain_level is None:
+    cfg.events["randomize_terrain"] = EventTermCfg(
+      func=envs_mdp.randomize_terrain,
+      mode="reset",
+      params={},
+    )
+  else:
+    cfg.events["randomize_terrain"] = EventTermCfg(
+      func=set_terrain_level,
+      mode="reset",
+      params={
+        "fixed_level": fixed_terrain_level,
+        "fixed_type": fixed_terrain_type,
+      },
+    )
   if cfg.scene.terrain is not None and cfg.scene.terrain.terrain_generator is not None:
     terrain = cfg.scene.terrain.terrain_generator
-    terrain.curriculum = False
-    terrain.num_cols = 5
-    terrain.num_rows = 5
+    terrain.curriculum = fixed_terrain_level is not None
+    if fixed_terrain_level is None:
+      terrain.num_cols = 5
+      terrain.num_rows = 5
     terrain.border_width = 10.0
   if command_ranges is not None:
     command = cfg.commands["twist"]
@@ -459,6 +477,7 @@ def _sub_terrain_patch(patch: SubTerrainOverrideCfg) -> dict[str, object]:
     "step_height_range",
     "step_width",
     "noise_range",
+    "scale_with_difficulty",
     "slope_range",
     "amplitude_range",
   ):
@@ -466,6 +485,97 @@ def _sub_terrain_patch(patch: SubTerrainOverrideCfg) -> dict[str, object]:
     if value is not None:
       values[name] = value
   return values
+
+
+def set_terrain_level(
+  env: ManagerBasedRlEnv,
+  env_ids: torch.Tensor | None,
+  fixed_level: int,
+  fixed_type: int | None = None,
+) -> None:
+  """Place reset environments on one curriculum row for deterministic playback."""
+  if env_ids is None:
+    env_ids = torch.arange(env.num_envs, device=env.device)
+  terrain = env.scene.terrain
+  if terrain is None or terrain.terrain_origins is None:
+    return
+  level = min(max(fixed_level, 0), terrain.terrain_origins.shape[0] - 1)
+  if fixed_type is not None:
+    fixed_type = min(max(fixed_type, 0), terrain.terrain_origins.shape[1] - 1)
+    terrain.terrain_types[env_ids] = fixed_type
+  terrain.terrain_levels[env_ids] = level
+  terrain.env_origins[env_ids] = terrain.terrain_origins[
+    terrain.terrain_levels[env_ids], terrain.terrain_types[env_ids]
+  ]
+
+
+def _max_terrain_level_for_step(
+  common_step_counter: int,
+  max_level_stages: tuple[tuple[int, int], ...],
+) -> int | None:
+  max_level = None
+  for step, level in max_level_stages:
+    if common_step_counter >= step:
+      max_level = level
+  return max_level
+
+
+def terrain_levels_vel_limited(
+  env: ManagerBasedRlEnv,
+  env_ids: torch.Tensor,
+  command_name: str,
+  *,
+  max_level_stages: tuple[tuple[int, int], ...] = (),
+  promotion_distance_scale: float = 1.0,
+) -> dict[str, torch.Tensor]:
+  """Advance terrain levels while optionally limiting the maximum level."""
+  asset = env.scene["robot"]
+  terrain = env.scene.terrain
+  assert terrain is not None
+  terrain_generator = terrain.cfg.terrain_generator
+  assert terrain_generator is not None
+  command = env.command_manager.get_command(command_name)
+  assert command is not None
+
+  distance = torch.norm(
+    asset.data.root_link_pos_w[env_ids, :2] - env.scene.env_origins[env_ids, :2],
+    dim=1,
+  )
+  move_up = distance > (terrain_generator.size[0] / 2.0 * promotion_distance_scale)
+  move_down = (
+    distance < torch.norm(command[env_ids, :2], dim=1) * env.max_episode_length_s * 0.5
+  )
+  move_down *= ~move_up
+
+  # On the initial reset the robot has not walked anywhere yet.
+  if env.common_step_counter == 0:
+    move_up = torch.zeros_like(move_up)
+    move_down = torch.zeros_like(move_down)
+
+  max_level = _max_terrain_level_for_step(env.common_step_counter, max_level_stages)
+  if max_level is not None:
+    move_up &= terrain.terrain_levels[env_ids] < max_level
+
+  terrain.update_env_origins(env_ids, move_up, move_down)
+
+  levels = terrain.terrain_levels.float()
+  result: dict[str, torch.Tensor] = {
+    "mean": torch.mean(levels),
+    "max": torch.max(levels),
+  }
+
+  sub_terrain_names = list(terrain_generator.sub_terrains.keys())
+  terrain_origins = terrain.terrain_origins
+  assert terrain_origins is not None
+  num_cols = terrain_origins.shape[1]
+  if num_cols == len(sub_terrain_names):
+    types = terrain.terrain_types
+    for i, name in enumerate(sub_terrain_names):
+      mask = types == i
+      if mask.any():
+        result[name] = torch.mean(levels[mask])
+
+  return result
 
 
 def _apply_rough_terrain_overrides(
@@ -482,6 +592,18 @@ def _apply_rough_terrain_overrides(
     generator.size = overrides.generator_size
   if overrides.generator_border_width is not None:
     generator.border_width = overrides.generator_border_width
+  if overrides.generator_difficulty_range is not None:
+    generator.difficulty_range = overrides.generator_difficulty_range
+
+  if overrides.max_level_stages or overrides.promotion_distance_scale is not None:
+    term = cfg.curriculum.get("terrain_levels")
+    if term is None:
+      raise ValueError("Terrain level curriculum is not configured")
+    term.func = terrain_levels_vel_limited
+    term.params = dict(term.params or {})
+    term.params["max_level_stages"] = overrides.max_level_stages
+    if overrides.promotion_distance_scale is not None:
+      term.params["promotion_distance_scale"] = overrides.promotion_distance_scale
 
   for name, patch in overrides.sub_terrains.items():
     if name not in generator.sub_terrains:
@@ -554,6 +676,24 @@ def make_rough_env_cfg(
     cfg,
     play,
     command_ranges=selected_scaling.play_command_ranges,
+    fixed_terrain_level=(
+      cfg.scene.terrain.terrain_generator.num_rows - 1
+      if rough is not None
+      and rough.terrain is not None
+      and cfg.scene.terrain is not None
+      and cfg.scene.terrain.terrain_generator is not None
+      and rough.terrain.max_level_stages
+      else None
+    ),
+    fixed_terrain_type=(
+      list(cfg.scene.terrain.terrain_generator.sub_terrains).index("hf_pyramid_slope")
+      if rough is not None
+      and rough.terrain is not None
+      and cfg.scene.terrain is not None
+      and cfg.scene.terrain.terrain_generator is not None
+      and "hf_pyramid_slope" in cfg.scene.terrain.terrain_generator.sub_terrains
+      else None
+    ),
   )
   return cfg
 

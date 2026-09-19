@@ -54,7 +54,7 @@ OPENDOGE_FLAT_SCALING = VelocityScaling(
 
 OPENDOGE_ROUGH_SCALING = replace(
   OPENDOGE_FLAT_SCALING,
-  max_iterations=15_000,
+  max_iterations=10_000,
   clearance_target_height=0.06,
   reset_height_range=(0.004, 0.02),
   command_ranges=((-0.5, 0.6), (-0.4, 0.4), (-0.6, 0.6)),
@@ -88,26 +88,31 @@ OPENDOGE_ROUGH_VARIANT = RoughVariantCfg(
     max_init_terrain_level=2,
     generator_size=(6.0, 6.0),
     generator_border_width=10.0,
+    generator_difficulty_range=(0.0, 1.0),
+    # common_step_counter advances by 24 per PPO iteration.
+    max_level_stages=((0, 3), (72_000, 5), (144_000, 7), (216_000, 9)),
+    promotion_distance_scale=1.0,
     sub_terrains={
       "pyramid_stairs": SubTerrainOverrideCfg(
-        step_height_range=(0.0, 0.04),
+        step_height_range=(0.0, 0.10),
         step_width=0.22,
       ),
       "pyramid_stairs_inv": SubTerrainOverrideCfg(
-        step_height_range=(0.0, 0.04),
+        step_height_range=(0.0, 0.10),
         step_width=0.22,
       ),
       "random_rough": SubTerrainOverrideCfg(
-        noise_range=(0.005, 0.025),
+        noise_range=(0.02, 0.10),
+        scale_with_difficulty=True,
       ),
       "hf_pyramid_slope": SubTerrainOverrideCfg(
-        slope_range=(0.0, 0.45),
+        slope_range=(0.0, 1.00),
       ),
       "hf_pyramid_slope_inv": SubTerrainOverrideCfg(
-        slope_range=(0.0, 0.45),
+        slope_range=(0.0, 1.00),
       ),
       "wave_terrain": SubTerrainOverrideCfg(
-        amplitude_range=(0.0, 0.08),
+        amplitude_range=(0.0, 0.20),
       ),
     },
   ),

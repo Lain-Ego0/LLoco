@@ -44,7 +44,7 @@ def test_rough_variant_drives_runner_and_play_config() -> None:
   flat_rl = load_rl_cfg("LainLab-OpenDoge-Flat")
   rough_rl = load_rl_cfg("LainLab-OpenDoge-Rough")
   assert flat_rl.max_iterations == 9_000
-  assert rough_rl.max_iterations == 15_000
+  assert rough_rl.max_iterations == 10_000
 
   play_cfg = load_env_cfg("LainLab-OpenDoge-Rough", play=True)
   command = play_cfg.commands["twist"]
@@ -52,6 +52,15 @@ def test_rough_variant_drives_runner_and_play_config() -> None:
   assert command.ranges.lin_vel_x == (-0.6, 0.8)
   assert command.ranges.lin_vel_y == (-0.4, 0.4)
   assert command.ranges.ang_vel_z == (-0.7, 0.7)
+  terrain = play_cfg.scene.terrain
+  assert terrain is not None
+  assert terrain.max_init_terrain_level == 2
+  generator = terrain.terrain_generator
+  assert generator is not None
+  assert generator.curriculum is True
+  assert generator.num_rows == 10
+  assert play_cfg.events["randomize_terrain"].func.__name__ == "set_terrain_level"
+  assert play_cfg.events["randomize_terrain"].params["fixed_level"] == 9
 
 
 def test_rough_override_types_exclude_high_level_config_sections() -> None:

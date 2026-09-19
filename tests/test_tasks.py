@@ -76,21 +76,33 @@ def test_opendoge_rough_overrides() -> None:
   assert generator.num_rows == 10
   assert generator.num_cols == 20
   assert generator.curriculum is True
+  assert generator.difficulty_range == (0.0, 1.0)
   assert terrain.max_init_terrain_level == 2
   pyramid_stairs = cast(Any, generator.sub_terrains["pyramid_stairs"])
-  assert pyramid_stairs.step_height_range == (0.0, 0.04)
+  assert pyramid_stairs.step_height_range == (0.0, 0.10)
   assert pyramid_stairs.step_width == 0.22
   pyramid_stairs_inv = cast(Any, generator.sub_terrains["pyramid_stairs_inv"])
-  assert pyramid_stairs_inv.step_height_range == (0.0, 0.04)
+  assert pyramid_stairs_inv.step_height_range == (0.0, 0.10)
   assert pyramid_stairs_inv.step_width == 0.22
   random_rough = cast(Any, generator.sub_terrains["random_rough"])
-  assert random_rough.noise_range == (0.005, 0.025)
+  assert random_rough.noise_range == (0.02, 0.10)
+  assert random_rough.scale_with_difficulty is True
   slope = cast(Any, generator.sub_terrains["hf_pyramid_slope"])
-  assert slope.slope_range == (0.0, 0.45)
+  assert slope.slope_range == (0.0, 1.00)
   slope_inv = cast(Any, generator.sub_terrains["hf_pyramid_slope_inv"])
-  assert slope_inv.slope_range == (0.0, 0.45)
+  assert slope_inv.slope_range == (0.0, 1.00)
   wave = cast(Any, generator.sub_terrains["wave_terrain"])
-  assert wave.amplitude_range == (0.0, 0.08)
+  assert wave.amplitude_range == (0.0, 0.20)
+
+  terrain_levels = cfg.curriculum["terrain_levels"]
+  assert terrain_levels.func.__name__ == "terrain_levels_vel_limited"
+  assert terrain_levels.params["max_level_stages"] == (
+    (0, 3),
+    (72_000, 5),
+    (144_000, 7),
+    (216_000, 9),
+  )
+  assert terrain_levels.params["promotion_distance_scale"] == 1.0
 
   terrain_scan = next(
     sensor for sensor in (cfg.scene.sensors or ()) if sensor.name == "terrain_scan"

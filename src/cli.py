@@ -16,9 +16,12 @@ def train() -> None:
 def play() -> None:
   """Evaluate an LainLab or built-in mjlab task."""
   _register_tasks()
-  from mjlab.scripts.play import main
+  from mjlab.scripts import play as mjlab_play
 
-  main()
+  from src.viewer import TerrainLevelViserPlayViewer
+
+  mjlab_play.ViserPlayViewer = TerrainLevelViserPlayViewer  # pyright: ignore[reportPrivateImportUsage]
+  mjlab_play.main()
 
 
 def list_envs() -> None:
