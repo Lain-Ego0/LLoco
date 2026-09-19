@@ -69,6 +69,10 @@ uv run list-envs
 # 训练 OpenDoge（自研机器人归入 LainLab 分类）
 uv run train LainLab-OpenDoge-Flat --env.scene.num-envs 4096
 
+# 直接播放内置 baseline
+uv run baseline-play opendoge flat --device cuda:0 --num-envs 1
+uv run baseline-play opendoge rough --device cuda:0 --num-envs 1 --no-terminations True
+
 # 用随机动作做配置冒烟测试
 uv run play LainLab-OpenDoge-Flat --agent random --num-envs 1
 
@@ -216,6 +220,10 @@ uv run list-envs
 
 # Train OpenDoge (in-house robots use the LainLab group)
 uv run train LainLab-OpenDoge-Flat --env.scene.num-envs 4096
+
+# Play a bundled baseline directly in Viser
+uv run baseline-play opendoge flat --device cuda:0 --num-envs 1
+uv run baseline-play opendoge rough --device cuda:0 --num-envs 1 --no-terminations True
 
 # Run a random-action configuration smoke test
 uv run play LainLab-OpenDoge-Flat --agent random --num-envs 1

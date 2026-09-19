@@ -40,3 +40,7 @@ Makefile.user
 # Independent workbench runtime and frontend dependencies
 .src-workbench/
 node_modules/
+
+# Versioned baseline policies
+!baseline/
+!baseline/**

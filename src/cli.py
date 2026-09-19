@@ -24,6 +24,42 @@ def play() -> None:
   mjlab_play.main()
 
 
+def play_baseline() -> None:
+  """Play a versioned baseline policy directly in Viser.
+
+  Usage: baseline-play <robot> <terrain> [mjlab play options...]
+  """
+  import sys
+
+  from src.baselines import resolve_baseline
+
+  args = sys.argv[1:]
+  if len(args) < 2 or args[0] in ("-h", "--help"):
+    print("usage: baseline-play <robot> <terrain> [play options...]")
+    return
+
+  robot, terrain = args[0], args[1]
+  play_args = list(args[2:])
+  baseline = resolve_baseline(robot, terrain)
+
+  _register_tasks()
+  from mjlab.scripts import play as mjlab_play
+
+  from src.viewer import TerrainLevelViserPlayViewer
+
+  mjlab_play.ViserPlayViewer = TerrainLevelViserPlayViewer  # pyright: ignore[reportPrivateImportUsage]
+  if not any(arg == "--viewer" or arg.startswith("--viewer=") for arg in play_args):
+    play_args = ["--viewer", "viser", *play_args]
+  sys.argv = [
+    sys.argv[0],
+    baseline.task_id,
+    "--checkpoint-file",
+    str(baseline.checkpoint),
+    *play_args,
+  ]
+  mjlab_play.main()
+
+
 def list_envs() -> None:
   """List all registered LainLab and built-in mjlab tasks."""
   _register_tasks()
